@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Branch, Trunk } from "../types/User";
 import { HiTrash } from "react-icons/hi";
-import { deleteBranch } from "../lib/branchApi/route";
 import { updateTrunkVisibility } from "../lib/trunkApi/route";
 
 interface TrunkModalProps {
@@ -26,19 +25,29 @@ export default function TrunkModal({
       "Are you sure you want to delete this song?"
     );
     if (!confirmDelete) return;
-
+  
     const oldBranches = [...branches];
     setBranches(branches.filter((b) => b.id !== branchId));
-
+  
     try {
-      await deleteBranch(branchId);
-      window.location.reload();
+      const res = await fetch(`/api/branches?branchId=${branchId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+  
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to delete branch");
+      }
+  
+      // Optionally, no need to reload the page anymore
+      // window.location.reload();
     } catch (err) {
       console.error(err);
       alert("Failed to delete song. Reverting...");
       setBranches(oldBranches);
     }
   };
+  
 
   const togglePublic = async () => {
     if (toggling) return;

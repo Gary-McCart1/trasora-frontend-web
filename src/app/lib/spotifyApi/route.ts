@@ -1,47 +1,40 @@
-// app/api/spotifyApi.ts
+import { NextRequest, NextResponse } from "next/server";
 import { Track } from "@/app/types/spotify";
 import { RootSongInput } from "../../components/RootsSearchBar";
-import { User } from "@/app/types/User";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-/** Fetch Spotify token for the current logged-in user (for Web Playback SDK) */
-export async function fetchSpotifyToken(): Promise<string | null> {
+// GET /api/spotify/token
+export async function FETCH_SPOTIFY_TOKEN() {
   try {
     const res = await fetch(`${BASE_URL}/api/spotify/token`, {
-      method: "GET",
       credentials: "include",
     });
     if (!res.ok) throw new Error(`Failed to get token: ${res.status}`);
     const data = await res.json();
-    console.log("Spotify token data:", data);
-    return data.accessToken || null;
+    return NextResponse.json({ accessToken: data.accessToken || null });
   } catch (err) {
-    console.error("Error fetching Spotify token:", err);
-    return null;
+    const message = err instanceof Error ? err.message : "Failed to fetch Spotify token";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-export async function searchSpotifyTracks(
-  query: string,
-  username: string
-): Promise<RootSongInput[]> {
-  if (!query.trim()) return [];
-  if (!username) return [];
+// GET /api/spotify/search?q=QUERY
+export async function SEARCH_SPOTIFY(req: NextRequest) {
+  const url = new URL(req.url);
+  const query = url.searchParams.get("q") || "";
+  const username = req.headers.get("Username") || ""; // <-- get headers from req
+
+  if (!query.trim() || !username) {
+    return NextResponse.json([], { status: 200 });
+  }
 
   try {
-    const res = await fetch(
-      `${BASE_URL}/api/spotify/search?q=${encodeURIComponent(query)}`,
-      {
-        headers: {
-          Username: username,
-        },
-        credentials: "include",
-      }
-    );
-
+    const res = await fetch(`${BASE_URL}/api/spotify/search?q=${encodeURIComponent(query)}`, {
+      headers: { Username: username },
+      credentials: "include",
+    });
     if (!res.ok) throw new Error(`Backend search error: ${res.status}`);
-
     const data = await res.json();
 
     const mappedTracks: RootSongInput[] = (data.tracks?.items || [])
@@ -53,151 +46,67 @@ export async function searchSpotifyTracks(
         trackId: t.id,
       }));
 
-    return mappedTracks;
+    return NextResponse.json(mappedTracks);
   } catch (err) {
-    console.error("Spotify search error:", err);
-    return [];
+    const message = err instanceof Error ? err.message : "Spotify search failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-// Keep all the other functions the same...
-export interface SpotifyTrack {
-  id: string;
-  name: string;
-  artists: { name: string }[];
-  album: { images: { url: string }[] };
-}
 
-export interface UserSearchResult {
-  username: string;
-  profilePictureUrl?: string;
-}
-
-export interface SearchResults {
-  tracks: SpotifyTrack[];
-  artists: SpotifyTrack[];
-  users: UserSearchResult[];
-}
-
-export async function searchAll(
-  query: string,
-  username: string
-): Promise<SearchResults> {
-  if (!query.trim() || !username) return { tracks: [], artists: [], users: [] };
-
+// POST /api/spotify/trunk-playlist/:trunkId
+export async function SEND_TRUNK_TO_SPOTIFY(req: NextRequest, { params }: { params: { trunkId: string } }) {
   try {
-    const [spotRes, userRes] = await Promise.all([
-      fetch(`${BASE_URL}/api/spotify/search?q=${encodeURIComponent(query)}`, {
-        headers: { Username: username },
-        credentials: "include",
-      }),
-      fetch(`${BASE_URL}/api/auth/search-bar?q=${encodeURIComponent(query)}`, {
-        credentials: "include",
-      }),
-    ]);
-
-    if (!spotRes.ok) throw new Error(`Spotify API error: ${spotRes.status}`);
-    if (!userRes.ok) throw new Error(`User API error: ${userRes.status}`);
-
-    const spotifyData = await spotRes.json();
-    const userData = await userRes.json();
-
-    const mappedUsers = (userData.users?.slice(0, 5) || []).map(
-      (u: User, index: number) => ({
-        id: u.id ?? index,
-        username: u.username,
-        profilePictureUrl: u.profilePictureUrl ?? null,
-      })
-    );
-
-    return {
-      tracks: spotifyData.tracks?.items.slice(0, 5) || [],
-      artists: spotifyData.artists?.items.slice(0, 5) || [],
-      users: mappedUsers,
-    };
-  } catch (err) {
-    console.error("Search API error:", err);
-    return { tracks: [], artists: [], users: [] };
-  }
-}
-
-export async function searchSpotifyTracksRaw(
-  query: string,
-  username: string
-): Promise<Track[]> {
-  if (!query.trim() || !username) return [];
-
-  try {
-    const res = await fetch(
-      `${BASE_URL}/api/spotify/search?q=${encodeURIComponent(query)}`,
-      {
-        headers: { Username: username },
-        credentials: "include",
-      }
-    );
-
-    if (!res.ok) throw new Error(`Backend search error: ${res.status}`);
-    const data = await res.json();
-
-    return data.tracks?.items || [];
-  } catch (err) {
-    console.error("Spotify raw search error:", err);
-    return [];
-  }
-}
-
-// Send a trunk to Spotify as a playlist
-export async function sendTrunkToSpotify(trunkId: number): Promise<string> {
-  const res = await fetch(`${BASE_URL}/api/spotify/trunk-playlist/${trunkId}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || "Failed to create Spotify playlist");
-  }
-
-  const data = await res.json();
-  return data.playlistUrl;
-}
-
-export async function getSpotifyTrackById(
-  trackId: string,
-  username: string
-): Promise<Track | null> {
-  try {
-    const res = await fetch(`${BASE_URL}/api/spotify/tracks/${trackId}`, {
+    const res = await fetch(`${BASE_URL}/api/spotify/trunk-playlist/${params.trunkId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Username: username,
-      },
     });
 
-    if (!res.ok) throw new Error("Failed to fetch track from backend");
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || "Failed to create Spotify playlist");
+    }
 
+    const data = await res.json();
+    return NextResponse.json({ playlistUrl: data.playlistUrl });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to send trunk to Spotify";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+// GET /api/spotify/tracks/:trackId
+export async function GET_SPOTIFY_TRACK(req: NextRequest, { params }: { params: { trackId: string } }) {
+  const username = req.headers.get("Username") || "";
+  try {
+    const res = await fetch(`${BASE_URL}/api/spotify/tracks/${params.trackId}`, {
+      credentials: "include",
+      headers: { Username: username },
+    });
+    if (!res.ok) throw new Error("Failed to fetch track from backend");
     const data = await res.json();
     const DEFAULT_ALBUM_IMAGE = "/default-album-cover.png";
 
-    return {
+    const track: Track = {
       id: data.id,
       name: data.name,
       artists: data.artists || [{ name: "Unknown Artist" }],
       album: { images: data.album?.images || [{ url: DEFAULT_ALBUM_IMAGE }] },
     };
+
+    return NextResponse.json(track);
   } catch (err) {
-    console.error("Error fetching track:", err);
-    return null;
+    const message = err instanceof Error ? err.message : "Failed to fetch track";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-// Fetch featured tracks & new releases
-export async function getExploreContent(username: string) {
+// GET /api/spotify/explore
+export async function GET_SPOTIFY_EXPLORE(req: NextRequest) {
+  const username = req.headers.get("Username") || "";
   try {
     const res = await fetch(`${BASE_URL}/api/spotify/explore`, {
-      method: "GET",
       headers: { Username: username },
       credentials: "include",
     });
@@ -205,81 +114,66 @@ export async function getExploreContent(username: string) {
     if (!res.ok) throw new Error(await res.text());
     const data = await res.json();
 
-    return {
+    return NextResponse.json({
       featuredTracks: data.featuredTracks || [],
       newReleases: data.newReleases || [],
-    };
+    });
   } catch (err) {
-    console.error("Error fetching explore content:", err);
-    return { featuredTracks: [], newReleases: [] };
+    const message = err instanceof Error ? err.message : "Failed to fetch explore content";
+    return NextResponse.json({ featuredTracks: [], newReleases: [], error: message }, { status: 500 });
   }
 }
 
-// Fetch recommendations based on posts
-export async function getRecommendations() {
+// GET /api/spotify/recommendations
+export async function GET_SPOTIFY_RECOMMENDATIONS() {
   try {
     const res = await fetch(`${BASE_URL}/api/spotify/recommendations/from-posts`, {
-      method: "GET",
       credentials: "include",
     });
     if (!res.ok) throw new Error(await res.text());
     const data: Track[] = await res.json();
-    return data.slice(0, 20);
+    return NextResponse.json(data.slice(0, 20));
   } catch (err) {
-    console.error("Error fetching recommendations:", err);
-    return [];
+    const message = err instanceof Error ? err.message : "Failed to fetch recommendations";
+    return NextResponse.json({ tracks: [], error: message }, { status: 500 });
   }
 }
 
-// Play a specific Spotify track via backend
-export async function playTrack(trackId: string, username: string): Promise<boolean> {
+// POST /api/spotify/play-track
+export async function PLAY_SPOTIFY_TRACK(req: NextRequest) {
   try {
+    const { trackId } = await req.json();
+    const username = req.headers.get("Username") || "";
+
     const res = await fetch(`${BASE_URL}/api/spotify/play-track`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Username: username,
-      },
+      headers: { "Content-Type": "application/json", Username: username },
       credentials: "include",
       body: JSON.stringify({ trackId }),
     });
 
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("Failed to play track:", text);
-      return false;
-    }
-
-    return true;
+    if (!res.ok) throw new Error(await res.text());
+    return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("Error playing track:", err);
-    return false;
+    const message = err instanceof Error ? err.message : "Failed to play track";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-// Pause currently playing Spotify track via backend
-export async function pauseTrack(username: string): Promise<boolean> {
+// POST /api/spotify/pause-track
+export async function PAUSE_SPOTIFY_TRACK(req: NextRequest) {
   try {
+    const username = req.headers.get("Username") || "";
     const res = await fetch(`${BASE_URL}/api/spotify/pause-track`, {
       method: "POST",
-      headers: {
-        Username: username,
-      },
+      headers: { Username: username },
       credentials: "include",
     });
 
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("Failed to pause track:", text);
-      return false;
-    }
-
-    return true;
+    if (!res.ok) throw new Error(await res.text());
+    return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("Error pausing track:", err);
-    return false;
+    const message = err instanceof Error ? err.message : "Failed to pause track";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
-
-
-
