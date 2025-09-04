@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Track } from "../types/spotify";
 import { useAuth } from "../context/AuthContext";
-import { searchSpotifyTracksRaw } from "../api/spotifyApi/route";
+import { searchSpotifyTracksRaw } from "../lib/spotifyApi/route";
 
 interface TrackSearchProps {
   onSelectTrack: (track: Track) => void;
@@ -43,7 +43,10 @@ export default function TrackSearch({ onSelectTrack }: TrackSearchProps) {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsFocused(false);
       }
     };
@@ -79,7 +82,9 @@ export default function TrackSearch({ onSelectTrack }: TrackSearchProps) {
               />
               <div>
                 <p className="font-semibold text-white">{track.name}</p>
-                <p className="text-sm text-zinc-400">{track.artists[0]?.name}</p>
+                <p className="text-sm text-zinc-400">
+                  {track.artists[0]?.name}
+                </p>
               </div>
             </li>
           ))}

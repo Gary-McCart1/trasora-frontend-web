@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Trunk, Branch } from "../types/User";
 import { HiOutlineCollection } from "react-icons/hi";
-import { getBranches } from "../api/branchApi/route";
+import { getBranches } from "../lib/branchApi/route";
 
 interface AvailableTrunksListProps {
   trunks: Trunk[];
@@ -14,13 +14,22 @@ interface AvailableTrunksListProps {
     artist: string;
     albumArtUrl: string;
   };
-  onSelectTrunk: (song: AvailableTrunksListProps["selectedSong"], trunkId: number) => void;
+  onSelectTrunk: (
+    song: AvailableTrunksListProps["selectedSong"],
+    trunkId: number
+  ) => void;
 }
 
-export default function AvailableTrunksList({ trunks, selectedSong, onSelectTrunk }: AvailableTrunksListProps) {
+export default function AvailableTrunksList({
+  trunks,
+  selectedSong,
+  onSelectTrunk,
+}: AvailableTrunksListProps) {
   const [mounted, setMounted] = useState(false);
   const [windowWidth, setWindowWidth] = useState(0);
-  const [trunkBranches, setTrunkBranches] = useState<Record<number, Branch[]>>({});
+  const [trunkBranches, setTrunkBranches] = useState<Record<number, Branch[]>>(
+    {}
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -85,7 +94,11 @@ export default function AvailableTrunksList({ trunks, selectedSong, onSelectTrun
                   height={coverSize}
                   className="absolute rounded-md shadow-md border border-zinc-700 object-cover transition-all duration-300"
                   style={{
-                    left: `${hovered && windowWidth >= 640 ? index * hoverOffset : index * offset}px`,
+                    left: `${
+                      hovered && windowWidth >= 640
+                        ? index * hoverOffset
+                        : index * offset
+                    }px`,
                     top: 0,
                     zIndex: branches.length - index,
                   }}
@@ -99,7 +112,9 @@ export default function AvailableTrunksList({ trunks, selectedSong, onSelectTrun
           </div>
           <div className="flex flex-col">
             <span className="text-white font-medium">{trunk.name}</span>
-            <span className="text-zinc-400 text-sm">Owner: {trunk.username}</span>
+            <span className="text-zinc-400 text-sm">
+              Owner: {trunk.username}
+            </span>
           </div>
         </div>
         <span className="text-zinc-400 text-sm">{branches.length} songs</span>

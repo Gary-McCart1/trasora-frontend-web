@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FiCheckCircle, FiAlertCircle, FiMail } from "react-icons/fi";
-import { resendVerificationEmail, verifyEmail } from "../api/userApi/route";
+import { resendVerificationEmail, verifyEmail } from "../lib/userApi/route";
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
@@ -25,7 +25,7 @@ export default function VerifyEmailPage() {
       setMessage("Invalid verification link.");
       return;
     }
-  
+
     async function verify() {
       try {
         // TypeScript knows token is string here
@@ -37,20 +37,21 @@ export default function VerifyEmailPage() {
       } catch (err: unknown) {
         setError(true);
         if (err instanceof Error) setMessage(err.message);
-        else setMessage("Verification failed. Please enter your email below to resend the verification email.");
+        else
+          setMessage(
+            "Verification failed. Please enter your email below to resend the verification email."
+          );
       }
     }
-  
+
     verify();
   }, [token, router]);
-  
-  
 
   async function handleResend() {
     setResendLoading(true);
     setResendSuccess(false);
     setMessage("");
-  
+
     try {
       await resendVerificationEmail(email);
       setMessage("Verification email resent. Please check your inbox.");
@@ -64,7 +65,6 @@ export default function VerifyEmailPage() {
       setResendLoading(false);
     }
   }
-  
 
   return (
     <div className="max-w-xl mx-auto mt-20 p-6 text-center border rounded bg-zinc-900 text-white shadow-lg">

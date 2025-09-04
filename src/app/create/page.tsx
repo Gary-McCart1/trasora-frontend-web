@@ -10,8 +10,8 @@ import TrackSearch from "../components/TrackSearch";
 import MediaUploader from "../components/MediaUploader";
 import PostCard from "../components/PostCard";
 import { Track } from "../types/spotify";
-import { createPost } from "../api/postApi/route";
-import { getSpotifyTrackById } from "../api/spotifyApi/route";
+import { createPost } from "../lib/postApi/route";
+import { getSpotifyTrackById } from "../lib/spotifyApi/route";
 import { PostDto } from "../types/Post";
 import { useSpotifyPlayer } from "../context/SpotifyContext";
 import { LuAudioLines } from "react-icons/lu";
@@ -120,14 +120,13 @@ export default function CreatePostPage() {
           artistName: selectedTrack.artists[0]?.name || "Unknown Artist",
           albumArtUrl: imageSrc,
           branchCount: 0,
-          trackVolume: isVideo ? spotifyVolume : 1
+          trackVolume: isVideo ? spotifyVolume : 1,
         },
         mediaFile || undefined
       );
       setShowConfetti(true);
       setSpotifyVolume(1);
       setTimeout(() => router.push(`/profile/${user.username}`), 3000);
-
     } catch (err) {
       console.error("Upload failed", err);
     } finally {
@@ -260,9 +259,7 @@ export default function CreatePostPage() {
                     pauseTrack={pauseTrack}
                     currentTrackId={currentTrackId}
                     isActive={currentTrackId === mockPost.trackId}
-                    onMediaDimensionsChange={(dims) =>
-                      setMediaDimensions(dims)
-                    }
+                    onMediaDimensionsChange={(dims) => setMediaDimensions(dims)}
                   />
                 </div>
 

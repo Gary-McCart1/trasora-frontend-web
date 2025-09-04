@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Branch, Trunk } from "../types/User";
 import { HiTrash } from "react-icons/hi";
-import { deleteBranch } from "../api/branchApi/route";
-import { updateTrunkVisibility } from "../api/trunkApi/route";
+import { deleteBranch } from "../lib/branchApi/route";
+import { updateTrunkVisibility } from "../lib/trunkApi/route";
 
 interface TrunkModalProps {
   trunk: Trunk;

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { searchSpotifyTracks } from "../api/spotifyApi/route";
+import { searchSpotifyTracks } from "../lib/spotifyApi/route";
 
 export interface RootSongInput {
   title: string;
@@ -24,7 +24,6 @@ interface OutputTrack {
   trackId: string;
 }
 
-
 interface RootsSearchBarProps {
   onSelect: (song: RootSongInput) => void;
 }
@@ -37,17 +36,16 @@ export default function RootsSearchBar({ onSelect }: RootsSearchBarProps) {
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const {user} = useAuth();
+  const { user } = useAuth();
 
-const fetchTracks = async (searchTerm: string) => {
-  if (!user) return;
-  setLoading(true);
+  const fetchTracks = async (searchTerm: string) => {
+    if (!user) return;
+    setLoading(true);
 
-  const results = await searchSpotifyTracks(searchTerm, user.username);
-  setTracks(results);
-  setLoading(false);
-};
-
+    const results = await searchSpotifyTracks(searchTerm, user.username);
+    setTracks(results);
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
@@ -83,9 +81,7 @@ const fetchTracks = async (searchTerm: string) => {
         className="w-full bg-zinc-800 text-white p-2 rounded-lg border border-zinc-700 focus:outline-none focus:border-purple-600"
       />
 
-      {loading && (
-        <p className="text-white text-center mt-2">Searching...</p>
-      )}
+      {loading && <p className="text-white text-center mt-2">Searching...</p>}
 
       {isFocused && tracks.length > 0 && !loading && (
         <ul className="absolute top-full mt-1 w-full bg-zinc-900 rounded shadow-lg max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-zinc-800 z-50">
@@ -108,9 +104,7 @@ const fetchTracks = async (searchTerm: string) => {
                 <p className="text-white font-semibold truncate">
                   {track.title}
                 </p>
-                <p className="text-zinc-400 text-sm truncate">
-                  {track.artist}
-                </p>
+                <p className="text-zinc-400 text-sm truncate">{track.artist}</p>
               </div>
             </li>
           ))}

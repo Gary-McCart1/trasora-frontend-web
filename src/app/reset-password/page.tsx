@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FiCheckCircle, FiAlertCircle, FiLock } from "react-icons/fi";
-import { resetPassword } from "../api/userApi/route"; // import the API function
+import { resetPassword } from "../lib/userApi/route"; // import the API function
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -50,7 +50,7 @@ export default function ResetPasswordPage() {
       setTimeout(() => router.push("/login"), 2000);
     } catch (err: unknown) {
       setError(true);
-    
+
       if (err instanceof Error) {
         setMessage(err.message);
       } else {
@@ -59,7 +59,6 @@ export default function ResetPasswordPage() {
     } finally {
       setLoading(false);
     }
-    
   };
 
   return (
@@ -78,7 +77,11 @@ export default function ResetPasswordPage() {
         {message && (
           <div
             className={`flex items-center gap-2 px-4 py-3 rounded ${
-              error ? "bg-red-700 text-red-100" : success ? "bg-green-700 text-green-100" : "bg-purple-800 text-purple-200"
+              error
+                ? "bg-red-700 text-red-100"
+                : success
+                ? "bg-green-700 text-green-100"
+                : "bg-purple-800 text-purple-200"
             }`}
           >
             {error && <FiAlertCircle size={20} />}

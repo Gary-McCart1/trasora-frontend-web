@@ -4,7 +4,7 @@ import { FC, useState, useEffect } from "react";
 import { HiX } from "react-icons/hi";
 import Confetti from "react-confetti";
 import { StoryDto } from "../types/Story";
-import { uploadStory } from "../api/storyApi/route";
+import { uploadStory } from "../lib/storyApi/route";
 import TrackSearch from "../components/TrackSearch";
 import { Track } from "../types/spotify";
 import StoryPreview from "./StoryPreview";
@@ -29,7 +29,7 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewStory, setPreviewStory] = useState<StoryDto | null>(null);
-  const [isVideo, setIsVideo] = useState(false);
+  const [, setIsVideo] = useState(false);
 
   // Update preview whenever track/media changes
   useEffect(() => {

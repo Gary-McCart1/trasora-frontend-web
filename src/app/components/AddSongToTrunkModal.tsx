@@ -4,7 +4,7 @@ import { useState } from "react";
 import RootsSearchBar, { RootSongInput } from "./RootsSearchBar";
 import { Branch } from "../types/User";
 import { useAuth } from "../context/AuthContext";
-import { addTrackToTrunk } from "../api/trunkApi/route";
+import { addTrackToTrunk } from "../lib/trunkApi/route";
 
 interface AddSongToTrunkModalProps {
   trunkId: number;
@@ -18,7 +18,7 @@ export default function AddSongToTrunkModal({
   onSongAdded,
 }: AddSongToTrunkModalProps) {
   const [loading, setLoading] = useState(false);
-  const {user} = useAuth();
+  const { user } = useAuth();
   const handleTrackSelect = async (song: RootSongInput) => {
     if (!user) return;
     setLoading(true);

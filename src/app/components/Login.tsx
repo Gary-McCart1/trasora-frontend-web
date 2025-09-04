@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
-import { loginUser } from "../api/userApi/route";
+import { loginUser } from "../lib/userApi/route";
 
 export default function Login() {
   const { setUser } = useAuth();
@@ -27,15 +27,15 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     try {
       // Use centralized API function
       const userData = await loginUser(form.login, form.password);
-  
-      setUser(userData);              // update auth context
-      alert("Login was successful");  // optional feedback
+
+      setUser(userData); // update auth context
+      alert("Login was successful"); // optional feedback
       setForm({ login: "", password: "" });
-      router.push("/");               // redirect after login
+      router.push("/"); // redirect after login
     } catch (error) {
       if (error instanceof Error) {
         console.error("Login failed:", error.message);
@@ -102,7 +102,10 @@ export default function Login() {
 
         <p className="text-xs text-center text-zinc-500">
           Forgot your password?{" "}
-          <a href="/forgot-password" className="text-purple-400 hover:underline">
+          <a
+            href="/forgot-password"
+            className="text-purple-400 hover:underline"
+          >
             Reset it here
           </a>
         </p>

@@ -4,14 +4,17 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiLogOut, FiTrash2, FiX } from "react-icons/fi";
-import { deleteUser } from "../api/userApi/route"; // import your existing function
+import { deleteUser } from "../lib/userApi/route"; // import your existing function
 
 interface AccountSettingsModalProps {
   onClose: () => void;
   onLogout: () => void;
 }
 
-export default function AccountSettingsModal({ onClose, onLogout }: AccountSettingsModalProps) {
+export default function AccountSettingsModal({
+  onClose,
+  onLogout,
+}: AccountSettingsModalProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const router = useRouter();
@@ -23,7 +26,7 @@ export default function AccountSettingsModal({ onClose, onLogout }: AccountSetti
       const res = await deleteUser(username);
       if (res.ok) {
         alert("Account deleted successfully.");
-        onClose();  // close modal
+        onClose(); // close modal
         onLogout(); // log out user
         router.push("/goodbye");
       } else {
@@ -51,7 +54,12 @@ export default function AccountSettingsModal({ onClose, onLogout }: AccountSetti
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          transition={{ duration: 0.2, type: "spring", damping: 25, stiffness: 300 }}
+          transition={{
+            duration: 0.2,
+            type: "spring",
+            damping: 25,
+            stiffness: 300,
+          }}
         >
           {/* Close Button */}
           <button
@@ -62,7 +70,9 @@ export default function AccountSettingsModal({ onClose, onLogout }: AccountSetti
             <FiX size={22} />
           </button>
 
-          <h2 className="text-3xl font-semibold mb-6 text-center">Account Settings</h2>
+          <h2 className="text-3xl font-semibold mb-6 text-center">
+            Account Settings
+          </h2>
 
           {/* Logout */}
           <button
@@ -85,12 +95,15 @@ export default function AccountSettingsModal({ onClose, onLogout }: AccountSetti
           ) : (
             <>
               <p className="mt-6 text-sm text-zinc-300 text-center">
-                Type <span className="text-red-400 font-bold">delete</span> to confirm.
+                Type <span className="text-red-400 font-bold">delete</span> to
+                confirm.
               </p>
               <input
                 type="text"
                 value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value.trim().toLowerCase())}
+                onChange={(e) =>
+                  setDeleteConfirmText(e.target.value.trim().toLowerCase())
+                }
                 className="mt-3 w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-600 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="Type delete here"
               />

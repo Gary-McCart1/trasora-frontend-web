@@ -5,8 +5,8 @@ import { Trunk } from "../types/User";
 import { HiPlus, HiTrash } from "react-icons/hi";
 import { FaSpotify } from "react-icons/fa";
 import { useState } from "react";
-import { updateTrunkTitle } from "../api/trunkApi/route";
-import { sendTrunkToSpotify } from "../api/spotifyApi/route";
+import { updateTrunkTitle } from "../lib/trunkApi/route";
+import { sendTrunkToSpotify } from "../lib/spotifyApi/route";
 
 interface TrunkCardProps {
   trunk: Trunk;
@@ -43,7 +43,11 @@ export default function TrunkCard({
       window.open(playlistUrl, "_blank");
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : "An error occurred while sending to Spotify.");
+      alert(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while sending to Spotify."
+      );
     }
   };
 

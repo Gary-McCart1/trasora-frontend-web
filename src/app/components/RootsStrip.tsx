@@ -14,8 +14,8 @@ import {
   addRoot as apiAddRoot,
   deleteRoot as apiDeleteRoot,
   reorderRoots as apiReorderRoots,
-} from "../api/rootApi/route";
-import { getUser } from "../api/userApi/route";
+} from "../lib/rootApi/route";
+import { getUser } from "../lib/userApi/route";
 
 export interface RootSong {
   id: number;
@@ -213,7 +213,6 @@ export default function RootsStrip({
             {(provided) => (
               <div
                 className="flex space-x-6 overflow-x-auto overflow-y-visible snap-x px-2 min-h-[14rem] items-center"
-                
                 ref={provided.innerRef}
                 {...provided.droppableProps}
               >

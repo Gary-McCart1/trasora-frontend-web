@@ -6,8 +6,8 @@ import { Plus } from "lucide-react";
 
 import AvailableTrunksList from "./AvailableTrunksList";
 import { useAuth } from "../context/AuthContext";
-import { addTrackToTrunk, getAvailableTrunks } from "../api/trunkApi/route";
-import { incrementPostBranchCount } from "../api/postApi/route";
+import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunkApi/route";
+import { incrementPostBranchCount } from "../lib/postApi/route";
 import { RootSongInput } from "./RootsSearchBar";
 import { Trunk } from "../types/User";
 import { LuGitBranchPlus } from "react-icons/lu";
@@ -43,8 +43,10 @@ export default function DraggablePlayer({
   const [, setLoadingBranch] = useState(false);
   const { user } = useAuth();
 
-  const artistNames = track.artists?.map((a) => a.name).join(", ") || "Unknown Artist";
-  const albumArtUrl = track.albumArtUrl || `https://i.scdn.co/image/${track.id}`;
+  const artistNames =
+    track.artists?.map((a) => a.name).join(", ") || "Unknown Artist";
+  const albumArtUrl =
+    track.albumArtUrl || `https://i.scdn.co/image/${track.id}`;
 
   // Initial position
   useEffect(() => {
@@ -73,12 +75,19 @@ export default function DraggablePlayer({
     const width = playerRef.current.offsetWidth;
     const height = playerRef.current.offsetHeight;
     setPosition({
-      x: Math.max(0, Math.min(window.innerWidth - width, clientX - offset.current.x)),
-      y: Math.max(0, Math.min(window.innerHeight - height, clientY - offset.current.y)),
+      x: Math.max(
+        0,
+        Math.min(window.innerWidth - width, clientX - offset.current.x)
+      ),
+      y: Math.max(
+        0,
+        Math.min(window.innerHeight - height, clientY - offset.current.y)
+      ),
     });
   };
   const handleMouseMove = (e: MouseEvent) => handleMove(e.clientX, e.clientY);
-  const handleTouchMove = (e: TouchEvent) => handleMove(e.touches[0].clientX, e.touches[0].clientY);
+  const handleTouchMove = (e: TouchEvent) =>
+    handleMove(e.touches[0].clientX, e.touches[0].clientY);
   const endDrag = () => setIsDragging(false);
 
   useEffect(() => {
@@ -123,11 +132,7 @@ export default function DraggablePlayer({
     if (!user) return;
     setLoadingBranch(true);
     try {
-      await addTrackToTrunk(
-        trunkId,
-        { ...song, albumArtUrl },
-        user.username
-      );
+      await addTrackToTrunk(trunkId, { ...song, albumArtUrl }, user.username);
       setBranchModalOpen(false);
       onBranchAdded?.();
 
@@ -200,7 +205,9 @@ export default function DraggablePlayer({
       {branchModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-zinc-900 p-6 rounded-xl max-h-[80vh] overflow-y-auto w-96">
-            <h2 className="text-white text-lg font-semibold mb-4">Add to Trunk</h2>
+            <h2 className="text-white text-lg font-semibold mb-4">
+              Add to Trunk
+            </h2>
             {loadingTrunks ? (
               <p className="text-zinc-400">Loading...</p>
             ) : (

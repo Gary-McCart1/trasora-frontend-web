@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { forgotPassword } from "../api/userApi/route";
+import { forgotPassword } from "../lib/userApi/route";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -38,9 +38,12 @@ export default function ForgotPassword() {
         onSubmit={handleSubmit}
         className="relative z-10 w-full max-w-sm space-y-4 border border-zinc-800 bg-zinc-900/90 p-6 rounded-xl shadow-lg backdrop-blur"
       >
-        <h2 className="text-xl font-semibold mb-2 text-center">Reset Password</h2>
+        <h2 className="text-xl font-semibold mb-2 text-center">
+          Reset Password
+        </h2>
         <p className="text-xs text-zinc-400 text-left mb-4">
-          Enter the email linked to your account and we’ll send you a password reset link.
+          Enter the email linked to your account and we’ll send you a password
+          reset link.
         </p>
 
         <input

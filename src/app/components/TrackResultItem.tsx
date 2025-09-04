@@ -9,7 +9,7 @@ import { Branch, Trunk } from "../types/User";
 import { RootSongInput } from "./RootsSearchBar";
 import { useAuth } from "../context/AuthContext";
 import DraggablePlayer from "./DraggablePlayer";
-import { addTrackToTrunk, getAvailableTrunks } from "../api/trunkApi/route";
+import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunkApi/route";
 
 interface Track {
   id: string;
@@ -189,7 +189,7 @@ export default function TrackResultItem({ track }: { track: Track }) {
 
             // Open the branch modal so the user can pick a trunk
             setBranchModalOpen(true);
-            
+
             // Pre-fill the selected song for modal
             const song = {
               trackId: playingTrack.id,

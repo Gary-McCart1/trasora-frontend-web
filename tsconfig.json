@@ -27,12 +27,12 @@
     "types": ["react", "react-dom", "node"]
   },
   "include": [
-    "next-env.d.ts", 
-    "**/*.ts", 
-    "**/*.tsx", 
-    ".next/types/**/*.ts", 
-    "src/app/api/userApi", 
-    "src/app/api/followApi", 
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/app/lib/userApi",
+    "src/app/lib/followApi",
     "types/**/*.d.ts"
   ],
   "exclude": ["node_modules"]

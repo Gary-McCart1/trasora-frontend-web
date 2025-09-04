@@ -24,15 +24,15 @@ import {
   logoutUser,
   deleteUser,
   updateProfileVisibility,
-} from "@/app/api/userApi/route";
+} from "@/app/lib/userApi/route";
 import {
   getFollowStatus,
   followUser,
   unfollowUser,
-} from "@/app/api/followApi/route";
-import { getTrunks, createTrunk, deleteTrunk } from "@/app/api/trunkApi/route";
-import { getBranches } from "@/app/api/branchApi/route";
-import { getUserPosts } from "@/app/api/postApi/route";
+} from "@/app/lib/followApi/route";
+import { getTrunks, createTrunk, deleteTrunk } from "@/app/lib/trunkApi/route";
+import { getBranches } from "@/app/lib/branchApi/route";
+import { getUserPosts } from "@/app/lib/postApi/route";
 import { FaImages } from "react-icons/fa";
 import { BiSolidVideos } from "react-icons/bi";
 

@@ -8,7 +8,7 @@ import getS3Url from "../utils/S3Url";
 import { useEffect, useState, useCallback } from "react";
 import { useStories } from "../context/StoriesContext";
 import { StoryDto } from "../types/Story";
-import { fetchActiveStories } from "../api/storyApi/route";
+import { fetchActiveStories } from "../lib/storyApi/route";
 import AddStoryModal from "./AddStoryModal";
 import StoryViewerModal from "./StoryViewerModal";
 
@@ -19,7 +19,9 @@ export default function StoriesBar() {
   const { stories, setStories } = useStories();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
-  const [selectedAuthorStories, setSelectedAuthorStories] = useState<StoryDto[]>([]);
+  const [selectedAuthorStories, setSelectedAuthorStories] = useState<
+    StoryDto[]
+  >([]);
 
   const handleCloseModal = useCallback(() => {
     setActiveStoryIndex(null);
@@ -44,40 +46,43 @@ export default function StoriesBar() {
 
   const handleDelete = async (storyId: number) => {
     console.log("Deleting storyId:", storyId);
-  
+
     try {
       const res = await fetch(`${BASE_URL}/api/stories/${storyId}`, {
         method: "DELETE",
         credentials: "include",
       });
-  
+
       if (res.status === 404) {
-        console.warn(`Story ${storyId} not found. It may have already been deleted.`);
+        console.warn(
+          `Story ${storyId} not found. It may have already been deleted.`
+        );
         // Optionally remove from state anyway to prevent UI inconsistencies
         setStories((prev) => prev.filter((s) => s.id !== storyId));
-        setSelectedAuthorStories((prev) => prev.filter((s) => s.id !== storyId));
+        setSelectedAuthorStories((prev) =>
+          prev.filter((s) => s.id !== storyId)
+        );
         return;
       }
-  
+
       if (res.status === 403) {
         console.error(`You do not have permission to delete story ${storyId}`);
         return;
       }
-  
+
       if (!res.ok) {
         throw new Error(`Failed to delete story: ${res.status}`);
       }
-  
-      alert("Story has been successfully deleted.")
+
+      alert("Story has been successfully deleted.");
       // Success
       setStories((prev) => prev.filter((s) => s.id !== storyId));
       setSelectedAuthorStories((prev) => prev.filter((s) => s.id !== storyId));
-      window.location.reload()
+      window.location.reload();
     } catch (err) {
       console.error("Error deleting story:", err);
     }
   };
-  
 
   // Group stories by author
   const authorMap = new Map<string, StoryDto[]>();
@@ -90,7 +95,9 @@ export default function StoriesBar() {
   // Ensure current user is first
   const allAuthors = [
     user.username, // always first
-    ...Array.from(authorMap.keys()).filter((author) => author !== user.username),
+    ...Array.from(authorMap.keys()).filter(
+      (author) => author !== user.username
+    ),
   ];
 
   return (

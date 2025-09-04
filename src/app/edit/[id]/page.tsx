@@ -10,7 +10,7 @@ import TrackSearch from "../../components/TrackSearch";
 import MediaUploader from "../../components/MediaUploader";
 import PostCard from "../../components/PostCard";
 
-import { getPostById, updatePost } from "../../api/postApi/route";
+import { getPostById, updatePost } from "../../lib/postApi/route";
 import { Post, PostDto } from "../../types/Post";
 import { Track } from "../../types/spotify";
 import { LuAudioLines } from "react-icons/lu";
@@ -73,7 +73,6 @@ export default function EditPostPage() {
 
         if ((fetchedPost as PostDto).trackVolume !== undefined) {
           setSpotifyVolume(fetchedPost?.trackVolume ?? 0.1);
-
         }
       } catch (err) {
         console.error("Failed to fetch post:", err);
@@ -253,9 +252,7 @@ export default function EditPostPage() {
                     pauseTrack={pauseTrack}
                     currentTrackId={currentTrackId}
                     isActive={currentTrackId === mockPost.trackId}
-                    onMediaDimensionsChange={(dims) =>
-                      setMediaDimensions(dims)
-                    }
+                    onMediaDimensionsChange={(dims) => setMediaDimensions(dims)}
                   />
                 </div>
 

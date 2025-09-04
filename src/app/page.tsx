@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import PostDetailFeed from "./components/MainFeed";
 import { PostDto } from "./types/Post";
 import { useAuth } from "./context/AuthContext";
 import EmptyFeed from "./components/EmptyFeed";

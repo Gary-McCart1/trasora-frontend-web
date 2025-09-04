@@ -1,10 +1,22 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Heart, MessageCircle, UserPlus, UserCheck, UserX, Bell, GitBranch, Music } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  UserPlus,
+  UserCheck,
+  UserX,
+  Bell,
+  GitBranch,
+  Music,
+} from "lucide-react";
 import { NotificationDto } from "../types/NotificationDto";
 import getS3Url from "../utils/S3Url";
-import { fetchUnreadNotifications, handleFollowNotification } from "../api/userApi/route";
+import {
+  fetchUnreadNotifications,
+  handleFollowNotification,
+} from "../lib/userApi/route";
 
 function timeAgo(dateStr: string) {
   const now = new Date();
@@ -52,13 +64,20 @@ export default function NotificationsList() {
 
   const getIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case "like": return <Heart className="w-4 h-4 text-pink-500" />;
-      case "comment": return <MessageCircle className="w-4 h-4 text-blue-400" />;
-      case "follow": return <UserPlus className="w-4 h-4 text-green-400" />;
-      case "follow_request": return <UserPlus className="w-4 h-4 text-yellow-400" />;
-      case "follow_accepted": return <UserCheck className="w-4 h-4 text-green-400" />;
-      case "branch_added": return <GitBranch className="w-4 h-4 text-emerald-400" />;
-      default: return null;
+      case "like":
+        return <Heart className="w-4 h-4 text-pink-500" />;
+      case "comment":
+        return <MessageCircle className="w-4 h-4 text-blue-400" />;
+      case "follow":
+        return <UserPlus className="w-4 h-4 text-green-400" />;
+      case "follow_request":
+        return <UserPlus className="w-4 h-4 text-yellow-400" />;
+      case "follow_accepted":
+        return <UserCheck className="w-4 h-4 text-green-400" />;
+      case "branch_added":
+        return <GitBranch className="w-4 h-4 text-emerald-400" />;
+      default:
+        return null;
     }
   };
 
@@ -82,12 +101,16 @@ export default function NotificationsList() {
       </div>
 
       {notifications.length === 0 ? (
-        <p className="text-gray-400 text-center mt-8 text-sm">No unread notifications</p>
+        <p className="text-gray-400 text-center mt-8 text-sm">
+          No unread notifications
+        </p>
       ) : (
         <div className="space-y-6 max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600">
           {Object.entries(groupedNotifications).map(([group, items]) => (
             <div key={group}>
-              <h3 className="text-sm font-semibold text-gray-400 mb-2">{group}</h3>
+              <h3 className="text-sm font-semibold text-gray-400 mb-2">
+                {group}
+              </h3>
               <ul className="space-y-3">
                 {items.map((n) => {
                   const isBranch = n.type.toLowerCase() === "branch_added";
@@ -103,7 +126,10 @@ export default function NotificationsList() {
                       <div className="flex items-center gap-3 min-w-0">
                         <Link href={`/profile/${n.senderUsername}`}>
                           <img
-                            src={getS3Url(n.senderProfilePictureUrl) || "/default-avatar.png"}
+                            src={
+                              getS3Url(n.senderProfilePictureUrl) ||
+                              "/default-avatar.png"
+                            }
                             alt={`${n.senderUsername} avatar`}
                             className={`w-10 h-10 rounded-full object-cover border transition ${
                               isBranch
@@ -114,24 +140,41 @@ export default function NotificationsList() {
                         </Link>
 
                         <div className="flex flex-col min-w-0">
-                          <p className={`text-sm flex items-center gap-1 truncate ${isBranch ? "text-emerald-300" : ""}`}>
+                          <p
+                            className={`text-sm flex items-center gap-1 truncate ${
+                              isBranch ? "text-emerald-300" : ""
+                            }`}
+                          >
                             {getIcon(n.type)}
-                            <Link href={`/profile/${n.senderUsername}`} className="font-semibold hover:underline">
+                            <Link
+                              href={`/profile/${n.senderUsername}`}
+                              className="font-semibold hover:underline"
+                            >
                               {n.senderUsername}
                             </Link>
 
-                            {n.type.toLowerCase() === "like" && " liked your post"}
-                            {n.type.toLowerCase() === "comment" && " commented on your post"}
-                            {n.type.toLowerCase() === "follow" && " started following you"}
-                            {n.type.toLowerCase() === "follow_request" && " wants to follow you"}
-                            {n.type.toLowerCase() === "follow_accepted" && " accepted your follow request"}
+                            {n.type.toLowerCase() === "like" &&
+                              " liked your post"}
+                            {n.type.toLowerCase() === "comment" &&
+                              " commented on your post"}
+                            {n.type.toLowerCase() === "follow" &&
+                              " started following you"}
+                            {n.type.toLowerCase() === "follow_request" &&
+                              " wants to follow you"}
+                            {n.type.toLowerCase() === "follow_accepted" &&
+                              " accepted your follow request"}
 
                             {isBranch && (
                               <>
                                 {" added a branch to your "}
-                                <span className="font-semibold">{n.trunkName}</span>
+                                <span className="font-semibold">
+                                  {n.trunkName}
+                                </span>
                                 {" trunk "}
-                                <Link href={`/profile/${n.recipientUsername}`} className="text-emerald-400 hover:underline px-5">
+                                <Link
+                                  href={`/profile/${n.recipientUsername}`}
+                                  className="text-emerald-400 hover:underline px-5"
+                                >
                                   View
                                 </Link>
                               </>
@@ -144,7 +187,8 @@ export default function NotificationsList() {
                                 <span className="flex items-center gap-1 truncate">
                                   <Music className="w-3 h-3 text-emerald-400" />
                                   <span className="truncate">
-                                    {n.songTitle} {n.songArtist && `— ${n.songArtist}`}
+                                    {n.songTitle}{" "}
+                                    {n.songArtist && `— ${n.songArtist}`}
                                   </span>
                                 </span>
                               </div>
@@ -154,13 +198,25 @@ export default function NotificationsList() {
                           {n.type === "FOLLOW_REQUEST" && n.followId && (
                             <div className="mt-1 flex gap-2">
                               <button
-                                onClick={() => handleFollowAction(n.followId!, "accept", n.id)}
+                                onClick={() =>
+                                  handleFollowAction(
+                                    n.followId!,
+                                    "accept",
+                                    n.id
+                                  )
+                                }
                                 className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-full text-xs flex items-center gap-1"
                               >
                                 <UserCheck className="w-3 h-3" /> Accept
                               </button>
                               <button
-                                onClick={() => handleFollowAction(n.followId!, "reject", n.id)}
+                                onClick={() =>
+                                  handleFollowAction(
+                                    n.followId!,
+                                    "reject",
+                                    n.id
+                                  )
+                                }
                                 className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs flex items-center gap-1"
                               >
                                 <UserX className="w-3 h-3" /> Decline
@@ -170,7 +226,9 @@ export default function NotificationsList() {
                         </div>
                       </div>
 
-                      <span className="ml-4 text-xs text-gray-500 select-none">{timeAgo(n.createdAt)}</span>
+                      <span className="ml-4 text-xs text-gray-500 select-none">
+                        {timeAgo(n.createdAt)}
+                      </span>
                     </li>
                   );
                 })}

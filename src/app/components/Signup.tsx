@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
-import { signupUser } from "../api/userApi/route";
+import { signupUser } from "../lib/userApi/route";
 
 export default function Signup() {
   const [form, setForm] = useState({
@@ -28,7 +28,7 @@ export default function Signup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     try {
       await signupUser(form);
       setInfoMessage(
@@ -48,7 +48,6 @@ export default function Signup() {
       }
     }
   };
-  
 
   return (
     <section className="relative bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-950 min-h-[60vh] flex items-center justify-center text-white px-4">

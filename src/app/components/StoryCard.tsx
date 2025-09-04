@@ -6,7 +6,7 @@ import Image from "next/image";
 import getS3Url from "../utils/S3Url";
 import { useAuth } from "../context/AuthContext";
 import { FiMoreVertical } from "react-icons/fi";
-import { fetchSpotifyToken } from "../api/spotifyApi/route";
+import { fetchSpotifyToken } from "../lib/spotifyApi/route";
 import { LuAudioLines } from "react-icons/lu";
 import { SpotifyPlayer } from "../types/spotify-playback";
 

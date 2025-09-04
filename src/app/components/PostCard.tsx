@@ -80,6 +80,10 @@ export default function PostCard({
     videoRef.current?.pause();
   }, []);
 
+  const isCurrentlyPlaying = (trackId?: string) => {
+    return !isManuallyPaused && currentTrackId === trackId;
+  };
+
   /** 🔹 Toggle play/pause manually */
   const togglePlayPause = useCallback(() => {
     const isVideoPaused = videoRef.current?.paused ?? true;
@@ -108,12 +112,10 @@ export default function PostCard({
         setIsManuallyPaused(false);
       }
     }
-  }, [post.trackId, post.trackVolume, playTrack, pauseTrack, resumeTrack, currentTrackId, isVideo, user]);
+  }, [post.trackId, post.trackVolume, playTrack, pauseTrack, resumeTrack, currentTrackId, isVideo, user, isCurrentlyPlaying, pauseVideo]);
 
   /** 🔹 Helper to check if this track is playing */
-  const isCurrentlyPlaying = (trackId?: string) => {
-    return !isManuallyPaused && currentTrackId === trackId;
-  };
+  
 
   /** 🔹 Sync video to feed state */
   useEffect(() => {

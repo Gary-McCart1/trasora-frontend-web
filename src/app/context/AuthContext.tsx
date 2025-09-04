@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { User } from "../types/User";
-import { getCurrentUser } from "../api/userApi/route"; 
+import { getCurrentUser } from "../lib/userApi/route";
 
 interface AuthContextType {
   user: User | null;

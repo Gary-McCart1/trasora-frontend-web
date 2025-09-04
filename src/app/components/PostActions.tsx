@@ -1,18 +1,29 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { FaHeart, FaRegCommentDots, FaTrash, FaEdit, FaEllipsisV } from "react-icons/fa";
+import {
+  FaHeart,
+  FaRegCommentDots,
+  FaTrash,
+  FaEdit,
+  FaEllipsisV,
+} from "react-icons/fa";
 import { LuGitBranchPlus } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import getS3Url from "../utils/S3Url";
 import AvailableTrunksList from "./AvailableTrunksList";
 import { useAuth } from "../context/AuthContext";
-import { likePost, commentOnPost, deletePost, deleteComment } from "../api/postApi/route";
+import {
+  likePost,
+  commentOnPost,
+  deletePost,
+  deleteComment,
+} from "../lib/postApi/route";
 import { useRouter } from "next/navigation";
 import { Trunk } from "../types/User";
-import { addTrackToTrunk, getAvailableTrunks } from "../api/trunkApi/route";
-import { incrementPostBranchCount } from "../api/postApi/route";
+import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunkApi/route";
+import { incrementPostBranchCount } from "../lib/postApi/route";
 
 interface Comment {
   id: number;
@@ -51,13 +62,12 @@ interface PostActionsProps {
   createdAt: string;
   branchCount: number;
   onEdit?: (postId: number) => void;
-  onDelete?: (postId: number) => void;       // <-- added
-  onLike?: (postId: number) => void;         // <-- added
+  onDelete?: (postId: number) => void; // <-- added
+  onLike?: (postId: number) => void; // <-- added
   onComment?: (postId: number, commentText: string) => void; // <-- added
-  onSongAdded?: (branch: Branch) => void; 
+  onSongAdded?: (branch: Branch) => void;
   selectedSong: RootSongInput;
 }
-
 
 export default function PostActions({
   postId,
@@ -72,19 +82,23 @@ export default function PostActions({
   createdAt,
   branchCount,
   onSongAdded,
-  selectedSong
+  selectedSong,
 }: PostActionsProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showCommentBox, setShowCommentBox] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [likesCount, setLikesCount] = useState(initialLikesCount);
   const [commentsCount, setCommentsCount] = useState(initialCommentsCount);
-  const [likedByCurrentUser, setLikedByCurrentUser] = useState(initialLikedByCurrentUser);
+  const [likedByCurrentUser, setLikedByCurrentUser] = useState(
+    initialLikedByCurrentUser
+  );
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [loadingLike, setLoadingLike] = useState(false);
   const [loadingComment, setLoadingComment] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const [loadingCommentDelete, setLoadingCommentDelete] = useState<number | null>(null);
+  const [loadingCommentDelete, setLoadingCommentDelete] = useState<
+    number | null
+  >(null);
   const [branchModalOpen, setBranchModalOpen] = useState(false);
   const [availableTrunks, setAvailableTrunks] = useState<Trunk[]>([]);
   const [loadingTrunks, setLoadingTrunks] = useState(false);
@@ -119,7 +133,7 @@ export default function PostActions({
     try {
       await likePost(postId);
       setLikedByCurrentUser(!likedByCurrentUser);
-      setLikesCount(count => count + (likedByCurrentUser ? -1 : 1));
+      setLikesCount((count) => count + (likedByCurrentUser ? -1 : 1));
     } catch {
       alert("Failed to like post.");
     } finally {
@@ -134,7 +148,7 @@ export default function PostActions({
       await commentOnPost(postId, commentText.trim());
       setCommentText("");
       setShowCommentBox(false);
-      setCommentsCount(c => c + 1);
+      setCommentsCount((c) => c + 1);
     } catch {
       alert("Failed to comment.");
     } finally {
@@ -163,8 +177,8 @@ export default function PostActions({
     setLoadingCommentDelete(id);
     try {
       await deleteComment(id);
-      setComments(prev => prev.filter(c => c.id !== id));
-      setCommentsCount(c => c - 1);
+      setComments((prev) => prev.filter((c) => c.id !== id));
+      setCommentsCount((c) => c - 1);
     } catch {
       alert("Could not delete comment.");
     } finally {
@@ -185,30 +199,28 @@ export default function PostActions({
       setLoadingTrunks(false);
     }
   };
-  
 
   const handleSelectTrunk = async (song: RootSongInput, trunkId: number) => {
     if (!user) return;
     setLoadingBranch(true);
-  
+
     try {
       // Add track to trunk
       const newBranch = await addTrackToTrunk(trunkId, song, user.username);
-  
+
       // Update UI with new branch
       onSongAdded?.(newBranch);
       setBranchModalOpen(false);
-  
+
       // Optimistically increment local branch count
-      setLocalBranchCount(prev => prev + 1);
-  
+      setLocalBranchCount((prev) => prev + 1);
+
       // Update server branch count for the post
       try {
         await incrementPostBranchCount(postId);
       } catch (err) {
         console.error("Failed to increment branch count on post", err);
       }
-  
     } catch (err) {
       console.error(err);
       alert("Failed to add song. Try again.");
@@ -216,9 +228,6 @@ export default function PostActions({
       setLoadingBranch(false);
     }
   };
-  
-  
-  
 
   return (
     <div className="bg-zinc-900 rounded-b-xl overflow-hidden shadow border border-zinc-800 text-white">
@@ -233,7 +242,8 @@ export default function PostActions({
           <div className="flex flex-col">
             <span className="font-semibold text-base">{authorUsername}</span>
             <span className="text-xs text-zinc-500">
-              {createdAt && formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+              {createdAt &&
+                formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
             </span>
           </div>
         </div>
@@ -267,7 +277,9 @@ export default function PostActions({
       {/* Caption */}
       {caption && (
         <div className="px-5 pb-4">
-          <p className="text-sm whitespace-pre-wrap text-zinc-300 text-left">{caption}</p>
+          <p className="text-sm whitespace-pre-wrap text-zinc-300 text-left">
+            {caption}
+          </p>
         </div>
       )}
 
@@ -276,7 +288,9 @@ export default function PostActions({
         <button
           onClick={handleLikeClick}
           className={`flex items-center gap-2 text-lg transition ${
-            likedByCurrentUser ? "text-purple-500" : "text-white hover:text-purple-500"
+            likedByCurrentUser
+              ? "text-purple-500"
+              : "text-white hover:text-purple-500"
           }`}
           disabled={loadingLike}
         >
@@ -285,7 +299,7 @@ export default function PostActions({
         </button>
 
         <button
-          onClick={() => setShowCommentBox(prev => !prev)}
+          onClick={() => setShowCommentBox((prev) => !prev)}
           className="flex items-center gap-2 text-lg hover:text-purple-500"
         >
           <FaRegCommentDots />
@@ -297,7 +311,9 @@ export default function PostActions({
           className="flex items-center gap-2 text-lg hover:text-purple-500"
         >
           <LuGitBranchPlus />
-          <span>{(localBranchCount > branchCount) ? localBranchCount : branchCount}</span>
+          <span>
+            {localBranchCount > branchCount ? localBranchCount : branchCount}
+          </span>
         </button>
       </div>
 
@@ -315,10 +331,10 @@ export default function PostActions({
                 ref={inputRef}
                 type="text"
                 value={commentText}
-                onChange={e => setCommentText(e.target.value)}
+                onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Write a comment..."
                 className="flex-grow px-4 py-2 text-sm bg-zinc-800 text-white border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                onKeyDown={e => {
+                onKeyDown={(e) => {
                   if (e.key === "Enter") handleCommentSubmit();
                 }}
               />
@@ -338,11 +354,17 @@ export default function PostActions({
       {branchModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-zinc-900 p-6 rounded-xl max-h-[80vh] overflow-y-auto w-96">
-            <h2 className="text-white text-lg font-semibold mb-4">Add to Trunk</h2>
+            <h2 className="text-white text-lg font-semibold mb-4">
+              Add to Trunk
+            </h2>
             {loadingTrunks ? (
               <p className="text-zinc-400">Loading...</p>
             ) : (
-              <AvailableTrunksList selectedSong={selectedSong} trunks={availableTrunks} onSelectTrunk={handleSelectTrunk} />
+              <AvailableTrunksList
+                selectedSong={selectedSong}
+                trunks={availableTrunks}
+                onSelectTrunk={handleSelectTrunk}
+              />
             )}
             <button
               onClick={() => setBranchModalOpen(false)}
@@ -357,20 +379,27 @@ export default function PostActions({
       {/* Comments */}
       {comments.length > 0 && (
         <div className="px-5 pt-4 pb-5 space-y-4 border-t border-zinc-800">
-          {comments.map(comment => {
+          {comments.map((comment) => {
             const isCommentAuthor = comment.authorUsername === currentUsername;
             return (
               <div key={comment.id} className="flex gap-3 items-start">
                 <img
-                  src={getS3Url(comment.authorProfilePictureUrl) || "/default-profilepic.png"}
+                  src={
+                    getS3Url(comment.authorProfilePictureUrl) ||
+                    "/default-profilepic.png"
+                  }
                   alt={comment.authorUsername}
                   className="w-9 h-9 rounded-full object-cover"
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm">{comment.authorUsername}</span>
+                    <span className="font-semibold text-sm">
+                      {comment.authorUsername}
+                    </span>
                     <span className="text-xs text-zinc-500">
-                      {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(comment.createdAt), {
+                        addSuffix: true,
+                      })}
                     </span>
                   </div>
                   <p className="text-sm mt-1 text-zinc-300 whitespace-pre-wrap">

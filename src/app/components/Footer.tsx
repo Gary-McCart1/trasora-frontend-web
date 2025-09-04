@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getAllUsers } from "../api/userApi/route"; 
+import { getAllUsers } from "../lib/userApi/route";
 
 const Footer = () => {
   const [userCount, setUserCount] = useState<number | null>(null);
@@ -28,7 +28,10 @@ const Footer = () => {
           <p className="text-sm font-semibold text-purple-400 tracking-wide">
             Trasora
           </p>
-          <p className="text-xs md:text-sm"> {new Date().getFullYear()} Made by Gary McCart</p>
+          <p className="text-xs md:text-sm">
+            {" "}
+            {new Date().getFullYear()} Made by Gary McCart
+          </p>
         </div>
 
         {/* User Count */}
@@ -45,19 +48,39 @@ const Footer = () => {
 
         {/* Quick Links */}
         <nav className="flex space-x-6 text-sm md:text-base">
-          <Link href="/" className="hover:text-purple-400 transition" aria-label="Home">
+          <Link
+            href="/"
+            className="hover:text-purple-400 transition"
+            aria-label="Home"
+          >
             Home
           </Link>
-          <Link href="/explore" className="hover:text-purple-400 transition" aria-label="Explore">
+          <Link
+            href="/explore"
+            className="hover:text-purple-400 transition"
+            aria-label="Explore"
+          >
             Explore
           </Link>
-          <Link href="/create" className="hover:text-purple-400 transition" aria-label="Create Post">
+          <Link
+            href="/create"
+            className="hover:text-purple-400 transition"
+            aria-label="Create Post"
+          >
             Create
           </Link>
-          <Link href="/about" className="hover:text-purple-400 transition" aria-label="About">
+          <Link
+            href="/about"
+            className="hover:text-purple-400 transition"
+            aria-label="About"
+          >
             About
           </Link>
-          <Link href="/leaderboard" className="hover:text-purple-400 transition" aria-label="About">
+          <Link
+            href="/leaderboard"
+            className="hover:text-purple-400 transition"
+            aria-label="About"
+          >
             Leaderboard
           </Link>
         </nav>

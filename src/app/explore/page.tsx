@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import DraggablePlayer from "../components/DraggablePlayer";
 import TrackCardGrid, { TrackOrAlbum } from "../components/TrackCardGrid";
-import { getExploreContent, getRecommendations } from "../api/spotifyApi/route";
+import { getExploreContent, getRecommendations } from "../lib/spotifyApi/route";
 
 // Define the shape of the track sent to the draggable player
 type PlayerTrack = {
@@ -34,7 +34,9 @@ export default function ExplorePage() {
       setLoading(true);
       setError(null);
       try {
-        const { featuredTracks, newReleases } = await getExploreContent(user.username);
+        const { featuredTracks, newReleases } = await getExploreContent(
+          user.username
+        );
         setFeaturedTracks(featuredTracks);
         setNewReleases(newReleases);
 

@@ -12,7 +12,7 @@ import {
   disconnectSpotify,
   searchUsers,
   updateReferredBy,
-} from "../api/userApi/route";
+} from "../lib/userApi/route";
 import { useAuth } from "../context/AuthContext";
 import getS3Url from "../utils/S3Url";
 
@@ -41,8 +41,12 @@ export default function EditProfileModal({
   const [bio, setBio] = useState(currentBio);
   const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
   const [preview, setPreview] = useState(currentProfilePic);
-  const [accentColor, setAccentColor] = useState(currentAccentColor || "#7C3AED");
-  const [profilePublic, setProfilePublic] = useState(currentProfilePublic ?? true);
+  const [accentColor, setAccentColor] = useState(
+    currentAccentColor || "#7C3AED"
+  );
+  const [profilePublic, setProfilePublic] = useState(
+    currentProfilePublic ?? true
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [disconnecting, setDisconnecting] = useState(false);
@@ -52,7 +56,9 @@ export default function EditProfileModal({
   // Referred By state
   const [referrerSearch, setReferrerSearch] = useState("");
   const [referrerResults, setReferrerResults] = useState<User[]>([]);
-  const [selectedReferrer, setSelectedReferrer] = useState<User | null>(user?.referredBy || null);
+  const [selectedReferrer, setSelectedReferrer] = useState<User | null>(
+    user?.referredBy || null
+  );
 
   const gradientEnd = darkenColor(accentColor, 40);
 
@@ -104,7 +110,10 @@ export default function EditProfileModal({
 
       // Then update referredBy if selected
       if (selectedReferrer) {
-        updatedUser = await updateReferredBy(username, selectedReferrer.username);
+        updatedUser = await updateReferredBy(
+          username,
+          selectedReferrer.username
+        );
       }
 
       // Update profile visibility
@@ -219,7 +228,10 @@ export default function EditProfileModal({
           <div
             className="w-full h-10 rounded-xl overflow-hidden border border-zinc-700 cursor-pointer"
             style={{
-              background: `linear-gradient(90deg, ${accentColor} 0%, ${darkenColor(accentColor, 20)} 100%)`,
+              background: `linear-gradient(90deg, ${accentColor} 0%, ${darkenColor(
+                accentColor,
+                20
+              )} 100%)`,
             }}
           >
             <input
@@ -235,9 +247,13 @@ export default function EditProfileModal({
           {/* Private/Public Toggle */}
           <div className="flex items-center justify-between bg-zinc-800 rounded-xl p-4 mt-6">
             <div>
-              <p className="text-purple-100 font-semibold">Profile Visibility</p>
+              <p className="text-purple-100 font-semibold">
+                Profile Visibility
+              </p>
               <p className="text-purple-300 text-sm">
-                {profilePublic ? "Your profile is public" : "Your profile is private"}
+                {profilePublic
+                  ? "Your profile is public"
+                  : "Your profile is private"}
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer select-none">
@@ -272,7 +288,9 @@ export default function EditProfileModal({
               onClick={handleDisconnectSpotify}
             >
               <div>
-                <p className="text-purple-100 font-semibold">Disconnect Spotify</p>
+                <p className="text-purple-100 font-semibold">
+                  Disconnect Spotify
+                </p>
                 <p className="text-purple-300 text-sm">
                   {disconnecting
                     ? "Disconnecting..."
@@ -294,7 +312,10 @@ export default function EditProfileModal({
               {selectedReferrer ? (
                 <div className="flex items-center space-x-3 bg-zinc-800 rounded-xl p-3">
                   <img
-                    src={getS3Url(selectedReferrer?.profilePictureUrl) || "/default-profilepic.png"}
+                    src={
+                      getS3Url(selectedReferrer?.profilePictureUrl) ||
+                      "/default-profilepic.png"
+                    }
                     alt="Referrer"
                     width={32}
                     height={32}
@@ -338,13 +359,18 @@ export default function EditProfileModal({
                           }}
                         >
                           <img
-                            src={getS3Url(u?.profilePictureUrl) || "/default-profilepic.png"}
+                            src={
+                              getS3Url(u?.profilePictureUrl) ||
+                              "/default-profilepic.png"
+                            }
                             alt="Referrer"
                             width={32}
                             height={32}
                             className="rounded-full object-cover w-8 h-8 sm:w-10 sm:h-10"
                           />
-                          <span className="text-white font-medium">{u.username}</span>
+                          <span className="text-white font-medium">
+                            {u.username}
+                          </span>
                         </li>
                       ))}
                     </ul>
