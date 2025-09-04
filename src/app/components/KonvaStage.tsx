@@ -132,26 +132,31 @@ const KonvaStage = forwardRef<KonvaStageHandle, KonvaStageProps>(
       transformer.getLayer()?.batchDraw();
     }, [selectedId]);
 
-    const handleStageClick = (e: any) => {
-      const clickedOnEmpty = e.target === e.target.getStage();
+    const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+      const target = e.target;
+      if (!target) return;
+    
+      const clickedOnEmpty = target.getStage() === target;
       if (clickedOnEmpty) {
         setSelectedId(null);
         return;
       }
-
-      const clickedOnTransformer = e.target.getParent().className === "Transformer";
+    
+      const parent = target.getParent();
+      const clickedOnTransformer = parent?.className === "Transformer";
       if (clickedOnTransformer) {
         return;
       }
-
-      const name = e.target.name();
-      const id = e.target.id();
+    
+      const name = target.name();
+      const id = target.id();
       if (name === "text" || name === "image") {
         setSelectedId(id);
       } else {
         setSelectedId(null);
       }
     };
+    
 
     useImperativeHandle(ref, () => ({
       getEditedFile: async (): Promise<File> => {
