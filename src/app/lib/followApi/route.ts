@@ -1,12 +1,18 @@
+// src/app/api/follow/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-// GET /api/follow/:userId/status
-export async function GET(req: NextRequest, { params }: { params: { userId: string } }) {
-  const { userId } = params;
-
+// GET follow status (?userId=123)
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
+
+    if (!userId) {
+      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+    }
+
     const res = await fetch(`${BASE_URL}/api/follow/${userId}/status`, {
       credentials: "include",
     });
@@ -18,51 +24,56 @@ export async function GET(req: NextRequest, { params }: { params: { userId: stri
     const data = await res.json();
     return NextResponse.json(data);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
-// POST /api/follow/:username
-export async function POST(req: NextRequest, { params }: { params: { username: string } }) {
-  const { username } = params;
-
+// POST follow a user (expects { username } in body)
+export async function POST(req: NextRequest) {
   try {
+    const { username } = await req.json();
+
+    if (!username) {
+      return NextResponse.json({ error: "Missing username" }, { status: 400 });
+    }
+
     const res = await fetch(`${BASE_URL}/api/follow/${username}`, {
       method: "POST",
       credentials: "include",
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: "Failed to follow user" }, { status: res.status });
+      return NextResponse.json({ error: "Failed to follow" }, { status: res.status });
     }
 
     const data = await res.json();
     return NextResponse.json(data);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
-// DELETE /api/follow/:username
-export async function DELETE(req: NextRequest, { params }: { params: { username: string } }) {
-  const { username } = params;
-
+// DELETE unfollow a user (expects { username } in body)
+export async function DELETE(req: NextRequest) {
   try {
+    const { username } = await req.json();
+
+    if (!username) {
+      return NextResponse.json({ error: "Missing username" }, { status: 400 });
+    }
+
     const res = await fetch(`${BASE_URL}/api/follow/${username}`, {
       method: "DELETE",
       credentials: "include",
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: "Failed to unfollow user" }, { status: res.status });
+      return NextResponse.json({ error: "Failed to unfollow" }, { status: res.status });
     }
 
     const data = await res.json();
     return NextResponse.json(data);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
