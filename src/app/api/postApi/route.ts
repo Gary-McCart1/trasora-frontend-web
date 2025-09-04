@@ -1,6 +1,6 @@
 import { PostDto } from "@/app/types/Post";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 export async function getUserPosts(username: string): Promise<PostDto[]> {
   const res = await fetch(`${BASE_URL}/api/posts/author/${username}`, { credentials: "include" });

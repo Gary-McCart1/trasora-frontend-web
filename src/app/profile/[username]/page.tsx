@@ -173,7 +173,7 @@ export default function ProfilePage() {
   // --- Spotify connect ---
   const onConnectToSpotify = () => {
     if (!loggedInUser?.username) return alert("You must be logged in!");
-    window.location.href = `https://2cbdb5470da6.ngrok-free.app/auth/spotify/login?state=${encodeURIComponent(
+    window.location.href = `https://trasora-backend-e03193d24a86.herokuapp.com/auth/spotify/login?state=${encodeURIComponent(
       loggedInUser.username
     )}`;
   };

@@ -27,7 +27,7 @@ export default function SearchBar() {
     try {
       const [spotRes, userRes] = await Promise.all([
         fetch(
-          `http://localhost:8080/api/spotify/search?q=${encodeURIComponent(
+          `https://trasora-backend-e03193d24a86.herokuapp.com/api/spotify/search?q=${encodeURIComponent(
             searchTerm
           )}`,
           {
@@ -38,7 +38,7 @@ export default function SearchBar() {
           }
         ),
         fetch(
-          `http://localhost:8080/api/auth/search-bar?q=${encodeURIComponent(
+          `https://trasora-backend-e03193d24a86.herokuapp.com/api/auth/search-bar?q=${encodeURIComponent(
             searchTerm
           )}`,
           {

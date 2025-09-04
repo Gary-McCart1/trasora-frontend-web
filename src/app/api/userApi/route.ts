@@ -1,7 +1,7 @@
 import { NotificationDto } from "@/app/types/NotificationDto";
 import { User } from "@/app/types/User";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 export async function getCurrentUser(): Promise<User | null> {
     try {

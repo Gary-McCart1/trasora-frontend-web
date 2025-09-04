@@ -3,7 +3,7 @@ import { Track } from "@/app/types/spotify";
 import { RootSongInput } from "../../components/RootsSearchBar";
 import { User } from "@/app/types/User";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 /** Fetch Spotify token for the current logged-in user (for Web Playback SDK) */
 export async function fetchSpotifyToken(): Promise<string | null> {

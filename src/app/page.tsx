@@ -26,7 +26,7 @@ export default function Home() {
 
     const fetchPosts = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/posts/feed", {
+        const res = await fetch("https://trasora-backend-e03193d24a86.herokuapp.com/api/posts/feed", {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch feed posts");

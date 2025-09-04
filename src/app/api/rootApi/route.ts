@@ -2,7 +2,7 @@
 import { RootSongInput } from "../../components/RootsSearchBar";
 import { RootSong } from "../../components/RootsStrip";
 
-const BASE_URL = "http://localhost:8080/api/roots";
+const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 export const fetchRoots = async (username: string): Promise<RootSong[]> => {
   const res = await fetch(`${BASE_URL}/${username}`, { credentials: "include" });

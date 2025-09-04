@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 export async function getFollowStatus(userId: number) {
     const res = await fetch(`${BASE_URL}/api/follow/${userId}/status`, { credentials: "include" });

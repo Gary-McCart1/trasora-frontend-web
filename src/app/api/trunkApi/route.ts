@@ -2,7 +2,7 @@
 import { RootSongInput } from "@/app/components/RootsSearchBar";
 import { Branch, Trunk, newTrunk } from "@/app/types/User";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 // Get all trunks for a user
 export async function getTrunks(username: string): Promise<Trunk[]> {

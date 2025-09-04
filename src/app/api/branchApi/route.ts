@@ -1,6 +1,6 @@
 import { Branch } from "@/app/types/User";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 export async function getBranches(trunkId: number): Promise<Branch[]> {
   const res = await fetch(`${BASE_URL}/api/branches/trunk/${trunkId}`, { credentials: "include" });
