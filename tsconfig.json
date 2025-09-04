@@ -12,7 +12,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    "jsxImportSource": "react",
     "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"
@@ -20,8 +23,17 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["react", "react-dom", "node"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts", 
+    "**/*.ts", 
+    "**/*.tsx", 
+    ".next/types/**/*.ts", 
+    "src/app/api/userApi", 
+    "src/app/api/followApi", 
+    "types/**/*.d.ts"
+  ],
   "exclude": ["node_modules"]
 }

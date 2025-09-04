@@ -1,26 +1,124 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* Custom CSS variables */
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* Dark mode overrides */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    margin: 0 !important;
+    padding: 0;
   }
 }
 
+/* Global body styles */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1e1e;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #7c3aed;
+  border-radius: 4px;
+  border: 2px solid #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #9d4edd;
+}
+
+/* Animations */
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) scale(1.1);
+  }
+}
+
+@keyframes slideDown {
+  0% { transform: translateY(-10px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Animation classes */
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 6s ease infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.25s ease-out forwards;
+}
+
+/* globals.css or a component-level CSS file */
+.scrollbar-small::-webkit-scrollbar {
+  height: 2px; /* smaller height for horizontal scrollbar */
+}
+
+.scrollbar-small::-webkit-scrollbar-track {
+  background: #1f1f1f;
+  border-radius: 2px;
+}
+
+.scrollbar-small::-webkit-scrollbar-thumb {
+  background-color: #a855f7; /* accentColor if you want dynamic color */
+  border-radius: 2px;
+}
+
+.scrollbar-small {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #a855f7 /* thumb track */
+}
+
+
+/* Make horizontal scrollbar thinner */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px; /* adjust thickness */
+  color: purple;
+  background-color: purple;
+}
+
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #a855f7; /* accentColor fallback */
+  border-radius: 2px;
 }
