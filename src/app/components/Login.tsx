@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
-import { loginUser } from "../lib/userApi/route";
+import { loginUser } from "../lib/usersApi";
 
 export default function Login() {
   const { setUser } = useAuth();

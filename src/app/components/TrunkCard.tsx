@@ -5,8 +5,8 @@ import { Trunk } from "../types/User";
 import { HiPlus, HiTrash } from "react-icons/hi";
 import { FaSpotify } from "react-icons/fa";
 import { useState } from "react";
-import { updateTrunkTitle } from "../lib/trunkApi/route";
-import { sendTrunkToSpotify } from "../lib/spotifyApi/route";
+import { updateTrunkTitle } from "../lib/trunksApi";
+import { sendTrunkToSpotify } from "../lib/spotifyApi";
 
 interface TrunkCardProps {
   trunk: Trunk;
@@ -39,8 +39,8 @@ export default function TrunkCard({
 
   const handleSendToSpotify = async () => {
     try {
-      const playlistUrl = await sendTrunkToSpotify(trunk.id);
-      window.open(playlistUrl, "_blank");
+      const { playlistUrl } = await sendTrunkToSpotify(String(trunk.id));
+      window.open(playlistUrl, "_blank"); // now it's a string
     } catch (err) {
       console.error(err);
       alert(
@@ -50,6 +50,7 @@ export default function TrunkCard({
       );
     }
   };
+  
 
   return (
     <div

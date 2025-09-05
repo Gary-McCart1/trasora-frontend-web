@@ -24,14 +24,14 @@ import {
   logoutUser,
   deleteUser,
   updateProfileVisibility,
-} from "@/app/lib/userApi/route";
+} from "../../lib/usersApi";
 import {
   getFollowStatus,
   followUser,
   unfollowUser,
-} from "@/app/lib/followApi/route";
-import { getTrunks, createTrunk, deleteTrunk } from "@/app/lib/trunkApi/route";
-import { getUserPosts } from "@/app/lib/postApi/route";
+} from "../../lib/followApi";
+import { getTrunks, createTrunk, deleteTrunk } from "../../lib/trunksApi";
+import { getUserPosts } from "@/app/lib/postsApi";
 import { FaImages } from "react-icons/fa";
 import { BiSolidVideos } from "react-icons/bi";
 
@@ -71,57 +71,55 @@ export default function ProfilePage() {
   const isOwnProfile = pageUsername === loggedInUser?.username;
 
   // --- Fetch profile + trunks/branches + follow status ---
-  // --- Fetch profile + trunks/branches + follow status ---
-useEffect(() => {
-  const fetchAllData = async () => {
-    if (!pageUsername) return;
+  useEffect(() => {
+    const fetchAllData = async () => {
+      if (!pageUsername) return;
 
-    try {
-      const userData = await getUser(pageUsername);
-      setProfileUser(userData);
-      setProfilePublic(userData.profilePublic ?? true);
+      try {
+        const userData = await getUser(pageUsername);
+        setProfileUser(userData);
+        setProfilePublic(userData.profilePublic ?? true);
 
-      if (userData.id && !isOwnProfile) {
-        try {
-          const followData = await getFollowStatus(userData.id);
-          setFollowStatus(followData.status);
-          setProfileUser((prev) =>
-            prev ? { ...prev, ...followData } : prev
-          );
-        } catch {
+        if (userData.id && !isOwnProfile) {
+          try {
+            const followData = await getFollowStatus(userData.id);
+            setFollowStatus(followData.status);
+            setProfileUser((prev) =>
+              prev ? { ...prev, ...followData } : prev
+            );
+          } catch {
+            setFollowStatus(null);
+          }
+        } else {
           setFollowStatus(null);
         }
-      } else {
-        setFollowStatus(null);
+
+        const trunksData = await getTrunks(pageUsername);
+
+        // --- Fetch branches using new Next.js API route ---
+        const trunksWithBranches = await Promise.all(
+          trunksData.map(async (trunk: Trunk) => {
+            try {
+              const res = await fetch(`/api/branches?trunkId=${trunk.id}`);
+              const branches: Branch[] = res.ok ? await res.json() : [];
+              return { ...trunk, branches };
+            } catch (err) {
+              console.error(err);
+              return { ...trunk, branches: [] };
+            }
+          })
+        );
+
+        setProfileUser((prev) =>
+          prev ? { ...prev, trunks: trunksWithBranches } : prev
+        );
+      } catch (err) {
+        console.error(err);
       }
+    };
 
-      const trunksData = await getTrunks(pageUsername);
-
-      // --- Fetch branches using new Next.js API route ---
-      const trunksWithBranches = await Promise.all(
-        trunksData.map(async (trunk: Trunk) => {
-          try {
-            const res = await fetch(`/api/branches?trunkId=${trunk.id}`);
-            const branches: Branch[] = res.ok ? await res.json() : [];
-            return { ...trunk, branches };
-          } catch (err) {
-            console.error(err);
-            return { ...trunk, branches: [] };
-          }
-        })
-      );
-
-      setProfileUser((prev) =>
-        prev ? { ...prev, trunks: trunksWithBranches } : prev
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  fetchAllData();
-}, [pageUsername, isOwnProfile]);
-
+    fetchAllData();
+  }, [pageUsername, isOwnProfile]);
 
   // --- Fetch posts (depends on follow/visibility) ---
   const fetchUserPostsCb = useCallback(async () => {

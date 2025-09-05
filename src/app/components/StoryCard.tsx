@@ -6,7 +6,7 @@ import Image from "next/image";
 import getS3Url from "../utils/S3Url";
 import { useAuth } from "../context/AuthContext";
 import { FiMoreVertical } from "react-icons/fi";
-import { fetchSpotifyToken } from "../lib/spotifyApi/route";
+import { fetchSpotifyToken } from "../lib/spotifyApi";
 import { LuAudioLines } from "react-icons/lu";
 import { SpotifyPlayer } from "../types/spotify-playback";
 
@@ -75,9 +75,10 @@ const StoryCard: FC<StoryCardProps> = ({
     let isCancelled = false;
 
     const initPlayer = async () => {
-      const token = await fetchSpotifyToken();
+      const token: { accessToken: string | null } = await fetchSpotifyToken();
       if (!token || isCancelled) return;
 
+      if(!token.accessToken) throw new Error("No Spotify access token available");
       if (!window.Spotify) {
         console.error("Spotify SDK not loaded");
         return;
@@ -85,7 +86,7 @@ const StoryCard: FC<StoryCardProps> = ({
 
       const player: SpotifyPlayer = new window.Spotify.Player({
         name: "Trasora Story Player",
-        getOAuthToken: (cb) => cb(token),
+        getOAuthToken: (cb) => cb(token.accessToken!),
         volume: spotifyVolume,
       });
 

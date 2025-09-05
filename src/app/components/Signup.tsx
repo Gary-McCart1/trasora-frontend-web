@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
-import { signupUser } from "../lib/userApi/route";
+import { signupUser } from "../lib/usersApi";
 
 export default function Signup() {
   const [form, setForm] = useState({

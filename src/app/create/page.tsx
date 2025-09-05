@@ -10,8 +10,8 @@ import TrackSearch from "../components/TrackSearch";
 import MediaUploader from "../components/MediaUploader";
 import PostCard from "../components/PostCard";
 import { Track } from "../types/spotify";
-import { createPost } from "../lib/postApi/route";
-import { getSpotifyTrackById } from "../lib/spotifyApi/route";
+import { createPost } from "../lib/postsApi";
+import { getSpotifyTrack } from "../lib/spotifyApi";
 import { PostDto } from "../types/Post";
 import { useSpotifyPlayer } from "../context/SpotifyContext";
 import { LuAudioLines } from "react-icons/lu";
@@ -78,7 +78,7 @@ export default function CreatePostPage() {
       if (!trackId || !user) return;
 
       try {
-        const track = await getSpotifyTrackById(trackId, user.username);
+        const track = await getSpotifyTrack(trackId, user.username);
         setSelectedTrack(track);
         setSpotifyError(null);
         const albumUrl = track?.album?.images[0]?.url || DEFAULT_ALBUM_IMAGE;

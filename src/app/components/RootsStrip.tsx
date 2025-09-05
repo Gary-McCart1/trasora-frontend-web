@@ -11,11 +11,11 @@ import {
 import { useAuth } from "../context/AuthContext";
 import {
   fetchRoots,
-  addRoot as apiAddRoot,
-  deleteRoot as apiDeleteRoot,
-  reorderRoots as apiReorderRoots,
-} from "../lib/rootApi/route";
-import { getUser } from "../lib/userApi/route";
+  addRoot,
+  deleteRoot,
+  reorderRoots,
+} from "../lib/rootsApi";
+import { getUser } from "../lib/usersApi";
 
 export interface RootSong {
   id: number;
@@ -72,7 +72,7 @@ export default function RootsStrip({
       .finally(() => setLoading(false));
   }, [pageUsername]);
 
-  const addRoot = async () => {
+  const addARoot = async () => {
     if (!selectedSong || !isOwner) return;
 
     const availablePositions = Array.from(
@@ -83,7 +83,7 @@ export default function RootsStrip({
     if (!chosenPosition) return;
 
     try {
-      const newRoot = await apiAddRoot(selectedSong, chosenPosition);
+      const newRoot = await addRoot(selectedSong, chosenPosition);
       setRoots((prev) =>
         [...prev, newRoot].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
       );
@@ -95,10 +95,10 @@ export default function RootsStrip({
     }
   };
 
-  const deleteRoot = async (id: number) => {
+  const deleteARoot = async (id: number) => {
     if (!isOwner) return;
     try {
-      await apiDeleteRoot(id);
+      await deleteRoot(String(id));
       setRoots((prev) => prev.filter((r) => r.id !== id));
       if (
         playingTrackId &&
@@ -120,7 +120,7 @@ export default function RootsStrip({
     setRoots(updated);
 
     try {
-      await apiReorderRoots(updated.map((r) => r.id));
+      await reorderRoots(updated.map((r) => r.id));
     } catch (err) {
       console.error("Failed to reorder roots:", err);
     }
@@ -172,7 +172,7 @@ export default function RootsStrip({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              deleteRoot(song.id);
+              deleteARoot(song.id);
             }}
             className="absolute top-2 right-2 hover:bg-red-600 hover:p-2 rounded-full w-6 h-6 text-white text-sm flex items-center justify-center shadow-lg"
             title="Delete root"
@@ -321,7 +321,7 @@ export default function RootsStrip({
                 Cancel
               </button>
               <button
-                onClick={addRoot}
+                onClick={addARoot}
                 className="px-4 py-2 rounded hover:brightness-110 transition-colors"
                 style={{ backgroundColor: accentColor }}
                 disabled={!selectedSong}

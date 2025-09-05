@@ -10,8 +10,8 @@ import TrackSearch from "../../components/TrackSearch";
 import MediaUploader from "../../components/MediaUploader";
 import PostCard from "../../components/PostCard";
 
-import { getPostById, updatePost } from "../../lib/postApi/route";
-import { Post, PostDto } from "../../types/Post";
+import { getPostById, editPost } from "../../lib/postsApi"
+import { PostDto } from "../../types/Post";
 import { Track } from "../../types/spotify";
 import { LuAudioLines } from "react-icons/lu";
 import { useSpotifyPlayer } from "../../context/SpotifyContext";
@@ -45,11 +45,14 @@ export default function EditPostPage() {
   useEffect(() => {
     async function fetchPost() {
       if (!id) return;
+  
+      const postId = Array.isArray(id) ? id[0] : id;
+  
       try {
-        const fetchedPost = await getPostById(Number(id));
+        const fetchedPost = await getPostById(postId);
         setPost(fetchedPost);
         setCaption(fetchedPost.text);
-
+  
         setSelectedTrack({
           id: fetchedPost.trackId,
           name: fetchedPost.trackName,
@@ -60,7 +63,7 @@ export default function EditPostPage() {
             ],
           },
         });
-
+  
         if (fetchedPost.customVideoUrl) {
           setMediaPreview(fetchedPost.customVideoUrl);
           setIsVideo(true);
@@ -70,17 +73,18 @@ export default function EditPostPage() {
           );
           setIsVideo(false);
         }
-
-        if ((fetchedPost as PostDto).trackVolume !== undefined) {
-          setSpotifyVolume(fetchedPost?.trackVolume ?? 0.1);
+  
+        if (fetchedPost.trackVolume !== undefined) {
+          setSpotifyVolume(fetchedPost.trackVolume ?? 0.1);
         }
       } catch (err) {
         console.error("Failed to fetch post:", err);
       }
     }
-
+  
     fetchPost();
   }, [id]);
+  
 
   useEffect(() => {
     if (!mediaFile) return;
@@ -105,8 +109,8 @@ export default function EditPostPage() {
     setLoading(true);
 
     try {
-      await updatePost(
-        post.id!,
+      await editPost(
+        String(post.id),
         {
           title: caption,
           text: caption,

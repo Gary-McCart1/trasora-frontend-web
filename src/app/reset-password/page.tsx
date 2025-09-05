@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FiCheckCircle, FiAlertCircle, FiLock } from "react-icons/fi";
-import { resetPassword } from "../lib/userApi/route"; // import the API function
+import { resetPassword } from "../lib/usersApi"; // import the API function
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();

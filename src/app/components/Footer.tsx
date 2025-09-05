@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getAllUsers } from "../lib/userApi/route";
+import { getAllUsers } from "../lib/usersApi";
 
 const Footer = () => {
   const [userCount, setUserCount] = useState<number | null>(null);

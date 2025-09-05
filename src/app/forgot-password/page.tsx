@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { forgotPassword } from "../lib/userApi/route";
+import { forgotPassword } from "../api/userApi/route";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");

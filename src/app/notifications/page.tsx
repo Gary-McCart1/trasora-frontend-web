@@ -16,7 +16,7 @@ import getS3Url from "../utils/S3Url";
 import {
   fetchUnreadNotifications,
   handleFollowNotification,
-} from "../lib/userApi/route";
+} from "../lib/usersApi";
 
 function timeAgo(dateStr: string) {
   const now = new Date();

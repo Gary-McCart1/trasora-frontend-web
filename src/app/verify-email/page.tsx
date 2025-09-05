@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FiCheckCircle, FiAlertCircle, FiMail } from "react-icons/fi";
-import { resendVerificationEmail, verifyEmail } from "../lib/userApi/route";
+import { resendVerificationEmail, verifyEmail } from "../lib/usersApi";
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();

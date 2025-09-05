@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Branch, Trunk } from "../types/User";
 import { HiTrash } from "react-icons/hi";
-import { updateTrunkVisibility } from "../lib/trunkApi/route";
+import { updateTrunkVisibility } from "../lib/trunksApi";
 
 interface TrunkModalProps {
   trunk: Trunk;
@@ -25,20 +25,20 @@ export default function TrunkModal({
       "Are you sure you want to delete this song?"
     );
     if (!confirmDelete) return;
-  
+
     const oldBranches = [...branches];
     setBranches(branches.filter((b) => b.id !== branchId));
-  
+
     try {
       const res = await fetch(`/api/branches?branchId=${branchId}`, {
         method: "DELETE",
       });
       const data = await res.json();
-  
+
       if (!res.ok || data.error) {
         throw new Error(data.error || "Failed to delete branch");
       }
-  
+
       // Optionally, no need to reload the page anymore
       // window.location.reload();
     } catch (err) {
@@ -47,7 +47,6 @@ export default function TrunkModal({
       setBranches(oldBranches);
     }
   };
-  
 
   const togglePublic = async () => {
     if (toggling) return;

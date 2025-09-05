@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
-import { searchSpotifyTracks } from "../lib/spotifyApi/route";
+import { searchSpotify } from "../lib/spotifyApi";
 
 export interface RootSongInput {
   title: string;
@@ -42,7 +42,7 @@ export default function RootsSearchBar({ onSelect }: RootsSearchBarProps) {
     if (!user) return;
     setLoading(true);
 
-    const results = await searchSpotifyTracks(searchTerm, user.username);
+    const results = await searchSpotify(searchTerm, user.username);
     setTracks(results);
     setLoading(false);
   };

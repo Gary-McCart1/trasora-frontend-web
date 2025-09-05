@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiLogOut, FiTrash2, FiX } from "react-icons/fi";
-import { deleteUser } from "../lib/userApi/route"; // import your existing function
+import { deleteUser } from "../lib/usersApi"; // import your existing function
 
 interface AccountSettingsModalProps {
   onClose: () => void;
@@ -23,21 +23,17 @@ export default function AccountSettingsModal({
   // Actual delete function — calls backend API
   async function handleDeleteAccount() {
     try {
-      const res = await deleteUser(username);
-      if (res.ok) {
-        alert("Account deleted successfully.");
-        onClose(); // close modal
-        onLogout(); // log out user
-        router.push("/goodbye");
-      } else {
-        const errorText = await res.text();
-        alert("Failed to delete account: " + errorText);
-      }
+      await deleteUser(username);
+      alert("Account deleted successfully.");
+      onClose();
+      onLogout();
+      router.push("/goodbye");
     } catch (error) {
       alert("An error occurred while deleting the account.");
       console.error(error);
     }
   }
+  
 
   return (
     <AnimatePresence>

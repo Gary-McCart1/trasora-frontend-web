@@ -6,8 +6,8 @@ import { Plus } from "lucide-react";
 
 import AvailableTrunksList from "./AvailableTrunksList";
 import { useAuth } from "../context/AuthContext";
-import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunkApi/route";
-import { incrementPostBranchCount } from "../lib/postApi/route";
+import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunksApi";
+import { incrementPostBranchCount } from "../lib/postsApi";
 import { RootSongInput } from "./RootsSearchBar";
 import { Trunk } from "../types/User";
 import { LuGitBranchPlus } from "react-icons/lu";
@@ -138,7 +138,7 @@ export default function DraggablePlayer({
 
       if (track.postId) {
         try {
-          await incrementPostBranchCount(track.postId);
+          await incrementPostBranchCount(String(track.postId));
         } catch (err) {
           console.error("Failed to increment post branch count", err);
         }

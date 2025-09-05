@@ -9,7 +9,7 @@ import { Menu, X, Bell, PlusCircle, Compass } from "lucide-react";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
 import { User } from "../types/User";
-import { getUser, getUnreadNotificationsCount } from "../lib/userApi/route";
+import { getUser, getUnreadNotificationsCount } from "../lib/usersApi";
 
 const getS3Url = (key?: string | null) =>
   key

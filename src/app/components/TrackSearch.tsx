@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Track } from "../types/spotify";
 import { useAuth } from "../context/AuthContext";
-import { searchSpotifyTracksRaw } from "../lib/spotifyApi/route";
+import { searchSpotify } from "../lib/spotifyApi";
 
 interface TrackSearchProps {
   onSelectTrack: (track: Track) => void;
@@ -20,9 +20,19 @@ export default function TrackSearch({ onSelectTrack }: TrackSearchProps) {
 
   const fetchResults = async (searchTerm: string) => {
     if (!searchTerm.trim() || !user?.username) return setTracks([]);
-    const results = await searchSpotifyTracksRaw(searchTerm, user.username);
-    setTracks(results);
+  
+    const results = await searchSpotify(searchTerm, user.username); // RootSongInput[]
+    
+    const mappedTracks: Track[] = results.map((r) => ({
+      id: r.trackId, // required for Track
+      name: r.title,
+      artists: [{ name: r.artist }],
+      album: { images: [{ url: r.albumArtUrl }] },
+    }));
+  
+    setTracks(mappedTracks);
   };
+  
 
   const handleSelectTrack = (track: Track) => {
     onSelectTrack(track);

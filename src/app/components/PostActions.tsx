@@ -19,11 +19,11 @@ import {
   commentOnPost,
   deletePost,
   deleteComment,
-} from "../lib/postApi/route";
+} from "../lib/postsApi";
 import { useRouter } from "next/navigation";
 import { Trunk } from "../types/User";
-import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunkApi/route";
-import { incrementPostBranchCount } from "../lib/postApi/route";
+import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunksApi";
+import { incrementPostBranchCount } from "../lib/postsApi";
 
 interface Comment {
   id: number;
@@ -131,7 +131,7 @@ export default function PostActions({
     if (loadingLike) return;
     setLoadingLike(true);
     try {
-      await likePost(postId);
+      await likePost(String(postId));
       setLikedByCurrentUser(!likedByCurrentUser);
       setLikesCount((count) => count + (likedByCurrentUser ? -1 : 1));
     } catch {
@@ -145,7 +145,7 @@ export default function PostActions({
     if (loadingComment || !commentText.trim()) return;
     setLoadingComment(true);
     try {
-      await commentOnPost(postId, commentText.trim());
+      await commentOnPost(String(postId), commentText.trim());
       setCommentText("");
       setShowCommentBox(false);
       setCommentsCount((c) => c + 1);
@@ -161,7 +161,7 @@ export default function PostActions({
     if (!confirm("Delete this post?")) return;
     setLoadingDelete(true);
     try {
-      await deletePost(postId);
+      await deletePost(String(postId));
       alert("Post deleted.");
       window.location.reload();
     } catch {
@@ -176,7 +176,7 @@ export default function PostActions({
     if (!confirm("Delete comment?")) return;
     setLoadingCommentDelete(id);
     try {
-      await deleteComment(id);
+      await deleteComment(String(id));
       setComments((prev) => prev.filter((c) => c.id !== id));
       setCommentsCount((c) => c - 1);
     } catch {
@@ -217,7 +217,7 @@ export default function PostActions({
 
       // Update server branch count for the post
       try {
-        await incrementPostBranchCount(postId);
+        await incrementPostBranchCount(String(postId));
       } catch (err) {
         console.error("Failed to increment branch count on post", err);
       }

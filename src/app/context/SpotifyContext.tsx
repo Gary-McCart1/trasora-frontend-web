@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { PlaybackState, SpotifyPlayer } from "../types/spotify-playback";
-import { fetchSpotifyToken } from "../lib/spotifyApi/route";
+import { fetchSpotifyToken } from "../lib/spotifyApi";
 
 interface PlayTrackOptions {
   position_ms?: number;
@@ -55,7 +55,7 @@ export const SpotifyPlayerProvider = ({
 
   const initPlayer = async () => {
     if (player) return;
-
+  
     if (!window.Spotify) {
       await new Promise<void>((resolve, reject) => {
         const script = document.createElement("script");
@@ -66,18 +66,18 @@ export const SpotifyPlayerProvider = ({
         document.body.appendChild(script);
       });
     }
-
+  
     if (!window.Spotify) return console.error("Spotify SDK not loaded");
-
-    const token = await getFreshToken();
-    if (!token) return;
-
+  
+    const tokenObj = await getFreshToken(); // tokenObj: { accessToken: string | null }
+    if (!tokenObj?.accessToken) return;
+  
     const newPlayer = new window.Spotify.Player({
       name: "Trasora Web Player",
-      getOAuthToken: (cb) => cb(token),
+      getOAuthToken: (cb) => cb(tokenObj.accessToken!), // pass the string, not the object
       volume: 0.5,
     });
-
+  
     newPlayer.addListener("ready", (state) => {
       if ("device_id" in state) {
         setDeviceId(state.device_id ?? null);
@@ -85,9 +85,9 @@ export const SpotifyPlayerProvider = ({
         console.log("Spotify Player ready with device ID:", state.device_id);
       }
     });
-
+  
     newPlayer.addListener("not_ready", () => setPlayerReady(false));
-
+  
     newPlayer.addListener(
       "player_state_changed",
       (state: PlaybackState | { device_id?: string } | null) => {
@@ -97,11 +97,11 @@ export const SpotifyPlayerProvider = ({
         }
       }
     );
-
+  
     await newPlayer.connect();
     setPlayer(newPlayer);
   };
-
+  
   const playTrack = async (trackId: string, options?: PlayTrackOptions) => {
     if (!player || !deviceId) return;
 

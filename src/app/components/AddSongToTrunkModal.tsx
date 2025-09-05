@@ -4,7 +4,7 @@ import { useState } from "react";
 import RootsSearchBar, { RootSongInput } from "./RootsSearchBar";
 import { Branch } from "../types/User";
 import { useAuth } from "../context/AuthContext";
-import { addTrackToTrunk } from "../lib/trunkApi/route";
+import { addTrackToTrunk } from "../lib/trunksApi";
 
 interface AddSongToTrunkModalProps {
   trunkId: number;

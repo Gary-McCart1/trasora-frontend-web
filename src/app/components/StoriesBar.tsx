@@ -8,7 +8,7 @@ import getS3Url from "../utils/S3Url";
 import { useEffect, useState, useCallback } from "react";
 import { useStories } from "../context/StoriesContext";
 import { StoryDto } from "../types/Story";
-import { fetchActiveStories } from "../lib/storyApi/route";
+import { fetchActiveStories } from "../lib/storiesApi";
 import AddStoryModal from "./AddStoryModal";
 import StoryViewerModal from "./StoryViewerModal";
 

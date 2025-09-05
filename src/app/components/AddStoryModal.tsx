@@ -4,7 +4,7 @@ import { FC, useState, useEffect } from "react";
 import { HiX } from "react-icons/hi";
 import Confetti from "react-confetti";
 import { StoryDto } from "../types/Story";
-import { uploadStory } from "../lib/storyApi/route";
+import { uploadStory } from "../lib/storiesApi";
 import TrackSearch from "../components/TrackSearch";
 import { Track } from "../types/spotify";
 import StoryPreview from "./StoryPreview";
@@ -70,28 +70,31 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
       alert("Please select a track first!");
       return;
     }
-
+  
     setUploading(true);
-
+  
     try {
-      const newStory = await uploadStory(
-        user.id,
-        user.username,
-        user.profilePictureUrl || "",
-        selectedTrack,
-        mediaFile ?? undefined,
-        "" // optional caption
-      );
-
-      const storyWithAuthor: StoryDto = {
-        ...newStory,
-        authorId: newStory.authorId || user.id,
-        authorProfilePictureUrl:
-          newStory.authorProfilePictureUrl || user.profilePictureUrl || "",
+      const storyPayload: StoryDto = {
+        id: 0, // temporary or backend-generated
+        authorId: user.id,
+        authorUsername: user.username,
+        authorProfilePictureUrl: user.profilePictureUrl || "",
+        contentUrl: "", // backend will fill after upload
+        type: "TRACK",
+        trackId: selectedTrack.id,
+        trackName: selectedTrack.name,
+        artistName: selectedTrack.artists.map(a => a.name).join(", ") || "Unknown Artist",
+        albumArtUrl: selectedTrack.album.images[0]?.url || "/default-album-cover.png",
+        caption: "", // optional
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // example: 24h expiry
+        viewers: [], // starts empty
       };
-
-      onStoryAdded(storyWithAuthor);
-
+  
+      const newStory = await uploadStory(storyPayload, mediaFile ?? undefined);
+  
+      onStoryAdded(newStory);
+  
       // Show confetti
       setShowConfetti(true);
       setTimeout(() => {
@@ -104,6 +107,7 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
       setUploading(false);
     }
   };
+  
 
   return (
     <>

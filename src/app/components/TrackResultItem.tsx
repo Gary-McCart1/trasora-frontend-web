@@ -9,7 +9,7 @@ import { Branch, Trunk } from "../types/User";
 import { RootSongInput } from "./RootsSearchBar";
 import { useAuth } from "../context/AuthContext";
 import DraggablePlayer from "./DraggablePlayer";
-import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunkApi/route";
+import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunksApi";
 
 interface Track {
   id: string;
