@@ -19,11 +19,12 @@ export async function getUser(username: string): Promise<User> {
 }
 
 // Login
-export async function loginUser(email: string, password: string): Promise<User> {
+export async function loginUser(login: string, password: string): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ login, password }),
+    credentials: "include"
   });
   if (!res.ok) throw new Error("Login failed");
   return res.json();
@@ -94,6 +95,7 @@ export async function signupUser(data: { email: string; username: string; passwo
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
+    credentials: "include"
   });
   if (!res.ok) throw new Error("Signup failed");
   return res.json();
