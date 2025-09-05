@@ -1,47 +1,36 @@
-// src/lib/usersApi.ts
 import { User } from "@/app/types/User";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-// Helper to get headers with JWT
-const getAuthHeaders = (): Record<string, string> => {
-    const token = localStorage.getItem("token");
-    if (!token) return {}; // empty object is safe
-    return { Authorization: `Bearer ${token}` };
-  };
-  
-
 // -------------------- AUTHENTICATION --------------------
 
-// Get current authenticated user
-export async function getCurrentUser(token?: string): Promise<User> {
-    const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
-    const res = await fetch(`${BASE_URL}/api/auth/me`, {
-      headers,
-      credentials: token ? undefined : "include", // if using token, no cookies needed
-    });
-    if (!res.ok) throw new Error("Failed to fetch current user");
-    return res.json();
-  }
-  
+// Get current authenticated user (relies on httpOnly cookie)
+export async function getCurrentUser(): Promise<User> {
+  const res = await fetch(`${BASE_URL}/api/auth/me`, {
+    credentials: "include", // sends cookies automatically
+  });
+  if (!res.ok) throw new Error("Failed to fetch current user");
+  return res.json();
+}
 
-// Login
+// Login (backend sets cookie)
 export async function loginUser(login: string, password: string): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ login, password }),
+    credentials: "include", // needed to accept cookie
   });
   if (!res.ok) throw new Error("Login failed");
-  const data = await res.json();
-  localStorage.setItem("token", data.token); // store token for mobile/desktop
-  return data;
+  return res.json();
 }
 
-// Logout
+// Logout (backend clears cookie)
 export async function logoutUser(): Promise<void> {
-  localStorage.removeItem("token"); // clear local token
-  await fetch(`${BASE_URL}/api/auth/logout`, { method: "POST" }); // optional: invalidate cookie on server
+  await fetch(`${BASE_URL}/api/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
 }
 
 // Signup
@@ -60,7 +49,7 @@ export async function signupUser(data: { email: string; username: string; passwo
 // Get user by username
 export async function getUser(username: string): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/user/${username}`, {
-    headers: getAuthHeaders(),
+    credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to fetch user");
   return res.json();
@@ -69,7 +58,7 @@ export async function getUser(username: string): Promise<User> {
 // Get all users
 export async function getAllUsers(): Promise<User[]> {
   const res = await fetch(`${BASE_URL}/api/auth/users`, {
-    headers: getAuthHeaders(),
+    credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to fetch users");
   return res.json();
@@ -79,7 +68,7 @@ export async function getAllUsers(): Promise<User[]> {
 export async function deleteUser(username: string): Promise<void> {
   const res = await fetch(`${BASE_URL}/api/auth/user/${username}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
+    credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to delete user");
 }
@@ -88,7 +77,7 @@ export async function deleteUser(username: string): Promise<void> {
 export async function updateProfileVisibility(username: string, isPublic: boolean): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/user/${username}/profile-visibility?profilePublic=${isPublic}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
+    credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to update profile visibility");
   return res.json();
@@ -96,29 +85,26 @@ export async function updateProfileVisibility(username: string, isPublic: boolea
 
 // Update user profile
 export async function updateUserProfile(username: string, updates: Partial<User> & { profilePic?: File }): Promise<User> {
-    const formData = new FormData();
-  
-    if (updates.bio) formData.append("bio", updates.bio);
-    if (updates.accentColor) formData.append("accentColor", updates.accentColor);
-    if (updates.profilePic) formData.append("profilePic", updates.profilePic);
-  
-    const res = await fetch(`${BASE_URL}/api/auth/user`, {
-      method: "PUT",
-      headers: getAuthHeaders(), // DO NOT set Content-Type, fetch will handle it for FormData
-      body: formData,
-    });
-  
-    if (!res.ok) throw new Error("Failed to update profile");
-    return res.json();
-  }
-  
+  const formData = new FormData();
+  if (updates.bio) formData.append("bio", updates.bio);
+  if (updates.accentColor) formData.append("accentColor", updates.accentColor);
+  if (updates.profilePic) formData.append("profilePic", updates.profilePic);
+
+  const res = await fetch(`${BASE_URL}/api/auth/user`, {
+    method: "PUT",
+    credentials: "include", // sends cookie
+    body: formData,
+  });
+  if (!res.ok) throw new Error("Failed to update profile");
+  return res.json();
+}
 
 // -------------------- SEARCH --------------------
 
 // Search users
 export async function searchUsers(query: string): Promise<User[]> {
   const res = await fetch(`${BASE_URL}/api/auth/search-bar?q=${encodeURIComponent(query)}`, {
-    headers: getAuthHeaders(),
+    credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to search users");
   const data = await res.json();
@@ -171,7 +157,7 @@ export async function resendVerificationEmail(email: string): Promise<void> {
 export async function disconnectSpotify(username: string): Promise<void> {
   const res = await fetch(`${BASE_URL}/api/auth/user/${username}/disconnect-spotify`, {
     method: "PUT",
-    headers: getAuthHeaders(),
+    credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to disconnect Spotify");
 }
@@ -180,7 +166,7 @@ export async function disconnectSpotify(username: string): Promise<void> {
 export async function updateReferredBy(username: string, referredBy: string): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/user/${username}/referred-by?referredByUsername=${encodeURIComponent(referredBy)}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
+    credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to update referredBy");
   return res.json();
@@ -191,7 +177,7 @@ export async function updateReferredBy(username: string, referredBy: string): Pr
 // Fetch profile picture
 export async function fetchProfilePicture(userId: number): Promise<string> {
   const res = await fetch(`${BASE_URL}/api/auth/users/${userId}/profile-picture`, {
-    headers: getAuthHeaders(),
+    credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to fetch profile picture");
   return res.text();
