@@ -1,5 +1,6 @@
 import { Track } from "@/app/types/spotify";
 import { RootSongInput } from "@/app/components/RootsSearchBar";
+import { SpotifySearchResponse } from "../types/spotify";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
@@ -11,17 +12,20 @@ export async function fetchSpotifyToken(): Promise<{ accessToken: string | null 
 }
 
 // Search Spotify tracks (returns first 5 matches as RootSongInput[])
-export async function searchSpotify(query: string, username: string): Promise<RootSongInput[]> {
-  if (!query.trim() || !username) return [];
-
-  const res = await fetch(`${BASE_URL}/api/spotify/search?q=${encodeURIComponent(query)}`, {
-    headers: { Username: username },
-    credentials: "include",
-  });
-
-  if (!res.ok) throw new Error("Spotify search failed");
-  return res.json();
-}
+export async function searchSpotify(
+    query: string,
+    username: string
+  ): Promise<SpotifySearchResponse> { // <-- NOT RootSongInput[]
+    if (!query.trim() || !username) return { tracks: { items: [] } };
+  
+    const res = await fetch(`${BASE_URL}/api/spotify/search?q=${encodeURIComponent(query)}`, {
+      headers: { Username: username },
+      credentials: "include",
+    });
+  
+    if (!res.ok) throw new Error("Spotify search failed");
+    return res.json(); // This now matches SpotifySearchResponse
+  }
 
 // Send a trunk playlist to Spotify
 export async function sendTrunkToSpotify(trunkId: string): Promise<{ playlistUrl: string }> {

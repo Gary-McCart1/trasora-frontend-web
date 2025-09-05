@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Track } from "../types/spotify";
+import { SpotifyTrack, Track } from "../types/spotify";
 import { useAuth } from "../context/AuthContext";
 import { searchSpotify } from "../lib/spotifyApi";
 
@@ -21,14 +21,15 @@ export default function TrackSearch({ onSelectTrack }: TrackSearchProps) {
   const fetchResults = async (searchTerm: string) => {
     if (!searchTerm.trim() || !user?.username) return setTracks([]);
   
-    const results = await searchSpotify(searchTerm, user.username); // RootSongInput[]
-    
-    const mappedTracks: Track[] = results.map((r) => ({
-      id: r.trackId, // required for Track
-      name: r.title,
-      artists: [{ name: r.artist }],
-      album: { images: [{ url: r.albumArtUrl }] },
+    const resultsObj = await searchSpotify(searchTerm, user.username);
+  
+    const mappedTracks: Track[] = (resultsObj?.tracks?.items || []).map((r: SpotifyTrack) => ({
+      id: r.id,
+      name: r.name,
+      artists: r.artists,
+      album: r.album,
     }));
+    
   
     setTracks(mappedTracks);
   };

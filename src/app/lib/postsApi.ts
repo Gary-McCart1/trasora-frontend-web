@@ -11,14 +11,7 @@ export type CreatePostData = {
   trackVolume?: number;
 };
 
-interface PostFormData {
-  title: string;
-  text: string;
-  trackId: string;
-  trackName: string;
-  artistName?: string;
-  albumArtUrl?: string;
-  trackVolume?: number;
+interface PostFormData extends CreatePostData {
   [key: string]: string | number | undefined; // allow optional extra fields
 }
 
@@ -50,53 +43,96 @@ export async function getPostById(postId: string): Promise<PostDto> {
   return res.json();
 }
 
-// Create / edit / delete
+// Create post
 export async function createPost(data: CreatePostData, file?: File) {
-  const formData = new FormData();
-
-  Object.entries(data).forEach(([key, value]) => {
-    if (value !== undefined) formData.append(key, String(value));
-  });
-
-  if (file) formData.append("mediaFile", file);
-
-  const res = await fetch(`${BASE_URL}/api/posts`, {
-    method: "POST",
-    body: formData,
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error("Failed to create post");
-  return res.json() as Promise<PostDto>;
-}
-
-export async function editPost(postId: string, data: PostFormData, file?: File | null) {
-  const formData = new FormData();
-
-  Object.entries(data).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      formData.append(key, String(value));
+    const formData = new FormData();
+  
+    // Ensure required fields are present
+    const postDto = {
+      title: data.title || "Untitled",
+      text: data.text || "",
+      trackId: data.trackId || "",
+      trackName: data.trackName || "Unknown Track",
+      artistName: data.artistName || "Unknown Artist",
+      albumArtUrl: data.albumArtUrl || undefined,
+      branchCount: data.branchCount ?? 0,
+      trackVolume: data.trackVolume ?? 1,
+    };
+  
+    formData.append(
+      "postDto",
+      new Blob([JSON.stringify(postDto)], { type: "application/json" })
+    );
+  
+    if (file) formData.append("mediaFile", file);
+  
+    const res = await fetch(`${BASE_URL}/api/posts`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+  
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Server response:", text);
+      throw new Error("Failed to create post");
     }
-  });
+  
+    return res.json() as Promise<PostDto>;
+  }
+  
+  // Edit post
+  export async function editPost(postId: string, data: PostFormData, file?: File | null) {
+    const formData = new FormData();
+  
+    const postDto = {
+      title: data.title || "Untitled",
+      text: data.text || "",
+      trackId: data.trackId || "",
+      trackName: data.trackName || "Unknown Track",
+      artistName: data.artistName || "Unknown Artist",
+      albumArtUrl: data.albumArtUrl || undefined,
+      branchCount: data.branchCount ?? 0,
+      trackVolume: data.trackVolume ?? 1,
+    };
+  
+    formData.append(
+      "postDto",
+      new Blob([JSON.stringify(postDto)], { type: "application/json" })
+    );
+  
+    if (file) formData.append("mediaFile", file);
+  
+    const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
+      method: "PUT",
+      body: formData,
+      credentials: "include",
+    });
+  
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Server response:", text);
+      throw new Error("Failed to update post");
+    }
+  
+    return res.json() as Promise<PostDto>;
+  }
+  
 
-  if (file) formData.append("media", file);
-
-  const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
-    method: "PUT",
-    body: formData,
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error("Failed to update post");
-  return res.json();
-}
-
+// Delete post
 export async function deletePost(postId: string) {
-  const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error("Failed to delete post");
-  return res.json();
-}
+    const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+  
+    if (!res.ok) throw new Error("Failed to delete post");
+  
+    // 204 No Content → return undefined
+    if (res.status === 204) return;
+    return res.json();
+  }
+  
 
 // Interactions
 export async function incrementPostBranchCount(postId: string) {
@@ -121,7 +157,7 @@ export async function commentOnPost(postId: string, text: string) {
   const res = await fetch(`${BASE_URL}/api/posts/${postId}/comments`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify(text),
     credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to comment on post");

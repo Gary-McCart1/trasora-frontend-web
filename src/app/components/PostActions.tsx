@@ -163,13 +163,17 @@ export default function PostActions({
     try {
       await deletePost(String(postId));
       alert("Post deleted.");
+  
+      // Remove post from UI
       window.location.reload();
-    } catch {
-      alert("Could not delete.");
+    } catch (err) {
+      console.error(err);
+      alert("Could not delete post.");
     } finally {
       setLoadingDelete(false);
     }
   };
+  
 
   const handleDeleteComment = async (id: number) => {
     if (loadingCommentDelete) return;

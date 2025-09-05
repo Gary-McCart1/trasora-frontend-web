@@ -24,4 +24,25 @@ export interface SpotifyImage {
     artists: SpotifyArtist[];
     album: SpotifyAlbum;
   }
+
+  export interface SpotifyArtist {
+    name: string;
+  }
+  
+  // export interface SpotifyAlbum {
+  //   images: { url: string }[];
+  // }
+  
+  export interface SpotifyTrack {
+    id: string;
+    name: string;
+    artists: SpotifyArtist[];
+    album: SpotifyAlbum;
+  }
+  
+  export interface SpotifySearchResponse {
+    tracks: {
+      items: SpotifyTrack[];
+    };
+  }
   

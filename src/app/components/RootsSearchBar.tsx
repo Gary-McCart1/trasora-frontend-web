@@ -10,18 +10,18 @@ export interface RootSongInput {
   albumArtUrl: string;
   trackId: string;
 }
-interface SpotifyApiTrack {
+
+interface SpotifyTrack {
   id: string;
   name: string;
   artists: { name: string }[];
   album: { images: { url: string }[] };
 }
 
-interface OutputTrack {
-  trackTitle: string;
-  artistName: string;
-  albumArtUrl: string;
-  trackId: string;
+interface SpotifySearchResponse {
+  tracks: {
+    items: SpotifyTrack[];
+  };
 }
 
 interface RootsSearchBarProps {
@@ -39,12 +39,29 @@ export default function RootsSearchBar({ onSelect }: RootsSearchBarProps) {
   const { user } = useAuth();
 
   const fetchTracks = async (searchTerm: string) => {
-    if (!user) return;
-    setLoading(true);
+    if (!user || !searchTerm.trim()) {
+      setTracks([]);
+      return;
+    }
 
-    const results = await searchSpotify(searchTerm, user.username);
-    setTracks(results);
-    setLoading(false);
+    setLoading(true);
+    try {
+      const results: SpotifySearchResponse = await searchSpotify(searchTerm, user.username);
+
+      const mappedTracks: RootSongInput[] = results.tracks.items.map((track) => ({
+        trackId: track.id,
+        title: track.name,
+        artist: track.artists.map((a) => a.name).join(", "),
+        albumArtUrl: track.album.images[0]?.url || "",
+      }));
+
+      setTracks(mappedTracks);
+    } catch (err) {
+      console.error("Spotify search failed:", err);
+      setTracks([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -54,15 +71,11 @@ export default function RootsSearchBar({ onSelect }: RootsSearchBarProps) {
     return () => {
       if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     };
-  }, [query]); // Only depends on the user's query now
+  }, [query]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        event.target instanceof Node &&
-        !containerRef.current.contains(event.target)
-      ) {
+      if (containerRef.current && event.target instanceof Node && !containerRef.current.contains(event.target)) {
         setIsFocused(false);
       }
     };
@@ -71,7 +84,7 @@ export default function RootsSearchBar({ onSelect }: RootsSearchBarProps) {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full ">
+    <div ref={containerRef} className="relative w-full">
       <input
         type="text"
         value={query}
@@ -101,9 +114,7 @@ export default function RootsSearchBar({ onSelect }: RootsSearchBarProps) {
                 className="w-10 h-10 rounded object-cover"
               />
               <div className="truncate">
-                <p className="text-white font-semibold truncate">
-                  {track.title}
-                </p>
+                <p className="text-white font-semibold truncate">{track.title}</p>
                 <p className="text-zinc-400 text-sm truncate">{track.artist}</p>
               </div>
             </li>
