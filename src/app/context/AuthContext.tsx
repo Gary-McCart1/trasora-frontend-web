@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error("Error fetching user:", error);
         router.push("/login");
+        setLoading(false)
       } finally {
         setLoading(false);
       }
