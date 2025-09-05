@@ -1,12 +1,16 @@
-// src/app/api/branches/trunk/[trunkId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { Branch } from "@/app/types/User";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-export async function GET(req: NextRequest, { params }: { params: { trunkId: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ trunkId: string }> }
+) {
+  const { trunkId } = await params;
+
   try {
-    const res = await fetch(`${BASE_URL}/api/branches/trunk/${params.trunkId}`, {
+    const res = await fetch(`${BASE_URL}/api/branches/trunk/${trunkId}`, {
       credentials: "include",
     });
 

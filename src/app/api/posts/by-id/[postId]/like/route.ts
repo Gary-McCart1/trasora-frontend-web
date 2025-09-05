@@ -4,10 +4,12 @@ const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
+  const { postId } = await params;
+
   try {
-    const res = await fetch(`${BASE_URL}/api/posts/${params.postId}/like`, {
+    const res = await fetch(`${BASE_URL}/api/posts/${postId}/like`, {
       method: "POST",
       credentials: "include",
     });

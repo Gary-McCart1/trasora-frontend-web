@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-export async function POST(req: NextRequest, { params }: { params: { trunkId: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ trunkId: string }> }
+) {
+  const { trunkId } = await params;
   try {
-    const res = await fetch(`${BASE_URL}/api/spotify/trunk-playlist/${params.trunkId}`, {
+    const res = await fetch(`${BASE_URL}/api/spotify/trunk-playlist/${trunkId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

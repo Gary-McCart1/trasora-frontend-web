@@ -3,9 +3,13 @@ import { RootSong } from "@/app/components/RootsStrip";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-export async function GET(req: NextRequest, { params }: { params: { username: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ username: string }> }
+) {
+  const { username } = await params;
   try {
-    const res = await fetch(`${BASE_URL}/${params.username}`, { credentials: "include" });
+    const res = await fetch(`${BASE_URL}/${username}`, { credentials: "include" });
     if (!res.ok) throw new Error("Failed to fetch roots");
 
     const data: RootSong[] = await res.json();

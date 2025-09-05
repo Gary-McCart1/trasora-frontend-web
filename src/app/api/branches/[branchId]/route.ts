@@ -1,11 +1,15 @@
-// src/app/api/branches/[branchId]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-export async function DELETE(req: NextRequest, { params }: { params: { branchId: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ branchId: string }> }
+) {
+  const { branchId } = await params;
+
   try {
-    const res = await fetch(`${BASE_URL}/api/branches/${params.branchId}`, {
+    const res = await fetch(`${BASE_URL}/api/branches/${branchId}`, {
       method: "DELETE",
       credentials: "include",
     });

@@ -75,6 +75,7 @@ export default function UserPostsModal({
             onComment={onComment}
             onEdit={onEdit}
             onDelete={onDelete}
+            profileFeed={false}
           />
         ))}
       </div>

@@ -5,10 +5,11 @@ const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 // GET a post by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
+  const { postId } = await params;
   try {
-    const res = await fetch(`${BASE_URL}/api/posts/${params.postId}`, {
+    const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
       credentials: "include",
     });
     if (!res.ok) throw new Error("Failed to fetch post");
@@ -26,11 +27,12 @@ export async function GET(
 // PUT update a post
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
+  const { postId } = await params;
   try {
     const formData = await req.formData();
-    const res = await fetch(`${BASE_URL}/api/posts/${params.postId}`, {
+    const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
       method: "PUT",
       body: formData,
       credentials: "include",
@@ -49,10 +51,11 @@ export async function PUT(
 // DELETE a post
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ postId: string }> }
 ) {
+  const { postId } = await params;
   try {
-    const res = await fetch(`${BASE_URL}/api/posts/${params.postId}`, {
+    const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
       method: "DELETE",
       credentials: "include",
     });

@@ -3,10 +3,14 @@ import { Track } from "@/app/types/spotify";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-export async function GET(req: NextRequest, { params }: { params: { trackId: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ trackId: string }> }
+) {
+  const { trackId } = await params;
   const username = req.headers.get("Username") || "";
   try {
-    const res = await fetch(`${BASE_URL}/api/spotify/tracks/${params.trackId}`, {
+    const res = await fetch(`${BASE_URL}/api/spotify/tracks/${trackId}`, {
       headers: { Username: username },
       credentials: "include",
     });

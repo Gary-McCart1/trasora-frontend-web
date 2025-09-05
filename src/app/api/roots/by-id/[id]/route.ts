@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
-    const res = await fetch(`${BASE_URL}/${params.id}`, {
+    const res = await fetch(`${BASE_URL}/${id}`, {
       method: "DELETE",
       credentials: "include",
     });

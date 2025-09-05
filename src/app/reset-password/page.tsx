@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { FiCheckCircle, FiAlertCircle, FiLock } from "react-icons/fi";
 import { resetPassword } from "../lib/usersApi"; // import the API function
 
-export default function ResetPasswordPage() {
+// This is the inner component that uses the useSearchParams hook.
+// It will be rendered within a Suspense boundary.
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -119,5 +121,14 @@ export default function ResetPasswordPage() {
         </button>
       </form>
     </section>
+  );
+}
+
+// The main page component that wraps the content in a Suspense boundary.
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

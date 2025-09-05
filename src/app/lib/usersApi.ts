@@ -1,6 +1,6 @@
 // src/lib/usersApi.ts
 import { User } from "@/app/types/User";
-import { NotificationDto } from "../types/NotificationDto";
+
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 

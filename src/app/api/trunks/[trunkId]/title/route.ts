@@ -5,12 +5,13 @@ const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { trunkId: string } }
+  { params }: { params: Promise<{ trunkId: string }> }
 ) {
+  const { trunkId } = await params;
   try {
     const { title } = await req.json();
 
-    const res = await fetch(`${BASE_URL}/api/trunks/${params.trunkId}/title`, {
+    const res = await fetch(`${BASE_URL}/api/trunks/${trunkId}/title`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

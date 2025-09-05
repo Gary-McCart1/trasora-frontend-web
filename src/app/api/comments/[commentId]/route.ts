@@ -4,10 +4,12 @@ const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { commentId: string } }
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
+  const { commentId } = await params;
+
   try {
-    const res = await fetch(`${BASE_URL}/api/comments/${params.commentId}`, {
+    const res = await fetch(`${BASE_URL}/api/comments/${commentId}`, {
       method: "DELETE",
       credentials: "include",
     });

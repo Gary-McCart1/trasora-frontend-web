@@ -3,10 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 // Follow a user
-export async function POST(req: NextRequest, { params }: { params: { username: string } }) {
-  try {
-    const { username } = params;
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ username: string }> }
+) {
+  const { username } = await params;
 
+  try {
     const res = await fetch(`${BASE_URL}/api/follow/${username}`, {
       method: "POST",
       credentials: "include",
@@ -25,10 +28,13 @@ export async function POST(req: NextRequest, { params }: { params: { username: s
 }
 
 // Unfollow a user
-export async function DELETE(req: NextRequest, { params }: { params: { username: string } }) {
-  try {
-    const { username } = params;
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ username: string }> }
+) {
+  const { username } = await params;
 
+  try {
     const res = await fetch(`${BASE_URL}/api/follow/${username}`, {
       method: "DELETE",
       credentials: "include",

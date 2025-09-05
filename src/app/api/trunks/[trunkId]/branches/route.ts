@@ -6,15 +6,16 @@ const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { trunkId: string } }
+  { params }: { params: Promise<{ trunkId: string }> }
 ) {
+  const { trunkId } = await params;
   try {
     const { song, addedByUsername } = (await req.json()) as {
       song: RootSongInput;
       addedByUsername: string;
     };
 
-    const res = await fetch(`${BASE_URL}/api/branches/trunk/${params.trunkId}`, {
+    const res = await fetch(`${BASE_URL}/api/branches/trunk/${trunkId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
