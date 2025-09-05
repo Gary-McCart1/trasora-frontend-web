@@ -2,34 +2,56 @@ import { User } from "@/app/types/User";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
+// Helper function to get the JWT token from local storage
+const getAuthHeaders = () => {
+  const headers: Record<string, string> = {};
+  const token = localStorage.getItem("token");
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
+};
+
 // -------------------- AUTHENTICATION --------------------
 
-// Get current authenticated user (relies on httpOnly cookie)
+// Get current authenticated user
 export async function getCurrentUser(): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/me`, {
-    credentials: "include", // sends cookies automatically
+    headers: getAuthHeaders(),
   });
-  if (!res.ok) throw new Error("Failed to fetch current user");
+  if (!res.ok) {
+    if (res.status === 401) {
+      // If unauthorized, clear the token and throw error
+      localStorage.removeItem("token");
+    }
+    throw new Error("Failed to fetch current user");
+  }
   return res.json();
 }
 
-// Login (backend sets cookie)
+// Login
 export async function loginUser(login: string, password: string): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ login, password }),
-    credentials: "include", // needed to accept cookie
   });
   if (!res.ok) throw new Error("Login failed");
-  return res.json();
+
+  // Get token from response and save to localStorage
+  const data = await res.json();
+  const token = data.token;
+  localStorage.setItem("token", token);
+
+  return data.user;
 }
 
-// Logout (backend clears cookie)
+// Logout
 export async function logoutUser(): Promise<void> {
+  localStorage.removeItem("token");
   await fetch(`${BASE_URL}/api/auth/logout`, {
     method: "POST",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
 }
 
@@ -49,7 +71,7 @@ export async function signupUser(data: { email: string; username: string; passwo
 // Get user by username
 export async function getUser(username: string): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/user/${username}`, {
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch user");
   return res.json();
@@ -58,7 +80,7 @@ export async function getUser(username: string): Promise<User> {
 // Get all users
 export async function getAllUsers(): Promise<User[]> {
   const res = await fetch(`${BASE_URL}/api/auth/users`, {
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch users");
   return res.json();
@@ -68,7 +90,7 @@ export async function getAllUsers(): Promise<User[]> {
 export async function deleteUser(username: string): Promise<void> {
   const res = await fetch(`${BASE_URL}/api/auth/user/${username}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to delete user");
 }
@@ -77,7 +99,7 @@ export async function deleteUser(username: string): Promise<void> {
 export async function updateProfileVisibility(username: string, isPublic: boolean): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/user/${username}/profile-visibility?profilePublic=${isPublic}`, {
     method: "PUT",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to update profile visibility");
   return res.json();
@@ -92,7 +114,7 @@ export async function updateUserProfile(username: string, updates: Partial<User>
 
   const res = await fetch(`${BASE_URL}/api/auth/user`, {
     method: "PUT",
-    credentials: "include", // sends cookie
+    headers: getAuthHeaders(),
     body: formData,
   });
   if (!res.ok) throw new Error("Failed to update profile");
@@ -104,7 +126,7 @@ export async function updateUserProfile(username: string, updates: Partial<User>
 // Search users
 export async function searchUsers(query: string): Promise<User[]> {
   const res = await fetch(`${BASE_URL}/api/auth/search-bar?q=${encodeURIComponent(query)}`, {
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to search users");
   const data = await res.json();
@@ -157,7 +179,7 @@ export async function resendVerificationEmail(email: string): Promise<void> {
 export async function disconnectSpotify(username: string): Promise<void> {
   const res = await fetch(`${BASE_URL}/api/auth/user/${username}/disconnect-spotify`, {
     method: "PUT",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to disconnect Spotify");
 }
@@ -166,7 +188,7 @@ export async function disconnectSpotify(username: string): Promise<void> {
 export async function updateReferredBy(username: string, referredBy: string): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/user/${username}/referred-by?referredByUsername=${encodeURIComponent(referredBy)}`, {
     method: "PUT",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to update referredBy");
   return res.json();
@@ -177,7 +199,7 @@ export async function updateReferredBy(username: string, referredBy: string): Pr
 // Fetch profile picture
 export async function fetchProfilePicture(userId: number): Promise<string> {
   const res = await fetch(`${BASE_URL}/api/auth/users/${userId}/profile-picture`, {
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch profile picture");
   return res.text();
