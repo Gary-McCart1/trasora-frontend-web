@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { User } from "../types/User";
 import { getCurrentUser } from "../lib/usersApi";
 
@@ -15,16 +16,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      setLoading(false);
+      try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+          router.push("/login"); // redirect if not logged in
+        } else {
+          setUser(currentUser);
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        router.push("/login");
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchUser();
-  }, []);
+  }, [router]);
 
   return (
     <AuthContext.Provider value={{ user, setUser, loading }}>
