@@ -160,7 +160,7 @@ export default function DraggablePlayer({
         style={{ left: position.x, top: position.y, width: playerWidth }}
         className="fixed z-50 cursor-grab select-none"
       >
-        <div className="relative w-full h-[220px] rounded-3xl shadow-2xl overflow-hidden bg-zinc-950 flex flex-col items-center justify-center p-5">
+        <div className="relative w-full h-[220px] rounded-3xl shadow-2xl overflow-hidden bg-zinc-800 flex flex-col items-center justify-center p-5">
           {/* Close */}
           <button
             onClick={onClose}
