@@ -34,7 +34,7 @@ export async function loginUser(login: string, password: string): Promise<User> 
   });
   if (!res.ok) throw new Error("Login failed");
   const data = await res.json();
-  localStorage.setItem("jwt", data.token); // store token for mobile/desktop
+  localStorage.setItem("token", data.token); // store token for mobile/desktop
   return data;
 }
 
