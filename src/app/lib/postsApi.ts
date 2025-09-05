@@ -1,6 +1,5 @@
 import { PostDto } from "@/app/types/Post";
 
-
 export type CreatePostData = {
   title: string;
   text: string;
@@ -13,114 +12,127 @@ export type CreatePostData = {
 };
 
 interface PostFormData {
-    title: string;
-    text: string;
-    trackId: string;
-    trackName: string;
-    artistName?: string;
-    albumArtUrl?: string;
-    trackVolume?: number;
-    [key: string]: string | number | undefined; // allow optional extra fields
-  }
+  title: string;
+  text: string;
+  trackId: string;
+  trackName: string;
+  artistName?: string;
+  albumArtUrl?: string;
+  trackVolume?: number;
+  [key: string]: string | number | undefined; // allow optional extra fields
+}
 
+const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 // Author posts
 export async function getUserPosts(username: string): Promise<PostDto[]> {
-  const res = await fetch(`/api/posts/author/${username}`);
+  const res = await fetch(`${BASE_URL}/api/posts/author/${username}`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch posts");
   return res.json();
 }
 
 export async function getUserImagePosts(username: string): Promise<PostDto[]> {
-  const res = await fetch(`/api/posts/${username}/images`);
+  const res = await fetch(`${BASE_URL}/api/posts/${username}/images`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch image posts");
   return res.json();
 }
 
 export async function getUserVideoPosts(username: string): Promise<PostDto[]> {
-  const res = await fetch(`/api/posts/${username}/videos`);
+  const res = await fetch(`${BASE_URL}/api/posts/${username}/videos`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch video posts");
   return res.json();
 }
 
 // Single post
 export async function getPostById(postId: string): Promise<PostDto> {
-  const res = await fetch(`/api/posts/${postId}`);
+  const res = await fetch(`${BASE_URL}/api/posts/${postId}`, { credentials: "include" });
   if (!res.ok) throw new Error("Failed to fetch post");
   return res.json();
 }
 
 // Create / edit / delete
 export async function createPost(data: CreatePostData, file?: File) {
-    const formData = new FormData();
-  
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined) formData.append(key, String(value));
-    });
-  
-    if (file) formData.append("mediaFile", file);
-  
-    const res = await fetch(`/api/posts`, { method: "POST", body: formData });
-    if (!res.ok) throw new Error("Failed to create post");
-    return res.json() as Promise<PostDto>;
-  }
-  
+  const formData = new FormData();
 
-// lib/postsApi.ts
-export async function editPost(
-    postId: string,
-    data: PostFormData,
-    file?: File | null
-  ) {
-    const formData = new FormData();
-  
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, String(value));
-      }
-    });
-  
-    if (file) {
-      formData.append("media", file);
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined) formData.append(key, String(value));
+  });
+
+  if (file) formData.append("mediaFile", file);
+
+  const res = await fetch(`${BASE_URL}/api/posts`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Failed to create post");
+  return res.json() as Promise<PostDto>;
+}
+
+export async function editPost(postId: string, data: PostFormData, file?: File | null) {
+  const formData = new FormData();
+
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      formData.append(key, String(value));
     }
-  
-    const res = await fetch(`/api/posts/${postId}`, { method: "PUT", body: formData });
-    if (!res.ok) throw new Error("Failed to update post");
-    return res.json();
-  }
-  
+  });
+
+  if (file) formData.append("media", file);
+
+  const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
+    method: "PUT",
+    body: formData,
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Failed to update post");
+  return res.json();
+}
 
 export async function deletePost(postId: string) {
-  const res = await fetch(`/api/posts/${postId}`, { method: "DELETE" });
+  const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
   if (!res.ok) throw new Error("Failed to delete post");
   return res.json();
 }
 
 // Interactions
 export async function incrementPostBranchCount(postId: string) {
-  const res = await fetch(`/api/posts/${postId}/branch`, { method: "POST" });
+  const res = await fetch(`${BASE_URL}/api/posts/${postId}/branch`, {
+    method: "POST",
+    credentials: "include",
+  });
   if (!res.ok) throw new Error("Failed to increment branch count");
   return res.json();
 }
 
 export async function likePost(postId: string) {
-  const res = await fetch(`/api/posts/${postId}/like`, { method: "POST" });
+  const res = await fetch(`${BASE_URL}/api/posts/${postId}/like`, {
+    method: "POST",
+    credentials: "include",
+  });
   if (!res.ok) throw new Error("Failed to like post");
   return res.json();
 }
 
 export async function commentOnPost(postId: string, text: string) {
-  const res = await fetch(`/api/posts/${postId}/comments`, {
+  const res = await fetch(`${BASE_URL}/api/posts/${postId}/comments`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text }),
+    credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to comment on post");
   return res.json();
 }
 
 export async function deleteComment(commentId: string) {
-  const res = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
+  const res = await fetch(`${BASE_URL}/api/comments/${commentId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
   if (!res.ok) throw new Error("Failed to delete comment");
   return res.json();
 }

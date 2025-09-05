@@ -9,7 +9,8 @@ import { Menu, X, Bell, PlusCircle, Compass } from "lucide-react";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
 import { User } from "../types/User";
-import { getUser, getUnreadNotificationsCount } from "../lib/usersApi";
+import { getUser } from "../lib/usersApi";
+import { fetchUnreadNotifications } from "../lib/notificationApi";
 
 const getS3Url = (key?: string | null) =>
   key
@@ -33,16 +34,25 @@ export default function Navbar() {
   }, [user?.username]);
 
   // Fetch unread notifications & poll
-  useEffect(() => {
-    if (!user) return;
+  // Fetch unread notifications & poll
+useEffect(() => {
+  if (!user) return;
 
-    const fetchCount = async () =>
-      setUnreadCount(await getUnreadNotificationsCount());
-    fetchCount();
+  const fetchCount = async () => {
+    try {
+      const notifications = await fetchUnreadNotifications();
+      setUnreadCount(notifications.length);
+    } catch (err) {
+      console.error("Failed to fetch unread notifications:", err);
+    }
+  };
 
-    const interval = setInterval(fetchCount, 30000);
-    return () => clearInterval(interval);
-  }, [user]);
+  fetchCount();
+
+  const interval = setInterval(fetchCount, 30000);
+  return () => clearInterval(interval);
+}, [user]);
+
 
   // Clear badge on notifications page
   useEffect(() => {
