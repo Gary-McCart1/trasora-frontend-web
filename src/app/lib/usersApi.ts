@@ -5,7 +5,7 @@ const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 // Helper to get headers with JWT
 const getAuthHeaders = (): Record<string, string> => {
-    const token = localStorage.getItem("jwt");
+    const token = localStorage.getItem("token");
     if (!token) return {}; // empty object is safe
     return { Authorization: `Bearer ${token}` };
   };
@@ -40,7 +40,7 @@ export async function loginUser(login: string, password: string): Promise<User> 
 
 // Logout
 export async function logoutUser(): Promise<void> {
-  localStorage.removeItem("jwt"); // clear local token
+  localStorage.removeItem("token"); // clear local token
   await fetch(`${BASE_URL}/api/auth/logout`, { method: "POST" }); // optional: invalidate cookie on server
 }
 
