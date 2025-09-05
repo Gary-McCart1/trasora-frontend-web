@@ -9,46 +9,22 @@ interface AuthContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   loading: boolean;
-  token: string | null;
-  setToken: (token: string | null) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("token");
-    }
-    return null;
-  });
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem("token", token);
-    } else {
-      localStorage.removeItem("token");
-    }
-  }, [token]);
-
+  // Fetch user on mount
   useEffect(() => {
     const fetchUser = async () => {
-      if (!token) {
-        setLoading(false);
-        router.push("/login");
-        return;
-      }
-
       try {
-        const currentUser = await fetchCurrentUser(token);
-        if (!currentUser) {
-          router.push("/login");
-        } else {
-          setUser(currentUser);
-        }
+        const currentUser = await fetchCurrentUser();
+        setUser(currentUser);
       } catch (error) {
         console.error("Error fetching user:", error);
         router.push("/login");
@@ -58,10 +34,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     fetchUser();
-  }, [router, token]);
+  }, [router]);
+
+  // Helper to refresh user state manually
+  const refreshUser = async () => {
+    setLoading(true);
+    try {
+      const currentUser = await fetchCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error("Error refreshing user:", error);
+      setUser(null);
+      router.push("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, token, setToken }}>
+    <AuthContext.Provider value={{ user, setUser, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
