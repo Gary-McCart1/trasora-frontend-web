@@ -22,7 +22,6 @@ export async function getUser(username: string): Promise<User> {
 export async function loginUser(email: string, password: string): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
@@ -93,7 +92,6 @@ export async function searchUsers(query: string): Promise<User[]> {
 export async function signupUser(data: { email: string; username: string; password: string }): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/signup`, {
     method: "POST",
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
