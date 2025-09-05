@@ -1,12 +1,12 @@
-// src/lib/storiesApi.ts
 import { StoryDto } from "@/app/types/Story";
+import { getAuthHeaders } from "./usersApi";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 // Fetch active stories
 export async function fetchActiveStories(): Promise<StoryDto[]> {
   const res = await fetch(`${BASE_URL}/api/stories/active`, {
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch active stories");
   return res.json();
@@ -18,10 +18,10 @@ export async function uploadStory(story: StoryDto, file?: File): Promise<StoryDt
   if (file) formData.append("file", file);
   formData.append("story", new Blob([JSON.stringify(story)], { type: "application/json" }));
 
-  const res = await fetch(`${BASE_URL}/api/stories/active`, {
+  const res = await fetch(`${BASE_URL}/api/stories/create`, {
     method: "POST",
+    headers: getAuthHeaders(),
     body: formData,
-    credentials: "include",
   });
 
   if (!res.ok) {

@@ -3,7 +3,7 @@ import { User } from "@/app/types/User";
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 // Helper function to get the JWT token from local storage
-const getAuthHeaders = () => {
+export const getAuthHeaders = () => {
   const headers: Record<string, string> = {};
   const token = localStorage.getItem("token");
   if (token) {

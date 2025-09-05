@@ -1,13 +1,13 @@
-// src/lib/trunksApi.ts
 import { Branch, Trunk, newTrunk } from "@/app/types/User";
 import { RootSongInput } from "@/app/components/RootsSearchBar";
+import { getAuthHeaders } from "./usersApi";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 // ✅ Get trunks for a specific user
 export async function getTrunks(username: string): Promise<Trunk[]> {
   const res = await fetch(`${BASE_URL}/api/trunks/user/${username}`, {
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to fetch user trunks");
   return res.json();
@@ -15,7 +15,7 @@ export async function getTrunks(username: string): Promise<Trunk[]> {
 
 // ✅ Get all available (public) trunks
 export async function getAvailableTrunks(): Promise<Trunk[]> {
-  const res = await fetch(`${BASE_URL}/api/trunks`, { credentials: "include" });
+  const res = await fetch(`${BASE_URL}/api/trunks`, { headers: getAuthHeaders() });
   if (!res.ok) throw new Error("Failed to fetch available trunks");
   return res.json();
 }
@@ -24,8 +24,10 @@ export async function getAvailableTrunks(): Promise<Trunk[]> {
 export async function createTrunk(trunkData: newTrunk, username: string): Promise<Trunk> {
   const res = await fetch(`${BASE_URL}/api/trunks`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
     body: JSON.stringify({ newTrunk: trunkData, username }),
   });
   if (!res.ok) throw new Error("Failed to create trunk");
@@ -36,7 +38,7 @@ export async function createTrunk(trunkData: newTrunk, username: string): Promis
 export async function deleteTrunk(trunkId: number): Promise<void> {
   const res = await fetch(`${BASE_URL}/api/trunks/${trunkId}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to delete trunk");
 }
@@ -49,8 +51,10 @@ export async function addTrackToTrunk(
 ): Promise<Branch> {
   const res = await fetch(`${BASE_URL}/api/trunks/${trunkId}/branches`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
     body: JSON.stringify({ song, addedByUsername }),
   });
   if (!res.ok) throw new Error("Failed to add track to trunk");
@@ -61,8 +65,10 @@ export async function addTrackToTrunk(
 export async function updateTrunkTitle(trunkId: number, title: string): Promise<Trunk> {
   const res = await fetch(`${BASE_URL}/api/trunks/${trunkId}/title`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
     body: JSON.stringify({ title }),
   });
   if (!res.ok) throw new Error("Failed to update trunk title");
@@ -73,8 +79,10 @@ export async function updateTrunkTitle(trunkId: number, title: string): Promise<
 export async function updateTrunkVisibility(trunkId: number, publicFlag: boolean): Promise<Trunk> {
   const res = await fetch(`${BASE_URL}/api/trunks/${trunkId}/visibility`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
     body: JSON.stringify({ publicFlag }),
   });
   if (!res.ok) throw new Error("Failed to update trunk visibility");

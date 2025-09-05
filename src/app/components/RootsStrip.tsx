@@ -81,9 +81,12 @@ export default function RootsStrip({
     ).filter((pos) => !roots.some((r) => r.position === pos));
     const chosenPosition = position ?? availablePositions[0];
     if (!chosenPosition) return;
+    console.log(selectedSong)
 
     try {
       const newRoot = await addRoot(selectedSong, chosenPosition);
+      // Log the new root object to inspect the data returned from the API
+      console.log("New root returned from API:", newRoot);
       setRoots((prev) =>
         [...prev, newRoot].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
       );

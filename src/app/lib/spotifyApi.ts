@@ -1,12 +1,14 @@
 import { Track } from "@/app/types/spotify";
-import { RootSongInput } from "@/app/components/RootsSearchBar";
 import { SpotifySearchResponse } from "../types/spotify";
+import { getAuthHeaders } from "./usersApi";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 // Fetch Spotify access token
 export async function fetchSpotifyToken(): Promise<{ accessToken: string | null }> {
-  const res = await fetch(`${BASE_URL}/api/spotify/token`, { credentials: "include" });
+  const res = await fetch(`${BASE_URL}/api/spotify/token`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error("Failed to fetch Spotify token");
   return res.json();
 }
@@ -19,8 +21,7 @@ export async function searchSpotify(
     if (!query.trim() || !username) return { tracks: { items: [] } };
   
     const res = await fetch(`${BASE_URL}/api/spotify/search?q=${encodeURIComponent(query)}`, {
-      headers: { Username: username },
-      credentials: "include",
+      headers: { ...getAuthHeaders(), "Username": username },
     });
   
     if (!res.ok) throw new Error("Spotify search failed");
@@ -31,7 +32,7 @@ export async function searchSpotify(
 export async function sendTrunkToSpotify(trunkId: string): Promise<{ playlistUrl: string }> {
   const res = await fetch(`${BASE_URL}/api/spotify/trunk-playlist/${trunkId}`, {
     method: "POST",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to send trunk to Spotify");
   return res.json();
@@ -40,8 +41,7 @@ export async function sendTrunkToSpotify(trunkId: string): Promise<{ playlistUrl
 // Fetch a single Spotify track by ID
 export async function getSpotifyTrack(trackId: string, username: string): Promise<Track> {
   const res = await fetch(`${BASE_URL}/api/spotify/tracks/${trackId}`, {
-    headers: { Username: username },
-    credentials: "include",
+    headers: { ...getAuthHeaders(), "Username": username },
   });
   if (!res.ok) throw new Error("Failed to fetch track");
   return res.json();
@@ -50,8 +50,7 @@ export async function getSpotifyTrack(trackId: string, username: string): Promis
 // Fetch explore content from Spotify
 export async function getSpotifyExplore(username: string) {
   const res = await fetch(`${BASE_URL}/api/spotify/explore`, {
-    headers: { Username: username },
-    credentials: "include",
+    headers: { ...getAuthHeaders(), "Username": username },
   });
   if (!res.ok) throw new Error("Failed to fetch explore content");
   return res.json();
@@ -59,7 +58,9 @@ export async function getSpotifyExplore(username: string) {
 
 // Fetch track recommendations from Spotify
 export async function getSpotifyRecommendations(): Promise<Track[]> {
-  const res = await fetch(`${BASE_URL}/api/spotify/recommendations/from-posts`, { credentials: "include" });
+  const res = await fetch(`${BASE_URL}/api/spotify/recommendations/from-posts`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error("Failed to fetch recommendations");
   return res.json();
 }
@@ -68,8 +69,7 @@ export async function getSpotifyRecommendations(): Promise<Track[]> {
 export async function playSpotifyTrack(trackId: string, username: string) {
   const res = await fetch(`${BASE_URL}/api/spotify/play-track`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Username: username },
-    credentials: "include",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders(), "Username": username },
     body: JSON.stringify({ trackId }),
   });
   if (!res.ok) throw new Error("Failed to play track");
@@ -80,8 +80,7 @@ export async function playSpotifyTrack(trackId: string, username: string) {
 export async function pauseSpotifyTrack(username: string) {
   const res = await fetch(`${BASE_URL}/api/spotify/pause-track`, {
     method: "POST",
-    headers: { Username: username },
-    credentials: "include",
+    headers: { ...getAuthHeaders(), "Username": username },
   });
   if (!res.ok) throw new Error("Failed to pause track");
   return res.json();

@@ -1,4 +1,5 @@
 import { PostDto } from "@/app/types/Post";
+import { getAuthHeaders } from "./usersApi";
 
 export type CreatePostData = {
   title: string;
@@ -19,26 +20,26 @@ const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 // Author posts
 export async function getUserPosts(username: string): Promise<PostDto[]> {
-  const res = await fetch(`${BASE_URL}/api/posts/author/${username}`, { credentials: "include" });
+  const res = await fetch(`${BASE_URL}/api/posts/author/${username}`, { headers: getAuthHeaders() });
   if (!res.ok) throw new Error("Failed to fetch posts");
   return res.json();
 }
 
 export async function getUserImagePosts(username: string): Promise<PostDto[]> {
-  const res = await fetch(`${BASE_URL}/api/posts/${username}/images`, { credentials: "include" });
+  const res = await fetch(`${BASE_URL}/api/posts/${username}/images`, { headers: getAuthHeaders() });
   if (!res.ok) throw new Error("Failed to fetch image posts");
   return res.json();
 }
 
 export async function getUserVideoPosts(username: string): Promise<PostDto[]> {
-  const res = await fetch(`${BASE_URL}/api/posts/${username}/videos`, { credentials: "include" });
+  const res = await fetch(`${BASE_URL}/api/posts/${username}/videos`, { headers: getAuthHeaders() });
   if (!res.ok) throw new Error("Failed to fetch video posts");
   return res.json();
 }
 
 // Single post
 export async function getPostById(postId: string): Promise<PostDto> {
-  const res = await fetch(`${BASE_URL}/api/posts/${postId}`, { credentials: "include" });
+  const res = await fetch(`${BASE_URL}/api/posts/${postId}`, { headers: getAuthHeaders() });
   if (!res.ok) throw new Error("Failed to fetch post");
   return res.json();
 }
@@ -69,7 +70,7 @@ export async function createPost(data: CreatePostData, file?: File) {
     const res = await fetch(`${BASE_URL}/api/posts`, {
       method: "POST",
       body: formData,
-      credentials: "include",
+      headers: getAuthHeaders(),
     });
   
     if (!res.ok) {
@@ -106,7 +107,7 @@ export async function createPost(data: CreatePostData, file?: File) {
     const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
       method: "PUT",
       body: formData,
-      credentials: "include",
+      headers: getAuthHeaders(),
     });
   
     if (!res.ok) {
@@ -123,7 +124,7 @@ export async function createPost(data: CreatePostData, file?: File) {
 export async function deletePost(postId: string) {
     const res = await fetch(`${BASE_URL}/api/posts/${postId}`, {
       method: "DELETE",
-      credentials: "include",
+      headers: getAuthHeaders(),
     });
   
     if (!res.ok) throw new Error("Failed to delete post");
@@ -138,7 +139,7 @@ export async function deletePost(postId: string) {
 export async function incrementPostBranchCount(postId: string) {
   const res = await fetch(`${BASE_URL}/api/posts/${postId}/branch`, {
     method: "POST",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to increment branch count");
   return res.json();
@@ -147,7 +148,7 @@ export async function incrementPostBranchCount(postId: string) {
 export async function likePost(postId: string) {
   const res = await fetch(`${BASE_URL}/api/posts/${postId}/like`, {
     method: "POST",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to like post");
   return res.json();
@@ -156,9 +157,8 @@ export async function likePost(postId: string) {
 export async function commentOnPost(postId: string, text: string) {
   const res = await fetch(`${BASE_URL}/api/posts/${postId}/comments`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(text),
-    credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to comment on post");
   return res.json();
@@ -167,7 +167,7 @@ export async function commentOnPost(postId: string, text: string) {
 export async function deleteComment(commentId: string) {
   const res = await fetch(`${BASE_URL}/api/comments/${commentId}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to delete comment");
   return res.json();
