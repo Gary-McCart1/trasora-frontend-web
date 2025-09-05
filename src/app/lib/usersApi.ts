@@ -1,6 +1,5 @@
 // src/lib/usersApi.ts
 import { User } from "@/app/types/User";
-import { Notification } from "@/app/types/Notification";
 import { NotificationDto } from "../types/NotificationDto";
 
 // Get current authenticated user
