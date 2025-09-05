@@ -34,7 +34,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased !m-0 !pt-0`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased !m-0 !pt-0 bg-zinc-950`}
       >
         <ClientProviders>
           <SpotifyPlayerProvider>
