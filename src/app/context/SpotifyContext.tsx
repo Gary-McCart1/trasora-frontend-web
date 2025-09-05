@@ -105,8 +105,10 @@ export const SpotifyPlayerProvider = ({
   const playTrack = async (trackId: string, options?: PlayTrackOptions) => {
     if (!player || !deviceId) return;
 
-    const token = await getFreshToken();
-    if (!token) return;
+    const tokenObj = await getFreshToken();
+if (!tokenObj?.accessToken) return;
+
+    console.log(deviceId)
 
     // Start playback
     await fetch(
@@ -114,7 +116,7 @@ export const SpotifyPlayerProvider = ({
       {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${tokenObj.accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
