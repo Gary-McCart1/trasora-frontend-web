@@ -163,7 +163,7 @@ export default function PostActions({
     try {
       await deletePost(String(postId));
       alert("Post deleted.");
-  
+
       // Remove post from UI
       window.location.reload();
     } catch (err) {
@@ -173,7 +173,6 @@ export default function PostActions({
       setLoadingDelete(false);
     }
   };
-  
 
   const handleDeleteComment = async (id: number) => {
     if (loadingCommentDelete) return;
@@ -247,7 +246,9 @@ export default function PostActions({
             <span className="font-semibold text-base">{authorUsername}</span>
             <span className="text-xs text-zinc-500">
               {createdAt &&
-                formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+                formatDistanceToNow(new Date(createdAt + "Z"), {
+                  addSuffix: true,
+                })}
             </span>
           </div>
         </div>
