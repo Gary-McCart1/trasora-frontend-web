@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -6,7 +5,8 @@ import Navbar from "./components/NavBar";
 import Footer from "./components/Footer";
 import ClientProviders from "./components/ClientProviders";
 import { SpotifyPlayerProvider } from "./context/SpotifyContext";
-import { StoriesProvider } from "./context/StoriesContext"; // ← import it
+import { StoriesProvider } from "./context/StoriesContext";
+import { AlertProvider } from "./context/AlertContext"; // Import the AlertProvider
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,12 +38,14 @@ export default function RootLayout({
       >
         <ClientProviders>
           <SpotifyPlayerProvider>
-            <StoriesProvider> {/* ← wrap here */}
-              <div className="flex flex-col min-h-screen">
-                <Navbar />
-                <main className="flex-grow">{children}</main>
-                <Footer />
-              </div>
+            <StoriesProvider>
+              <AlertProvider> {/* Wrap the entire layout with the alert provider */}
+                <div className="flex flex-col min-h-screen">
+                  <Navbar />
+                  <main className="flex-grow">{children}</main>
+                  <Footer />
+                </div>
+              </AlertProvider>
             </StoriesProvider>
           </SpotifyPlayerProvider>
         </ClientProviders>

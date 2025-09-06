@@ -34,6 +34,7 @@ import { getTrunks, createTrunk, deleteTrunk, getBranchesForTrunk } from "../../
 import { getUserPosts } from "@/app/lib/postsApi";
 import { FaImages } from "react-icons/fa";
 import { BiSolidVideos } from "react-icons/bi";
+import { useAlert } from "@/app/context/AlertContext";
 
 export default function ProfilePage() {
   const [postType, setPostType] = useState("images");
@@ -60,6 +61,7 @@ export default function ProfilePage() {
   const [showDraggablePlayer, setShowDraggablePlayer] = useState(false);
 
   const { isReady, initPlayer } = useSpotifyPlayer();
+  const { showAlert } = useAlert();
 
   const router = useRouter();
   const { username } = useParams();
@@ -178,7 +180,10 @@ export default function ProfilePage() {
 
   // --- Spotify connect ---
   const onConnectToSpotify = () => {
-    if (!loggedInUser?.username) return alert("You must be logged in!");
+    if (!loggedInUser?.username) {
+        showAlert("You must be logged in!", "error");
+        return;
+    }
     window.location.href = `https://trasora-backend-e03193d24a86.herokuapp.com/auth/spotify/login?state=${encodeURIComponent(
       loggedInUser.username
     )}`;
@@ -204,28 +209,30 @@ export default function ProfilePage() {
       setShowTrunkCreator(false);
     } catch (err) {
       console.error(err);
-      alert("Failed to create trunk. Please try again.");
+      showAlert("Failed to create trunk. Please try again.", "error");
     }
   };
 
   // --- Trunk Deletion ---
-  const handleTrunkDelete = async (trunkId: number) => {
+  const handleTrunkDelete = (trunkId: number) => {
     if (!profileUser) return;
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this trunk?"
+    showAlert(
+        "Are you sure you want to delete this trunk?",
+        "confirm",
+        async () => {
+            try {
+                await deleteTrunk(trunkId);
+                setProfileUser((prev) =>
+                    prev
+                        ? { ...prev, trunks: prev.trunks?.filter((t) => t.id !== trunkId) }
+                        : prev
+                );
+            } catch (err) {
+                console.error(err);
+                showAlert("Failed to delete trunk. Please try again.", "error");
+            }
+        }
     );
-    if (!confirmDelete) return;
-    try {
-      await deleteTrunk(trunkId);
-      setProfileUser((prev) =>
-          prev
-            ? { ...prev, trunks: prev.trunks?.filter((t) => t.id !== trunkId) }
-            : prev
-      );
-    } catch (err) {
-      console.error(err);
-      alert("Failed to delete trunk. Please try again.");
-    }
   };
 
   const handleAddSongToTrunk = (trunkId: number) => {
@@ -394,7 +401,7 @@ export default function ProfilePage() {
               return;
             try {
               await deleteUser(profileUser.username);
-              alert("Account deleted");
+              showAlert("Account deleted", "success");
               setUser(null);
               router.push("/");
             } catch (err) {
