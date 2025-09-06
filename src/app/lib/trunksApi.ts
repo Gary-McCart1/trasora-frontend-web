@@ -22,17 +22,17 @@ export async function getAvailableTrunks(): Promise<Trunk[]> {
 
 // ✅ Create a new trunk
 export async function createTrunk(trunkData: newTrunk, username: string): Promise<Trunk> {
-  const res = await fetch(`${BASE_URL}/api/trunks`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-    body: JSON.stringify({ newTrunk: trunkData, username }),
-  });
-  if (!res.ok) throw new Error("Failed to create trunk");
-  return res.json();
-}
+    const res = await fetch(`${BASE_URL}/api/trunks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ ...trunkData, username }),
+    });
+    if (!res.ok) throw new Error("Failed to create trunk");
+    return res.json();
+  }
 
 // ✅ Delete a trunk
 export async function deleteTrunk(trunkId: number): Promise<void> {
@@ -45,21 +45,21 @@ export async function deleteTrunk(trunkId: number): Promise<void> {
 
 // ✅ Add a track to a trunk
 export async function addTrackToTrunk(
-  trunkId: number,
-  song: RootSongInput,
-  addedByUsername: string
-): Promise<Branch> {
-  const res = await fetch(`${BASE_URL}/api/trunks/${trunkId}/branches`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-    body: JSON.stringify({ song, addedByUsername }),
-  });
-  if (!res.ok) throw new Error("Failed to add track to trunk");
-  return res.json();
-}
+    trunkId: number,
+    song: RootSongInput,
+    addedByUsername: string
+  ): Promise<Branch> {
+    const res = await fetch(`${BASE_URL}/api/branches/trunk/${trunkId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ ...song, addedByUsername }),
+    });
+    if (!res.ok) throw new Error("Failed to add track to trunk");
+    return res.json();
+  }
 
 // ✅ Update trunk title
 export async function updateTrunkTitle(trunkId: number, title: string): Promise<Trunk> {
@@ -88,3 +88,19 @@ export async function updateTrunkVisibility(trunkId: number, publicFlag: boolean
   if (!res.ok) throw new Error("Failed to update trunk visibility");
   return res.json();
 }
+
+export async function getBranchesForTrunk(trunkId: number): Promise<Branch[]> {
+    const res = await fetch(`${BASE_URL}/api/branches/trunk/${trunkId}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to fetch trunk branches");
+    return res.json();
+  }
+
+  export async function removeBranch(branchId: number): Promise<void> {
+    const res = await fetch(`${BASE_URL}/api/branches/${branchId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to remove branch");
+  }

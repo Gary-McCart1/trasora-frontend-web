@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Branch, Trunk } from "../types/User";
 import { HiTrash } from "react-icons/hi";
-import { updateTrunkVisibility } from "../lib/trunksApi";
+import { removeBranch, updateTrunkVisibility } from "../lib/trunksApi";
 
 interface TrunkModalProps {
   trunk: Trunk;
@@ -26,26 +26,19 @@ export default function TrunkModal({
     );
     if (!confirmDelete) return;
 
+    // Optimistically remove the branch from the UI
     const oldBranches = [...branches];
     setBranches(branches.filter((b) => b.id !== branchId));
 
     try {
-      const res = await fetch(`/api/branches?branchId=${branchId}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error || "Failed to delete branch");
-      }
-
-      // Optionally, no need to reload the page anymore
-      // window.location.reload();
+      // Call the API function to remove the branch from the backend
+      await removeBranch(branchId);
     } catch (err) {
       console.error(err);
       alert("Failed to delete song. Reverting...");
       setBranches(oldBranches);
     }
+    window.location.reload()
   };
 
   const togglePublic = async () => {
@@ -55,6 +48,7 @@ export default function TrunkModal({
     try {
       const updatedTrunk = await updateTrunkVisibility(trunk.id, !publicFlag);
       setPublicFlag(updatedTrunk.publicFlag);
+      window.location.reload()
     } catch (err) {
       console.error(err);
       alert("Failed to update trunk visibility");
@@ -105,8 +99,8 @@ export default function TrunkModal({
         </div>
 
         {/* Branch list */}
-        <div className="flex flex-col gap-3 max-h-96 overflow-y-auto pr-5">
-          {branches.length > 0 ? (
+        <div className="flex flex-col gap-3 max-h-96 overflow-y-auto pr-2">
+          {branches?.length > 0 ? (
             branches.map((branch) => (
               <div
                 key={branch.id}

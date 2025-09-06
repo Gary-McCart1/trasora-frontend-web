@@ -30,7 +30,7 @@ import {
   followUser,
   unfollowUser,
 } from "../../lib/followApi";
-import { getTrunks, createTrunk, deleteTrunk } from "../../lib/trunksApi";
+import { getTrunks, createTrunk, deleteTrunk, getBranchesForTrunk } from "../../lib/trunksApi";
 import { getUserPosts } from "@/app/lib/postsApi";
 import { FaImages } from "react-icons/fa";
 import { BiSolidVideos } from "react-icons/bi";
@@ -71,55 +71,54 @@ export default function ProfilePage() {
   const isOwnProfile = pageUsername === loggedInUser?.username;
 
   // --- Fetch profile + trunks/branches + follow status ---
-  useEffect(() => {
-    const fetchAllData = async () => {
-      if (!pageUsername) return;
+  const fetchAllData = useCallback(async () => {
+    if (!pageUsername) return;
 
-      try {
-        const userData = await getUser(pageUsername);
-        setProfileUser(userData);
-        setProfilePublic(userData.profilePublic ?? true);
+    try {
+      const userData = await getUser(pageUsername);
+      setProfileUser(userData);
+      setProfilePublic(userData.profilePublic ?? true);
 
-        if (userData.id && !isOwnProfile) {
-          try {
-            const followData = await getFollowStatus(userData.id);
-            setFollowStatus(followData.status);
-            setProfileUser((prev) =>
+      if (userData.id && !isOwnProfile) {
+        try {
+          const followData = await getFollowStatus(userData.id);
+          setFollowStatus(followData.status);
+          setProfileUser((prev) =>
               prev ? { ...prev, ...followData } : prev
-            );
-          } catch {
-            setFollowStatus(null);
-          }
-        } else {
+          );
+        } catch {
           setFollowStatus(null);
         }
-
-        const trunksData = await getTrunks(pageUsername);
-
-        // --- Fetch branches using new Next.js API route ---
-        const trunksWithBranches = await Promise.all(
-          trunksData.map(async (trunk: Trunk) => {
-            try {
-              const res = await fetch(`/api/branches?trunkId=${trunk.id}`);
-              const branches: Branch[] = res.ok ? await res.json() : [];
-              return { ...trunk, branches };
-            } catch (err) {
-              console.error(err);
-              return { ...trunk, branches: [] };
-            }
-          })
-        );
-
-        setProfileUser((prev) =>
-          prev ? { ...prev, trunks: trunksWithBranches } : prev
-        );
-      } catch (err) {
-        console.error(err);
+      } else {
+        setFollowStatus(null);
       }
-    };
 
-    fetchAllData();
+      const trunksData = await getTrunks(pageUsername);
+
+      // --- Fetch branches using new Next.js API route ---
+      const trunksWithBranches = await Promise.all(
+        trunksData.map(async (trunk: Trunk) => {
+          try {
+            const branches = await getBranchesForTrunk(trunk.id);
+            return { ...trunk, branches };
+          } catch (err) {
+            console.error(err);
+            return { ...trunk, branches: [] };
+          }
+        })
+      );
+
+      setProfileUser((prev) =>
+          prev ? { ...prev, trunks: trunksWithBranches } : prev
+      );
+    } catch (err) {
+      console.error(err);
+    }
   }, [pageUsername, isOwnProfile]);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   // --- Fetch posts (depends on follow/visibility) ---
   const fetchUserPostsCb = useCallback(async () => {
@@ -198,9 +197,9 @@ export default function ProfilePage() {
     try {
       const createdTrunk = await createTrunk(newTrunk, profileUser.username);
       setProfileUser((prev) =>
-        prev
-          ? { ...prev, trunks: [...(prev.trunks || []), createdTrunk] }
-          : prev
+          prev
+            ? { ...prev, trunks: [...(prev.trunks || []), createdTrunk] }
+            : prev
       );
       setShowTrunkCreator(false);
     } catch (err) {
@@ -219,9 +218,9 @@ export default function ProfilePage() {
     try {
       await deleteTrunk(trunkId);
       setProfileUser((prev) =>
-        prev
-          ? { ...prev, trunks: prev.trunks?.filter((t) => t.id !== trunkId) }
-          : prev
+          prev
+            ? { ...prev, trunks: prev.trunks?.filter((t) => t.id !== trunkId) }
+            : prev
       );
     } catch (err) {
       console.error(err);
@@ -233,19 +232,9 @@ export default function ProfilePage() {
     setAddSongTrunkId(trunkId);
   };
 
-  const handleSongAdded = (newBranch: Branch) => {
-    setProfileUser((prev) =>
-      prev
-        ? {
-            ...prev,
-            trunks: prev.trunks?.map((t) =>
-              t.id === addSongTrunkId
-                ? { ...t, branches: [...(t.branches || []), newBranch] }
-                : t
-            ),
-          }
-        : prev
-    );
+  const handleSongAdded = () => {
+    fetchAllData();
+    setAddSongTrunkId(null);
   };
 
   if (!profileUser) return <LoadingSpinner />;
