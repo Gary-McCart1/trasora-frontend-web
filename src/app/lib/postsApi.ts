@@ -172,3 +172,11 @@ export async function deleteComment(commentId: string) {
   if (!res.ok) throw new Error("Failed to delete comment");
   return res.json();
 }
+
+export async function getFeed(): Promise<PostDto[]> {
+  const res = await fetch(`${BASE_URL}/api/posts/feed`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch feed");
+  return res.json();
+}

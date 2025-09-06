@@ -7,6 +7,7 @@ import { useAuth } from "./context/AuthContext";
 import EmptyFeed from "./components/EmptyFeed";
 import PostSkeleton from "./components/PostSkeleton";
 import MainFeed from "./components/MainFeed";
+import { getFeed } from "./lib/postsApi";
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth(); // assuming useAuth has a loading flag
@@ -25,11 +26,7 @@ export default function Home() {
 
     const fetchPosts = async () => {
       try {
-        const res = await fetch("https://trasora-backend-e03193d24a86.herokuapp.com/api/posts/feed", {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch feed posts");
-        const data: PostDto[] = await res.json();
+        const data = await getFeed();
         setPosts(data);
       } catch (err) {
         console.error(err);

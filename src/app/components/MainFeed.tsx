@@ -254,7 +254,7 @@ export default function MainFeed({
 
       <div
         ref={containerRef}
-        className="flex flex-col items-center gap-10 pt-6 pb-20 mx-auto max-w-lg scroll-smooth"
+        className="flex flex-col items-center gap-10 pt-6 pb-20 mx-auto max-w-lg scroll-smooth bg-zinc-950"
       >
         {posts.map((post, index) => (
           <motion.div
