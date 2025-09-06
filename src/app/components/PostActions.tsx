@@ -231,6 +231,7 @@ export default function PostActions({
       setLoadingBranch(false);
     }
   };
+  console.log(createdAt);
 
   return (
     <div className="bg-zinc-900 rounded-b-xl overflow-hidden shadow border border-zinc-800 text-white">
@@ -245,10 +246,20 @@ export default function PostActions({
           <div className="flex flex-col">
             <span className="font-semibold text-base">{authorUsername}</span>
             <span className="text-xs text-zinc-500">
-              {createdAt &&
-                formatDistanceToNow(new Date(createdAt + "Z"), {
-                  addSuffix: true,
-                })}
+              {createdAt
+                ? (() => {
+                    try {
+                      const date = new Date(
+                        createdAt.endsWith("Z") ? createdAt : createdAt + "Z"
+                      );
+                      return isNaN(date.getTime())
+                        ? "Just now"
+                        : formatDistanceToNow(date, { addSuffix: true });
+                    } catch {
+                      return "Just now";
+                    }
+                  })()
+                : "Just now"}
             </span>
           </div>
         </div>
