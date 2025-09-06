@@ -16,31 +16,19 @@ export async function fetchRoots(username: string): Promise<RootSong[]> {
 
 // Add a root at a specific position
 export async function addRoot(song: RootSongInput, position: number): Promise<RootSong> {
-    const payload = {
-      trackTitle: song.title,
-      artistName: song.artist,
-      albumArtUrl: song.albumArtUrl,
-      trackId: song.trackId,
-      position: position,
-    };
-  
     const res = await fetch(`${BASE_URL}/api/roots`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        title: song.title,
+        artist: song.artist,
+        albumArtUrl: song.albumArtUrl,
+        trackId: song.trackId,
+        position: position,
+      }),
     });
   
-    if (!res.ok) {
-      let errorMessage = "Failed to add root";
-      try {
-        const errorData = await res.json();
-        errorMessage = errorData.error || errorData.message || errorMessage;
-      } catch (e) {
-        errorMessage = res.statusText || errorMessage;
-      }
-      throw new Error(errorMessage);
-    }
-  
+    if (!res.ok) throw new Error("Failed to add root");
     return res.json();
   }
 // Delete a root by ID
