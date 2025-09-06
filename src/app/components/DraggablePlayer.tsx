@@ -184,7 +184,7 @@ export default function DraggablePlayer({
           <div className="mt-4 flex gap-3">
             <button
               onClick={() => router.push(`/create?id=${track.id}`)}
-              className="flex items-center gap-2 px-5 py-2 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95"
+              className="flex items-center gap-2 px-5 py-2 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95 text-sm"
             >
               <Plus size={18} />
               Create Post
@@ -192,7 +192,7 @@ export default function DraggablePlayer({
 
             <button
               onClick={handleBranchClick}
-              className="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95"
+              className="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95 text-sm"
             >
               <LuGitBranchPlus size={18} />
               Branch Track
