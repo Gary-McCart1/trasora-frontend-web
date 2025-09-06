@@ -1,17 +1,17 @@
 "use client";
 
 import { FC, useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { StoryDto } from "../types/Story";
 import StoryCard from "./StoryCard";
 
 interface StoryViewerModalProps {
-  stories: StoryDto[]; // ✅ only the selected user's stories
+  stories: StoryDto[];
   startIndex: number;
   onClose: () => void;
   onDelete: (storyId: number) => void;
 }
 
-const BASE_URL = "http://localhost:8080";
 const STORY_DURATION = 20000; // 20 seconds
 
 const StoryViewerModal: FC<StoryViewerModalProps> = ({
@@ -25,7 +25,7 @@ const StoryViewerModal: FC<StoryViewerModalProps> = ({
 
   const currentStory = stories[currentIndex];
 
-  // Auto-advance logic with animated dot
+  // Auto-advance logic
   useEffect(() => {
     setDotProgress(0);
     const start = Date.now();
@@ -79,12 +79,11 @@ const StoryViewerModal: FC<StoryViewerModalProps> = ({
     else handleNext();
   };
 
-  
   if (!currentStory) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4"
       onClick={() => setTimeout(onClose, 0)}
     >
       <div
@@ -92,10 +91,13 @@ const StoryViewerModal: FC<StoryViewerModalProps> = ({
         onMouseDown={handleClick}
         className="w-full max-w-sm relative cursor-pointer"
       >
-        {/* Story progress dots across full width */}
+        {/* Story progress dots */}
         <div className="absolute top-4 left-0 right-0 px-4 flex gap-2 justify-between z-20">
           {stories.map((_, idx) => (
-            <div key={idx} className="flex-1 h-1 bg-white/30 rounded overflow-hidden">
+            <div
+              key={idx}
+              className="flex-1 h-1 bg-white/30 rounded overflow-hidden"
+            >
               {idx === currentIndex && (
                 <div
                   className="h-1 bg-white transition-all"
@@ -109,7 +111,8 @@ const StoryViewerModal: FC<StoryViewerModalProps> = ({
 
         <StoryCard story={currentStory} onDelete={onDelete} />
       </div>
-    </div>
+    </div>,
+    document.body // 👈 renders outside main app container
   );
 };
 
