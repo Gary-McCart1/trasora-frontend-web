@@ -7,12 +7,9 @@ import { createPortal } from "react-dom";
 import { User } from "../types/User";
 import { darkenColor } from "../utils/generateGradient";
 import {
-  updateProfileVisibility,
   updateUserProfile,
   disconnectSpotify,
   searchUsers,
-  updateReferredBy,
-  getUser,
 } from "../lib/usersApi";
 import { useAuth } from "../context/AuthContext";
 import getS3Url from "../utils/S3Url";
@@ -62,6 +59,13 @@ export default function EditProfileModal({
     user?.referredBy ? { username: user.referredBy } as User : null
   );
   
+  console.log(user)
+
+  useEffect(() => {
+    setSelectedReferrer(
+      user?.referredBy ? { username: user.referredBy } as User : null
+    );
+  }, [user?.referredBy]);
 
   const gradientEnd = darkenColor(accentColor, 40);
 
@@ -112,7 +116,7 @@ export default function EditProfileModal({
         accentColor,
         profilePublic,
         ...(profilePicFile ? { profilePic: profilePicFile } : {}),
-        ...(selectedReferrer?.username ? { referredBy: selectedReferrer.username } : {}),
+        referredBy: selectedReferrer?.username || undefined,
       };
   
       const updatedUser = await updateUserProfile(updates);
