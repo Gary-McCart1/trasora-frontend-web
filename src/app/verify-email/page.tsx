@@ -44,20 +44,37 @@ function VerifyEmailContent() {
 
     if (!token) {
       setStatus("error");
-      setMessage("Invalid verification link.");
+      setMessage("❌ Invalid verification link.");
       return;
     }
 
     async function verify() {
       try {
-        if(!token) return;
-        await verifyEmail(token);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/verify-email?token=${token}`);
+        const text = await res.text();
+
+        if (!res.ok) {
+          if (res.status === 400 && text.includes("Invalid")) {
+            setStatus("error");
+            setMessage("❌ This verification link is invalid or has already been used.");
+          } else {
+            setStatus("error");
+            setMessage(`❌ Verification failed: ${text || "Unknown error"}`);
+          }
+          return;
+        }
+
         setStatus("success");
-        setMessage("✅ Email verified successfully! You can now log in.");
+        setMessage("✅ Email verified successfully! Redirecting to login...");
         setTimeout(() => router.push("/login"), 3000);
       } catch (err: unknown) {
+        console.error("Email verification error:", err);
         setStatus("error");
-        setMessage(err instanceof Error ? `❌ Verification failed: ${err.message}` : "❌ Verification failed. Please enter your email below to resend the verification email.");
+        setMessage(
+          err instanceof Error
+            ? `❌ Verification failed: ${err.message}`
+            : "❌ Verification failed due to network or server error. Please try again."
+        );
       }
     }
 
@@ -75,8 +92,13 @@ function VerifyEmailContent() {
       setResendSuccess(true);
       setStatus("success");
     } catch (err: unknown) {
+      console.error("Resend verification error:", err);
       setStatus("error");
-      setMessage(err instanceof Error ? `❌ ${err.message}` : "❌ An error occurred while resending verification email.");
+      setMessage(
+        err instanceof Error
+          ? `❌ ${err.message}`
+          : "❌ An error occurred while resending verification email."
+      );
     } finally {
       setResendLoading(false);
     }
@@ -128,7 +150,7 @@ function VerifyEmailContent() {
           />
           <button
             onClick={handleResend}
-            disabled={resendLoading}
+            disabled={resendLoading || !email}
             className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-md disabled:opacity-50 transition"
           >
             {resendLoading ? "Sending..." : "Resend Verification Email"}

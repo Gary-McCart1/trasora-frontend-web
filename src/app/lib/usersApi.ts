@@ -2,6 +2,12 @@ import { User } from "@/app/types/User";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
+interface VerifyEmailResponse {
+    status?: "success" | "error";
+    message?: string;
+  }
+  
+
 // Helper function to get the JWT token from local storage
 export const getAuthHeaders = () => {
   const headers: Record<string, string> = {};
@@ -160,9 +166,38 @@ export async function getCurrentUser(): Promise<User> {
   // -------------------- EMAIL --------------------
   
   export async function verifyEmail(token: string): Promise<void> {
-    const res = await fetch(`${BASE_URL}/api/auth/verify-email?token=${token}`);
-    if (!res.ok) throw new Error("Failed to verify email");
+    if (!token) throw new Error("Missing verification token");
+  
+    try {
+      const res = await fetch(`${BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`);
+  
+      // Try to parse response as JSON
+      let data: VerifyEmailResponse | null = null;
+      try {
+        data = (await res.json()) as VerifyEmailResponse;
+      } catch {
+        data = null; // response not JSON
+      }
+  
+      if (!res.ok) {
+        // Prefer backend message if available
+        const errorMsg = data?.message || res.statusText || "Failed to verify email";
+        throw new Error(errorMsg);
+      }
+  
+      // Optional: handle cases where backend sends a status
+      if (data?.status && data.status !== "success") {
+        throw new Error(data.message || "Verification failed");
+      }
+  
+      // Success: do nothing
+    } catch (err: unknown) {
+      if (err instanceof Error) throw err;
+      throw new Error("An unknown error occurred while verifying email");
+    }
   }
+  
+  
   
   export async function resendVerificationEmail(email: string): Promise<void> {
     const res = await fetch(`${BASE_URL}/api/auth/resend-verification`, {
