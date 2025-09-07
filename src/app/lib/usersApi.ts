@@ -165,37 +165,41 @@ export async function getCurrentUser(): Promise<User> {
   
   // -------------------- EMAIL --------------------
   
+  interface VerifyEmailResponse {
+    status?: "success" | "error";
+    message?: string;
+  }
+  
   export async function verifyEmail(token: string): Promise<void> {
     if (!token) throw new Error("Missing verification token");
   
     try {
       const res = await fetch(`${BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`);
   
-      // Try to parse response as JSON
+      const contentType = res.headers.get("content-type") || "";
       let data: VerifyEmailResponse | null = null;
-      try {
+  
+      if (contentType.includes("application/json")) {
         data = (await res.json()) as VerifyEmailResponse;
-      } catch {
-        data = null; // response not JSON
+      } else {
+        throw new Error(`Unexpected response from server: ${res.status} ${res.statusText}`);
       }
   
       if (!res.ok) {
-        // Prefer backend message if available
         const errorMsg = data?.message || res.statusText || "Failed to verify email";
         throw new Error(errorMsg);
       }
   
-      // Optional: handle cases where backend sends a status
       if (data?.status && data.status !== "success") {
         throw new Error(data.message || "Verification failed");
       }
   
-      // Success: do nothing
     } catch (err: unknown) {
       if (err instanceof Error) throw err;
       throw new Error("An unknown error occurred while verifying email");
     }
   }
+  
   
   
   
