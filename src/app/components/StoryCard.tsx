@@ -70,75 +70,75 @@ const StoryCard: FC<StoryCardProps> = ({
   };
 
   // init Spotify player (runs once per story)
-useEffect(() => {
-  if (!isSpotifyPremium || !story.trackId) return;
+  useEffect(() => {
+    if (!isSpotifyPremium || !story.trackId) return;
 
-  let isCancelled = false;
+    let isCancelled = false;
 
-  const initPlayer = async () => {
-    const token: { accessToken: string | null } = await fetchSpotifyToken();
-    if (!token || isCancelled) return;
+    const initPlayer = async () => {
+      const token: { accessToken: string | null } = await fetchSpotifyToken();
+      if (!token || isCancelled) return;
 
-    if (!token.accessToken) throw new Error("No Spotify access token available");
-    if (!window.Spotify) {
-      console.error("Spotify SDK not loaded");
-      return;
-    }
-
-    const player: SpotifyPlayer = new window.Spotify.Player({
-      name: "Trasora Story Player",
-      getOAuthToken: (cb) => cb(token.accessToken!),
-      volume: 0.1, // start at default volume
-    });
-
-    playerRef.current = player;
-
-    player.addListener("ready", async (state) => {
-      if (isCancelled) return;
-      if (!("device_id" in state) || !state.device_id) return;
-
-      try {
-        await fetch(
-          `https://api.spotify.com/v1/me/player/play?device_id=${state.device_id}`,
-          {
-            method: "PUT",
-            body: JSON.stringify({
-              uris: [`spotify:track:${story.trackId}`],
-            }),
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token.accessToken}`,
-            },
-          }
-        );
-        await player.setVolume(spotifyVolume);
-      } catch (err) {
-        console.error("Error playing track:", err);
+      if (!token.accessToken)
+        throw new Error("No Spotify access token available");
+      if (!window.Spotify) {
+        console.error("Spotify SDK not loaded");
+        return;
       }
-    });
 
-    await player.connect();
-  };
+      const player: SpotifyPlayer = new window.Spotify.Player({
+        name: "Trasora Story Player",
+        getOAuthToken: (cb) => cb(token.accessToken!),
+        volume: 0.1, // start at default volume
+      });
 
-  initPlayer();
+      playerRef.current = player;
 
-  return () => {
-    isCancelled = true;
+      player.addListener("ready", async (state) => {
+        if (isCancelled) return;
+        if (!("device_id" in state) || !state.device_id) return;
+
+        try {
+          await fetch(
+            `https://api.spotify.com/v1/me/player/play?device_id=${state.device_id}`,
+            {
+              method: "PUT",
+              body: JSON.stringify({
+                uris: [`spotify:track:${story.trackId}`],
+              }),
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token.accessToken}`,
+              },
+            }
+          );
+          await player.setVolume(spotifyVolume);
+        } catch (err) {
+          console.error("Error playing track:", err);
+        }
+      });
+
+      await player.connect();
+    };
+
+    initPlayer();
+
+    return () => {
+      isCancelled = true;
+      if (playerRef.current) {
+        playerRef.current.pause?.().catch(() => {});
+        playerRef.current.disconnect();
+        playerRef.current = null;
+      }
+    };
+  }, [story.trackId, isSpotifyPremium]);
+
+  // separate effect just for volume changes
+  useEffect(() => {
     if (playerRef.current) {
-      playerRef.current.pause?.().catch(() => {});
-      playerRef.current.disconnect();
-      playerRef.current = null;
+      playerRef.current.setVolume(spotifyVolume).catch(() => {});
     }
-  };
-}, [story.trackId, isSpotifyPremium]);
-
-// separate effect just for volume changes
-useEffect(() => {
-  if (playerRef.current) {
-    playerRef.current.setVolume(spotifyVolume).catch(() => {});
-  }
-}, [spotifyVolume]);
-
+  }, [spotifyVolume]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -233,8 +233,9 @@ useEffect(() => {
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-24 bg-black rounded-lg shadow-lg border border-gray-700 z-30">
                 <button
-                  onClick={handleDelete}
-                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={handleDelete} // keeps desktop click working
+                  onMouseDown={(e) => e.stopPropagation()} // prevent menu toggle
+                  onTouchStart={(e) => e.stopPropagation()} // mobile support
                   className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-800 rounded-lg"
                 >
                   Delete
