@@ -414,7 +414,7 @@ export default function PostActions({
 
       {/* Comments */}
       {comments.length > 0 && (
-        <div className="px-5 pt-4 pb-5 space-y-4 border-t border-zinc-800">
+        <div className="px-3 pt-4 pb-5 space-y-4 border-t border-zinc-800">
           {comments.map((comment) => {
             const isCommentAuthor = comment.authorUsername === user?.username;
             return (
@@ -456,7 +456,7 @@ export default function PostActions({
                 {(isCommentAuthor || isAuthor) && (
                   <button
                     onClick={() => handleDeleteComment(comment.id)}
-                    className="text-white-300 hover:text-red-600 text-[12px] pt-1"
+                    className="text-white-300 hover:text-red-600 text-[8px] pt-1"
                     title="Delete comment"
                   >
                     <FaTrash size={14} />
