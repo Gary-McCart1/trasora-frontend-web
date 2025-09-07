@@ -111,6 +111,7 @@ export default function PostActions({
   const router = useRouter();
   const { user } = useAuth();
   const isAuthor = user?.username === authorUsername;
+  console.log(comments)
 
   // Close menu on outside click
   useEffect(() => {
@@ -145,17 +146,33 @@ export default function PostActions({
   const handleCommentSubmit = async () => {
     if (loadingComment || !commentText.trim()) return;
     setLoadingComment(true);
+  
     try {
-      await commentOnPost(String(postId), commentText.trim());
+      // Create comment and get the full CommentDto from backend
+      const newComment = await commentOnPost(String(postId), commentText.trim());
+      
+      // Add current user info so delete button shows immediately
+      const newCommentWithUser = {
+        ...newComment,
+        authorUsername: user?.username || "",
+        authorProfilePictureUrl: user?.profilePictureUrl || "",
+      };
+  
       setCommentText("");
       setShowCommentBox(false);
+  
+      // Add the new comment to the UI immediately
+      setComments((prev) => [newCommentWithUser, ...prev]);
       setCommentsCount((c) => c + 1);
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Failed to comment.");
     } finally {
       setLoadingComment(false);
     }
   };
+  
+  
 
   const handleDeleteClick = async () => {
     if (!isAuthor || loadingDelete) return;
@@ -399,7 +416,7 @@ export default function PostActions({
       {comments.length > 0 && (
         <div className="px-5 pt-4 pb-5 space-y-4 border-t border-zinc-800">
           {comments.map((comment) => {
-            const isCommentAuthor = comment.authorUsername === currentUsername;
+            const isCommentAuthor = comment.authorUsername === user?.username;
             return (
               <div key={comment.id} className="flex gap-3 items-start">
                 <img
@@ -416,9 +433,20 @@ export default function PostActions({
                       {comment.authorUsername}
                     </span>
                     <span className="text-xs text-zinc-500">
-                      {formatDistanceToNow(new Date(comment.createdAt), {
-                        addSuffix: true,
-                      })}
+                    {comment.createdAt
+                ? (() => {
+                    try {
+                      const date = new Date(
+                        comment.createdAt.endsWith("Z") ? comment.createdAt : comment.createdAt + "Z"
+                      );
+                      return isNaN(date.getTime())
+                        ? "Just now"
+                        : formatDistanceToNow(date, { addSuffix: true });
+                    } catch {
+                      return "Just now";
+                    }
+                  })()
+                : "Just now"}
                     </span>
                   </div>
                   <p className="text-sm mt-1 text-zinc-300 whitespace-pre-wrap">

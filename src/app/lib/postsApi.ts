@@ -153,25 +153,36 @@ export async function likePost(postId: string) {
   if (!res.ok) throw new Error("Failed to like post");
   return ;
 }
-
 export async function commentOnPost(postId: string, text: string) {
-  const res = await fetch(`${BASE_URL}/api/posts/${postId}/comments`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-    body: JSON.stringify(text),
-  });
-  if (!res.ok) throw new Error("Failed to comment on post");
-  return res.json();
-}
+    const res = await fetch(`${BASE_URL}/api/comments?postId=${postId}`, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain", ...getAuthHeaders() },
+      body: text,
+    });
+  
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Failed to comment:", errorText);
+      throw new Error("Failed to comment on post");
+    }
+  
+    // Return the full comment DTO from backend
+    return res.json();
+  }
+  
+  
 
-export async function deleteComment(commentId: string) {
-  const res = await fetch(`${BASE_URL}/api/comments/${commentId}`, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-  });
-  if (!res.ok) throw new Error("Failed to delete comment");
-  return res.json();
-}
+  export async function deleteComment(commentId: string) {
+    const res = await fetch(`${BASE_URL}/api/comments/${commentId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to delete comment");
+  
+    // DELETE now returns no content, so just return true for success
+    return true;
+  }
+  
 
 export async function getFeed(): Promise<PostDto[]> {
   const res = await fetch(`${BASE_URL}/api/posts/feed`, {
