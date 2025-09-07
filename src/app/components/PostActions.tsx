@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import { LuGitBranchPlus } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
-import { formatDistanceToNow } from "date-fns";
+import { differenceInSeconds, formatDistanceToNow } from "date-fns";
 import getS3Url from "../utils/S3Url";
 import AvailableTrunksList from "./AvailableTrunksList";
 import { useAuth } from "../context/AuthContext";
@@ -111,7 +111,7 @@ export default function PostActions({
   const router = useRouter();
   const { user } = useAuth();
   const isAuthor = user?.username === authorUsername;
-  console.log(comments)
+  console.log(comments);
 
   // Close menu on outside click
   useEffect(() => {
@@ -146,21 +146,24 @@ export default function PostActions({
   const handleCommentSubmit = async () => {
     if (loadingComment || !commentText.trim()) return;
     setLoadingComment(true);
-  
+
     try {
       // Create comment and get the full CommentDto from backend
-      const newComment = await commentOnPost(String(postId), commentText.trim());
-      
+      const newComment = await commentOnPost(
+        String(postId),
+        commentText.trim()
+      );
+
       // Add current user info so delete button shows immediately
       const newCommentWithUser = {
         ...newComment,
         authorUsername: user?.username || "",
         authorProfilePictureUrl: user?.profilePictureUrl || "",
       };
-  
+
       setCommentText("");
       setShowCommentBox(false);
-  
+
       // Add the new comment to the UI immediately
       setComments((prev) => [newCommentWithUser, ...prev]);
       setCommentsCount((c) => c + 1);
@@ -171,8 +174,6 @@ export default function PostActions({
       setLoadingComment(false);
     }
   };
-  
-  
 
   const handleDeleteClick = async () => {
     if (!isAuthor || loadingDelete) return;
@@ -432,21 +433,28 @@ export default function PostActions({
                     <span className="font-semibold">
                       {comment.authorUsername}
                     </span>
-                    <span className=" text-zinc-500 text-[12px]">
-                    {comment.createdAt
-                ? (() => {
-                    try {
-                      const date = new Date(
-                        comment.createdAt.endsWith("Z") ? comment.createdAt : comment.createdAt + "Z"
-                      );
-                      return isNaN(date.getTime())
-                        ? "Just now"
-                        : formatDistanceToNow(date, { addSuffix: true });
-                    } catch {
-                      return "Just now";
-                    }
-                  })()
-                : "Just now"}
+                    <span className="text-zinc-500 text-[12px]">
+                      {comment.createdAt
+                        ? (() => {
+                            try {
+                              const date = new Date(
+                                comment.createdAt.endsWith("Z")
+                                  ? comment.createdAt
+                                  : comment.createdAt + "Z"
+                              );
+                              const secondsDiff = differenceInSeconds(
+                                new Date(),
+                                date
+                              );
+                              if (secondsDiff < 60) return "Just now"; // less than a minute
+                              return formatDistanceToNow(date, {
+                                addSuffix: true,
+                              });
+                            } catch {
+                              return "Just now";
+                            }
+                          })()
+                        : "Just now"}
                     </span>
                   </div>
                   <p className="text-sm mt-1 text-zinc-300 whitespace-pre-wrap">
