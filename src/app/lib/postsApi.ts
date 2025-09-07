@@ -142,7 +142,7 @@ export async function incrementPostBranchCount(postId: string) {
     headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to increment branch count");
-  return res.json();
+  return;
 }
 
 export async function likePost(postId: string) {
@@ -151,7 +151,7 @@ export async function likePost(postId: string) {
     headers: getAuthHeaders(),
   });
   if (!res.ok) throw new Error("Failed to like post");
-  return res.json();
+  return ;
 }
 
 export async function commentOnPost(postId: string, text: string) {

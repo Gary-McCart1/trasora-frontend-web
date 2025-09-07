@@ -15,7 +15,7 @@ export async function getTrunks(username: string): Promise<Trunk[]> {
 
 // ✅ Get all available (public) trunks
 export async function getAvailableTrunks(): Promise<Trunk[]> {
-  const res = await fetch(`${BASE_URL}/api/trunks`, { headers: getAuthHeaders() });
+  const res = await fetch(`${BASE_URL}/api/trunks/available/trunks`, { headers: getAuthHeaders() });
   if (!res.ok) throw new Error("Failed to fetch available trunks");
   return res.json();
 }

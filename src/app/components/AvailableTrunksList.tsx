@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Trunk, Branch } from "../types/User";
 import { HiOutlineCollection } from "react-icons/hi";
+import { getBranchesForTrunk } from "../lib/trunksApi";
 
 interface AvailableTrunksListProps {
   trunks: Trunk[];
@@ -40,25 +41,24 @@ export default function AvailableTrunksList({
   }, []);
 
   // Fetch branches using the Next.js route handler
-  useEffect(() => {
-    async function fetchBranches(trunkId: number) {
-      try {
-        const res = await fetch(`/api/branches?trunkId=${trunkId}`);
-        if (!res.ok) throw new Error("Failed to fetch branches");
-        const data: Branch[] = await res.json();
-        setTrunkBranches((prev) => ({ ...prev, [trunkId]: data }));
-      } catch (err) {
-        console.error(err);
-        setTrunkBranches((prev) => ({ ...prev, [trunkId]: [] }));
-      }
+  
+useEffect(() => {
+  async function fetchBranches(trunkId: number) {
+    try {
+      const data = await getBranchesForTrunk(trunkId);
+      setTrunkBranches((prev) => ({ ...prev, [trunkId]: data }));
+    } catch (err) {
+      console.error(err);
+      setTrunkBranches((prev) => ({ ...prev, [trunkId]: [] }));
     }
+  }
 
-    trunks.forEach((trunk) => {
-      if (!trunkBranches[trunk.id]) {
-        fetchBranches(trunk.id);
-      }
-    });
-  }, [trunks, trunkBranches]);
+  trunks.forEach((trunk) => {
+    if (!trunkBranches[trunk.id]) {
+      fetchBranches(trunk.id);
+    }
+  });
+}, [trunks, trunkBranches]);
 
   if (!mounted) return null;
 
