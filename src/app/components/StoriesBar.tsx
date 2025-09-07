@@ -8,7 +8,7 @@ import getS3Url from "../utils/S3Url";
 import { useEffect, useState, useCallback } from "react";
 import { useStories } from "../context/StoriesContext";
 import { StoryDto } from "../types/Story";
-import { fetchActiveStories } from "../lib/storiesApi";
+import { deleteStory, fetchActiveStories } from "../lib/storiesApi";
 import AddStoryModal from "./AddStoryModal";
 import StoryViewerModal from "./StoryViewerModal";
 
@@ -46,41 +46,29 @@ export default function StoriesBar() {
 
   const handleDelete = async (storyId: number) => {
     console.log("Deleting storyId:", storyId);
-
+  
     try {
-      const res = await fetch(`${BASE_URL}/api/stories/${storyId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (res.status === 404) {
+      await deleteStory(storyId);
+  
+      alert("Story has been successfully deleted.");
+  
+      // Update local state
+      setStories((prev) => prev.filter((s) => s.id !== storyId));
+      setSelectedAuthorStories((prev) => prev.filter((s) => s.id !== storyId));
+    } catch (err: any) {
+      if (err.message.includes("404")) {
         console.warn(
           `Story ${storyId} not found. It may have already been deleted.`
         );
-        // Optionally remove from state anyway to prevent UI inconsistencies
         setStories((prev) => prev.filter((s) => s.id !== storyId));
         setSelectedAuthorStories((prev) =>
           prev.filter((s) => s.id !== storyId)
         );
-        return;
-      }
-
-      if (res.status === 403) {
+      } else if (err.message.includes("403")) {
         console.error(`You do not have permission to delete story ${storyId}`);
-        return;
+      } else {
+        console.error("Error deleting story:", err);
       }
-
-      if (!res.ok) {
-        throw new Error(`Failed to delete story: ${res.status}`);
-      }
-
-      alert("Story has been successfully deleted.");
-      // Success
-      setStories((prev) => prev.filter((s) => s.id !== storyId));
-      setSelectedAuthorStories((prev) => prev.filter((s) => s.id !== storyId));
-      window.location.reload();
-    } catch (err) {
-      console.error("Error deleting story:", err);
     }
   };
 

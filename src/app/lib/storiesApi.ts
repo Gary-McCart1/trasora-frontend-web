@@ -31,3 +31,17 @@ export async function uploadStory(story: StoryDto, file?: File): Promise<StoryDt
 
   return res.json();
 }
+
+// Delete a story
+export async function deleteStory(storyId: number): Promise<void> {
+    const res = await fetch(`${BASE_URL}/api/stories/${storyId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+  
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || `Failed to delete story ${storyId}`);
+    }
+  }
+  
