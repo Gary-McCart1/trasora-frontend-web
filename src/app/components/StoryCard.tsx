@@ -69,67 +69,76 @@ const StoryCard: FC<StoryCardProps> = ({
     if (playerRef.current) playerRef.current.setVolume(volume).catch(() => {});
   };
 
-  useEffect(() => {
-    if (!isSpotifyPremium || !story.trackId) return;
+  // init Spotify player (runs once per story)
+useEffect(() => {
+  if (!isSpotifyPremium || !story.trackId) return;
 
-    let isCancelled = false;
+  let isCancelled = false;
 
-    const initPlayer = async () => {
-      const token: { accessToken: string | null } = await fetchSpotifyToken();
-      if (!token || isCancelled) return;
+  const initPlayer = async () => {
+    const token: { accessToken: string | null } = await fetchSpotifyToken();
+    if (!token || isCancelled) return;
 
-      if(!token.accessToken) throw new Error("No Spotify access token available");
-      if (!window.Spotify) {
-        console.error("Spotify SDK not loaded");
-        return;
+    if (!token.accessToken) throw new Error("No Spotify access token available");
+    if (!window.Spotify) {
+      console.error("Spotify SDK not loaded");
+      return;
+    }
+
+    const player: SpotifyPlayer = new window.Spotify.Player({
+      name: "Trasora Story Player",
+      getOAuthToken: (cb) => cb(token.accessToken!),
+      volume: 0.1, // start at default volume
+    });
+
+    playerRef.current = player;
+
+    player.addListener("ready", async (state) => {
+      if (isCancelled) return;
+      if (!("device_id" in state) || !state.device_id) return;
+
+      try {
+        await fetch(
+          `https://api.spotify.com/v1/me/player/play?device_id=${state.device_id}`,
+          {
+            method: "PUT",
+            body: JSON.stringify({
+              uris: [`spotify:track:${story.trackId}`],
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token.accessToken}`,
+            },
+          }
+        );
+        await player.setVolume(spotifyVolume);
+      } catch (err) {
+        console.error("Error playing track:", err);
       }
+    });
 
-      const player: SpotifyPlayer = new window.Spotify.Player({
-        name: "Trasora Story Player",
-        getOAuthToken: (cb) => cb(token.accessToken!),
-        volume: spotifyVolume,
-      });
+    await player.connect();
+  };
 
-      playerRef.current = player;
+  initPlayer();
 
-      player.addListener("ready", async (state) => {
-        if (isCancelled) return;
-        if (!("device_id" in state) || !state.device_id) return;
+  return () => {
+    isCancelled = true;
+    if (playerRef.current) {
+      playerRef.current.pause?.().catch(() => {});
+      playerRef.current.disconnect();
+      playerRef.current = null;
+    }
+  };
+}, [story.trackId, isSpotifyPremium]);
 
-        try {
-          await fetch(
-            `https://api.spotify.com/v1/me/player/play?device_id=${state.device_id}`,
-            {
-              method: "PUT",
-              body: JSON.stringify({
-                uris: [`spotify:track:${story.trackId}`],
-              }),
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          await player.setVolume(spotifyVolume);
-        } catch (err) {
-          console.error("Error playing track:", err);
-        }
-      });
+// separate effect just for volume changes
+useEffect(() => {
+  if (playerRef.current) {
+    playerRef.current.setVolume(spotifyVolume).catch(() => {});
+  }
+}, [spotifyVolume]);
 
-      await player.connect();
-    };
-
-    initPlayer();
-
-    return () => {
-      isCancelled = true;
-      if (playerRef.current) {
-        playerRef.current.pause?.().catch(() => {});
-        playerRef.current.disconnect();
-        playerRef.current = null;
-      }
-    };
-  }, [story.trackId, isSpotifyPremium, spotifyVolume]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
