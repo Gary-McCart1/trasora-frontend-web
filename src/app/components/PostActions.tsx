@@ -415,7 +415,7 @@ export default function PostActions({
 
       {/* Comments */}
       {comments.length > 0 && (
-        <div className="px-3 pt-4 pb-5 space-y-4 border-t border-zinc-800">
+        <div className="px-5 pt-4 pb-5 space-y-4 border-t border-zinc-800">
           {comments.map((comment) => {
             const isCommentAuthor = comment.authorUsername === user?.username;
             return (
