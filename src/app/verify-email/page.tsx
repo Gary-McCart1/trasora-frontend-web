@@ -1,23 +1,14 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { verifyEmail } from "../lib/usersApi";
+import { verifyEmail, resendVerificationEmail } from "../lib/usersApi";
 
-// Mocks to resolve compilation errors in the sandbox environment
+// Mock router for sandbox or client-side navigation
 const useRouter = () => ({
   push: (path: string) => {
-    console.log(`Navigating to: ${path}`);
+    window.location.href = path; // navigate directly
   },
 });
-
-const resendVerificationEmail = async (email: string) => {
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  if (!email) {
-    throw new Error("Invalid email.");
-  }
-  return { success: true };
-};
-
 
 const CheckCircleIcon = () => (
   <svg
@@ -82,10 +73,9 @@ function VerifyEmailContent() {
   const [email, setEmail] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
-  const [token, setToken] = useState();
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // This is the client-side equivalent of useSearchParams() to avoid the build error
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get("token");
     setToken(tokenFromUrl);
@@ -98,18 +88,21 @@ function VerifyEmailContent() {
 
     async function verify() {
       try {
+        if (!tokenFromUrl) return
         await verifyEmail(tokenFromUrl);
         setMessage("Email verified successfully! You can now log in.");
         setError(false);
         setSuccess(true);
         setTimeout(() => router.push("/login"), 3000);
-      } catch (err) {
+      } catch (err: unknown) {
         setError(true);
-        if (err instanceof Error) setMessage(err.message);
-        else
+        if (err instanceof Error) {
+          setMessage(err.message);
+        } else {
           setMessage(
             "Verification failed. Please enter your email below to resend the verification email."
           );
+        }
       }
     }
 
@@ -126,10 +119,13 @@ function VerifyEmailContent() {
       setMessage("Verification email resent. Please check your inbox.");
       setResendSuccess(true);
       setError(false);
-    } catch (err) {
+    } catch (err: unknown) {
       setError(true);
-      if (err instanceof Error) setMessage(err.message);
-      else setMessage("An error occurred while resending verification email.");
+      if (err instanceof Error) {
+        setMessage(err.message);
+      } else {
+        setMessage("An error occurred while resending verification email.");
+      }
     } finally {
       setResendLoading(false);
     }
@@ -190,7 +186,6 @@ function VerifyEmailContent() {
   );
 }
 
-// Main page component to wrap the content in a Suspense boundary
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
