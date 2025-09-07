@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
+import { verifyEmail } from "../lib/usersApi";
 
 // Mocks to resolve compilation errors in the sandbox environment
 const useRouter = () => ({
@@ -17,13 +18,6 @@ const resendVerificationEmail = async (email: string) => {
   return { success: true };
 };
 
-const verifyEmail = async (token: string | null) => {
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  if (!token) {
-    throw new Error("Invalid token.");
-  }
-  return { success: true };
-};
 
 const CheckCircleIcon = () => (
   <svg
@@ -88,13 +82,13 @@ function VerifyEmailContent() {
   const [email, setEmail] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState();
 
   useEffect(() => {
     // This is the client-side equivalent of useSearchParams() to avoid the build error
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get("token");
-    setToken(tokenFromUrl || "");
+    setToken(tokenFromUrl);
 
     if (!tokenFromUrl) {
       setError(true);

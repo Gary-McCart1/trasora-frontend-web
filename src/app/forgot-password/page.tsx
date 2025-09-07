@@ -14,6 +14,7 @@ export default function ForgotPassword() {
     setMessage("");
 
     try {
+      console.log(email)
       await forgotPassword(email);
       setMessage(
         "If an account exists for this email, you'll receive a reset link shortly."

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
-import { loginUser } from "../lib/usersApi";
+import { loginUser, resendVerificationEmail } from "../lib/usersApi";
 
 export default function Login() {
   const { setUser } = useAuth();
@@ -27,25 +27,37 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     try {
-      // Use centralized API function
       const userData = await loginUser(form.login, form.password);
-
-      setUser(userData); // update auth context
-      alert("Login was successful"); // optional feedback
+  
+      setUser(userData); 
+      alert("Login was successful");
       setForm({ login: "", password: "" });
-      router.push("/"); // redirect after login
+      router.push("/");
     } catch (error) {
       if (error instanceof Error) {
         console.error("Login failed:", error.message);
-        alert("Login failed: " + error.message);
+  
+        if (error.message.includes("Please verify your email")) {
+          try {
+            await resendVerificationEmail(form.login); // pass email/username here
+            alert("Verification email resent! Please check your inbox.");
+          } catch (resendErr) {
+            console.error("Resend verification error:", resendErr);
+            alert("Could not resend verification email. Try again later.");
+          }
+        } else {
+          alert("Login failed: " + error.message);
+        }
+        
       } else {
         console.error("Login failed:", error);
         alert("Login failed: Unknown error");
       }
     }
   };
+  
 
   return (
     <section className="relative bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-950 min-h-[60vh] flex items-center justify-center text-white px-4">

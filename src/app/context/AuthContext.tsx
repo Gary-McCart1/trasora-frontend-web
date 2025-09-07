@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { User } from "../types/User";
 import { getCurrentUser as fetchCurrentUser } from "../lib/usersApi";
 
@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname()
 
   // Fetch user on mount
   useEffect(() => {
@@ -28,14 +29,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error("Error fetching user:", error);
         setUser(null);
-        router.push("/login");
+  
+        const publicPaths = [
+          "/login",
+          "/register",
+          "/forgot-password",
+          "/reset-password",
+          "/verify-email",
+        ];
+  
+        if (!publicPaths.some((path) => pathname?.startsWith(path))) {
+          router.push("/login");
+        }
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchUser();
-  }, [router]);
+  }, [router, pathname]);
 
   // Helper to refresh user state manually
   const refreshUser = async () => {

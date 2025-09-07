@@ -32,7 +32,10 @@ export async function getCurrentUser(): Promise<User> {
       body: JSON.stringify({ login, password }),
     });
   
-    if (!res.ok) throw new Error("Login failed");
+    if (!res.ok) {
+      const errText = await res.text().catch(() => null);
+      throw new Error(errText || `Login failed with status ${res.status}`);
+    }
   
     const data = await res.json();
     localStorage.setItem("token", data.token);
@@ -139,8 +142,11 @@ export async function getCurrentUser(): Promise<User> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-    if (!res.ok) throw new Error("Failed to request password reset");
+  
+    const data = await res.json(); // read the response body
+    if (!res.ok) throw new Error(data.message || "Failed to send password reset request");
   }
+  
   
   export async function resetPassword(token: string, newPassword: string): Promise<void> {
     const res = await fetch(`${BASE_URL}/api/auth/reset-password`, {
