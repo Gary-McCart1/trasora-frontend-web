@@ -111,7 +111,7 @@ export default function PostActions({
   const router = useRouter();
   const { user } = useAuth();
   const isAuthor = user?.username === authorUsername;
-  console.log(comments);
+  console.log(comments)
 
   // Close menu on outside click
   useEffect(() => {
@@ -146,24 +146,21 @@ export default function PostActions({
   const handleCommentSubmit = async () => {
     if (loadingComment || !commentText.trim()) return;
     setLoadingComment(true);
-
+  
     try {
       // Create comment and get the full CommentDto from backend
-      const newComment = await commentOnPost(
-        String(postId),
-        commentText.trim()
-      );
-
+      const newComment = await commentOnPost(String(postId), commentText.trim());
+      
       // Add current user info so delete button shows immediately
       const newCommentWithUser = {
         ...newComment,
         authorUsername: user?.username || "",
         authorProfilePictureUrl: user?.profilePictureUrl || "",
       };
-
+  
       setCommentText("");
       setShowCommentBox(false);
-
+  
       // Add the new comment to the UI immediately
       setComments((prev) => [newCommentWithUser, ...prev]);
       setCommentsCount((c) => c + 1);
@@ -174,6 +171,8 @@ export default function PostActions({
       setLoadingComment(false);
     }
   };
+  
+  
 
   const handleDeleteClick = async () => {
     if (!isAuthor || loadingDelete) return;
@@ -415,61 +414,54 @@ export default function PostActions({
 
       {/* Comments */}
       {comments.length > 0 && (
-        <div className="px-4 sm:px-5 pt-4 pb-5 space-y-4 border-t border-zinc-800">
+        <div className="px-5 pt-4 pb-5 space-y-4 border-t border-zinc-800">
           {comments.map((comment) => {
             const isCommentAuthor = comment.authorUsername === user?.username;
             return (
-              <div
-                key={comment.id}
-                className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-start sm:items-center"
-              >
+              <div key={comment.id} className="flex gap-3 items-start">
                 <img
                   src={
                     getS3Url(comment.authorProfilePictureUrl) ||
                     "/default-profilepic.png"
                   }
                   alt={comment.authorUsername}
-                  className="w-10 h-10 sm:w-9 sm:h-9 rounded-full object-cover flex-shrink-0"
+                  className="w-9 h-9 rounded-full object-cover"
                 />
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-                    <span className="font-semibold text-sm truncate">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">
                       {comment.authorUsername}
                     </span>
-                    <span className="text-xs text-zinc-500">
-                      {comment.createdAt
-                        ? (() => {
-                            try {
-                              const date = new Date(
-                                comment.createdAt.endsWith("Z")
-                                  ? comment.createdAt
-                                  : comment.createdAt + "Z"
-                              );
-                              return isNaN(date.getTime())
-                                ? "Just now"
-                                : formatDistanceToNow(date, {
-                                    addSuffix: true,
-                                  });
-                            } catch {
-                              return "Just now";
-                            }
-                          })()
-                        : "Just now"}
+                    <span className=" text-zinc-500 text-[12px]">
+                    {comment.createdAt
+                ? (() => {
+                    try {
+                      const date = new Date(
+                        comment.createdAt.endsWith("Z") ? comment.createdAt : comment.createdAt + "Z"
+                      );
+                      return isNaN(date.getTime())
+                        ? "Just now"
+                        : formatDistanceToNow(date, { addSuffix: true });
+                    } catch {
+                      return "Just now";
+                    }
+                  })()
+                : "Just now"}
                     </span>
                   </div>
-                  <p className="text-sm mt-1 text-zinc-300 whitespace-pre-wrap break-words">
+                  <p className="text-sm mt-1 text-zinc-300 whitespace-pre-wrap">
                     {comment.commentText.replace(/^"(.*)"$/, "$1")}
                   </p>
-                  {(isCommentAuthor || isAuthor) && (
-                    <button
-                      onClick={() => handleDeleteComment(comment.id)}
-                      className="mt-1 text-red-500 hover:text-red-600 sm:mt-0"
-                      title="Delete comment"
-                    >
-                      <FaTrash size={14} />
-                    </button>
-                  )}
                 </div>
+                {(isCommentAuthor || isAuthor) && (
+                  <button
+                    onClick={() => handleDeleteComment(comment.id)}
+                    className="text-white-300 hover:text-red-600 text-[12px] pt-1"
+                    title="Delete comment"
+                  >
+                    <FaTrash size={14} />
+                  </button>
+                )}
               </div>
             );
           })}
