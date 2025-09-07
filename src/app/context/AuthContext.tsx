@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   
         const publicPaths = [
           "/login",
-          "/register",
+          "/signup",
           "/forgot-password",
           "/reset-password",
           "/verify-email",
