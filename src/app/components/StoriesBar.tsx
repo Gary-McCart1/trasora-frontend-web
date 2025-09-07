@@ -55,19 +55,23 @@ export default function StoriesBar() {
       // Update local state
       setStories((prev) => prev.filter((s) => s.id !== storyId));
       setSelectedAuthorStories((prev) => prev.filter((s) => s.id !== storyId));
-    } catch (err: any) {
-      if (err.message.includes("404")) {
-        console.warn(
-          `Story ${storyId} not found. It may have already been deleted.`
-        );
-        setStories((prev) => prev.filter((s) => s.id !== storyId));
-        setSelectedAuthorStories((prev) =>
-          prev.filter((s) => s.id !== storyId)
-        );
-      } else if (err.message.includes("403")) {
-        console.error(`You do not have permission to delete story ${storyId}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        if (err.message.includes("404")) {
+          console.warn(
+            `Story ${storyId} not found. It may have already been deleted.`
+          );
+          setStories((prev) => prev.filter((s) => s.id !== storyId));
+          setSelectedAuthorStories((prev) =>
+            prev.filter((s) => s.id !== storyId)
+          );
+        } else if (err.message.includes("403")) {
+          console.error(`You do not have permission to delete story ${storyId}`);
+        } else {
+          console.error("Error deleting story:", err.message);
+        }
       } else {
-        console.error("Error deleting story:", err);
+        console.error("Unknown error deleting story:", err);
       }
     }
   };
