@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { Trunk } from "../types/User";
 import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunksApi";
 import { incrementPostBranchCount } from "../lib/postsApi";
+import { createPortal } from "react-dom";
 
 interface Comment {
   id: number;
@@ -367,30 +368,32 @@ export default function PostActions({
       </AnimatePresence>
 
       {/* Branch Modal */}
-      {branchModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-zinc-900 p-6 rounded-xl max-h-[80vh] overflow-y-auto w-96">
-            <h2 className="text-white text-lg font-semibold mb-4">
-              Add to Trunk
-            </h2>
-            {loadingTrunks ? (
-              <p className="text-zinc-400">Loading...</p>
-            ) : (
-              <AvailableTrunksList
-                selectedSong={selectedSong}
-                trunks={availableTrunks}
-                onSelectTrunk={handleSelectTrunk}
-              />
-            )}
-            <button
-              onClick={() => setBranchModalOpen(false)}
-              className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      {branchModalOpen &&
+        createPortal(
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-zinc-900 p-6 rounded-xl max-h-[80vh] overflow-y-auto w-96">
+              <h2 className="text-white text-lg font-semibold mb-4">
+                Add to Trunk
+              </h2>
+              {loadingTrunks ? (
+                <p className="text-zinc-400">Loading...</p>
+              ) : (
+                <AvailableTrunksList
+                  selectedSong={selectedSong}
+                  trunks={availableTrunks}
+                  onSelectTrunk={handleSelectTrunk}
+                />
+              )}
+              <button
+                onClick={() => setBranchModalOpen(false)}
+                className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* Comments */}
       {comments.length > 0 && (

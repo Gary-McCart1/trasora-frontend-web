@@ -32,6 +32,21 @@ export default function AvailableTrunksList({
   );
 
   useEffect(() => {
+    trunks.forEach((trunk) => {
+      const branches = trunkBranches[trunk.id] || [];
+      branches.forEach((branch) => {
+        if (!branch.albumArtUrl) return;
+  
+        // Use the native browser Image constructor
+        const img = new window.Image();
+        img.src = branch.albumArtUrl;
+      });
+    });
+  }, [trunkBranches, trunks]);
+  
+  
+
+  useEffect(() => {
     setMounted(true);
     setWindowWidth(window.innerWidth);
 
@@ -98,6 +113,7 @@ useEffect(() => {
                   alt={branch.title}
                   width={coverSize}
                   height={coverSize}
+                  unoptimized
                   className="absolute rounded-md shadow-md border border-zinc-700 object-cover transition-all duration-300"
                   style={{
                     left: `${
