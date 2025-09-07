@@ -88,7 +88,7 @@ function VerifyEmailContent() {
 
     async function verify() {
       try {
-        if (!tokenFromUrl) return
+        if (!tokenFromUrl) return;
         await verifyEmail(tokenFromUrl);
         setMessage("Email verified successfully! You can now log in.");
         setError(false);
@@ -134,11 +134,19 @@ function VerifyEmailContent() {
   return (
     <div className="max-w-xl mx-auto mt-20 p-6 text-center border rounded bg-zinc-900 text-white shadow-lg">
       <h1 className="text-2xl font-semibold mb-6 flex items-center justify-center gap-2">
-        {error && <AlertCircleIcon />}
-        {success && <CheckCircleIcon />}
-        {error && "Verification Failed"}
-        {success && "Verification Successful"}
-        {!error && !success && "Verifying Email..."}
+        {success ? (
+          <>
+            <CheckCircleIcon />
+            Verification Successful
+          </>
+        ) : error ? (
+          <>
+            <AlertCircleIcon />
+            Verification Failed
+          </>
+        ) : (
+          "Verifying Email..."
+        )}
       </h1>
 
       <div
