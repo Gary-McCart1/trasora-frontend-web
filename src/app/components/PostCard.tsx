@@ -22,11 +22,17 @@ interface PostCardProps {
   isMock?: boolean;
   profileFeed: boolean;
   isActive?: boolean;
-  playTrack?: (trackId: string, options?: { position_ms?: number; volume?: number }) => Promise<void>;
+  playTrack?: (
+    trackId: string,
+    options?: { position_ms?: number; volume?: number }
+  ) => Promise<void>;
   pauseTrack?: () => void;
   resumeTrack?: () => void;
   currentTrackId?: string | null;
-  onMediaDimensionsChange?: (dimensions: { width: number; height: number }) => void;
+  onMediaDimensionsChange?: (dimensions: {
+    width: number;
+    height: number;
+  }) => void;
   profilePage?: boolean;
 }
 
@@ -50,7 +56,7 @@ export default function PostCard({
   resumeTrack,
   currentTrackId,
   onMediaDimensionsChange,
-  profilePage = false
+  profilePage = false,
 }: PostCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -93,7 +99,9 @@ export default function PostCard({
       if (isVideoPaused) {
         videoRef.current!.muted = false;
         videoRef.current!.volume = 0.3;
-        videoRef.current!.play().catch(err => console.warn("Video play prevented:", err));
+        videoRef
+          .current!.play()
+          .catch((err) => console.warn("Video play prevented:", err));
         setIsManuallyPaused(false);
       } else {
         pauseVideo();
@@ -112,10 +120,20 @@ export default function PostCard({
         setIsManuallyPaused(false);
       }
     }
-  }, [post.trackId, post.trackVolume, playTrack, pauseTrack, resumeTrack, currentTrackId, isVideo, user, isCurrentlyPlaying, pauseVideo]);
+  }, [
+    post.trackId,
+    post.trackVolume,
+    playTrack,
+    pauseTrack,
+    resumeTrack,
+    currentTrackId,
+    isVideo,
+    user,
+    isCurrentlyPlaying,
+    pauseVideo,
+  ]);
 
   /** 🔹 Helper to check if this track is playing */
-  
 
   /** 🔹 Sync video to feed state */
   useEffect(() => {
@@ -159,7 +177,7 @@ export default function PostCard({
   }, [pauseTrack]);
 
   const isPlaying = isVideo
-    ? (isVideoPlaying && !isManuallyPaused)
+    ? isVideoPlaying && !isManuallyPaused
     : isCurrentlyPlaying(post.trackId);
 
   return (
@@ -168,7 +186,13 @@ export default function PostCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={`rounded-3xl shadow-lg relative mt-12 cursor-pointer bg-opacity-10 backdrop-blur-sm ${
-        fullWidth ? "w-[75%]" : large ? "max-w-lg" : isMock ? "max-w-xs" : "max-w-md"
+        fullWidth
+          ? "w-[75%]"
+          : large
+          ? "max-w-lg"
+          : isMock
+          ? "max-w-xs"
+          : "max-w-md"
       } sm:ml-0`}
       onClick={onClick}
     >
@@ -178,45 +202,67 @@ export default function PostCard({
         </div>
       )}
 
-      <div className="relative w-full" style={{ paddingBottom: containerPaddingBottom }}>
+      <div
+        className="relative w-full"
+        style={{ paddingBottom: containerPaddingBottom }}
+      >
         {isVideo ? (
-          <video
-            ref={videoRef}
-            src={post.customVideoUrl}
-            className={`absolute top-0 left-0 w-full h-full object-cover object-center ${
-              !isDetailView ? "rounded-b-lg" : ""
-            }`}
-            loop
-            playsInline
-            muted={false}
-            preload="metadata"
-            onLoadedMetadata={(e) => {
-              setVideoLoaded(true);
-              const video = e.currentTarget;
-              onMediaDimensionsChange?.({ width: video.videoWidth, height: video.videoHeight });
-            }}
-            onError={(e) => console.error("Video load error:", e)}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (profilePage) onClick?.();
-              else togglePlayPause();
-            }}
-          />
+          <>
+            {!videoLoaded && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black bg-opacity-40 rounded-3xl">
+                <Loader2 className="w-10 h-10 animate-spin text-white" />
+              </div>
+            )}
+            <video
+              ref={videoRef}
+              src={post.customVideoUrl}
+              className={`absolute top-0 left-0 w-full h-full object-cover object-center ${
+                !isDetailView ? "rounded-b-lg" : ""
+              } ${videoLoaded ? "opacity-100" : "opacity-0"}`}
+              loop
+              playsInline
+              muted={false}
+              preload="metadata"
+              onLoadedMetadata={(e) => {
+                setVideoLoaded(true);
+                const video = e.currentTarget;
+                onMediaDimensionsChange?.({
+                  width: video.videoWidth,
+                  height: video.videoHeight,
+                });
+              }}
+              onError={(e) => console.error("Video load error:", e)}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (profilePage) onClick?.();
+                else togglePlayPause();
+              }}
+            />
+          </>
         ) : (
           <img
-            src={post.customImageUrl || post.albumArtUrl || "/default-album-cover.png"}
+            src={
+              post.customImageUrl ||
+              post.albumArtUrl ||
+              "/default-album-cover.png"
+            }
             alt={post.trackName ?? "Track"}
-            className={`absolute top-0 left-0 w-full h-full object-cover ${profileFeed ? "rounded-b-lg" : ""}`}
+            className={`absolute top-0 left-0 w-full h-full object-cover ${
+              profileFeed ? "rounded-b-lg" : ""
+            }`}
             onLoad={(e) => {
               setImageLoaded(true);
               const img = e.currentTarget;
-              onMediaDimensionsChange?.({ width: img.naturalWidth, height: img.naturalHeight });
+              onMediaDimensionsChange?.({
+                width: img.naturalWidth,
+                height: img.naturalHeight,
+              });
             }}
           />
         )}
 
-        {post.trackId && (
-          (!user || !user.spotifyConnected || !user.spotifyPremium) ? (
+        {post.trackId &&
+          (!user || !user.spotifyConnected || !user.spotifyPremium ? (
             <div className="absolute top-[-60px] left-1/2 transform -translate-x-1/2 w-full h-[85px] rounded-t-xl overflow-hidden">
               <iframe
                 title={post.trackName ?? "Track"}
@@ -231,7 +277,9 @@ export default function PostCard({
           ) : (
             <div
               className={`absolute top-[-60px] left-1/2 transform -translate-x-1/2 w-full h-[85px] rounded-t-xl backdrop-blur-md border flex items-center px-4 gap-4 transition-all duration-300 ${
-                isActive ? "bg-purple-800 border-purple-600 shadow-lg shadow-purple-500/20" : "bg-zinc-800 border-zinc-800"
+                isActive
+                  ? "bg-purple-800 border-purple-600 shadow-lg shadow-purple-500/20"
+                  : "bg-zinc-800 border-zinc-800"
               }`}
               onClick={(e) => e.stopPropagation()}
             >
@@ -243,28 +291,41 @@ export default function PostCard({
                 }`}
               />
               <div className="flex flex-col overflow-hidden flex-1">
-                <span className={`font-semibold truncate ${isActive ? "text-purple-100" : "text-white"}`}>
+                <span
+                  className={`font-semibold truncate ${
+                    isActive ? "text-purple-100" : "text-white"
+                  }`}
+                >
                   {post.trackName}
                 </span>
-                <span className={`text-sm truncate ${isActive ? "text-purple-200" : "text-gray-400"}`}>
+                <span
+                  className={`text-sm truncate ${
+                    isActive ? "text-purple-200" : "text-gray-400"
+                  }`}
+                >
                   {post.artistName ?? "Unknown Artist"}
                 </span>
               </div>
 
               <div
                 className={`ml-auto cursor-pointer p-2 rounded-full transition-all duration-300 hover:scale-110 ${
-                  isActive ? "bg-purple-600 hover:bg-purple-500" : "bg-zinc-700 hover:bg-zinc-600"
+                  isActive
+                    ? "bg-purple-600 hover:bg-purple-500"
+                    : "bg-zinc-700 hover:bg-zinc-600"
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
                   togglePlayPause();
                 }}
               >
-                {isPlaying ? <Pause className="text-white w-6 h-6" /> : <Play className="text-white w-6 h-6 ml-0.5" />}
+                {isPlaying ? (
+                  <Pause className="text-white w-6 h-6" />
+                ) : (
+                  <Play className="text-white w-6 h-6 ml-0.5" />
+                )}
               </div>
             </div>
-          )
-        )}
+          ))}
       </div>
 
       {(isDetailView || isMock) && showActions && (
