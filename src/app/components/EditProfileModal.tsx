@@ -12,6 +12,7 @@ import {
   disconnectSpotify,
   searchUsers,
   updateReferredBy,
+  getUser,
 } from "../lib/usersApi";
 import { useAuth } from "../context/AuthContext";
 import getS3Url from "../utils/S3Url";
@@ -56,9 +57,11 @@ export default function EditProfileModal({
   // Referred By state
   const [referrerSearch, setReferrerSearch] = useState("");
   const [referrerResults, setReferrerResults] = useState<User[]>([]);
+  console.log(user?.referredBy)
   const [selectedReferrer, setSelectedReferrer] = useState<User | null>(
-    user?.referredBy || null
+    user?.referredBy ? { username: user.referredBy } as User : null
   );
+  
 
   const gradientEnd = darkenColor(accentColor, 40);
 
@@ -100,41 +103,19 @@ export default function EditProfileModal({
     setError("");
   
     try {
-      // Prepare the updates object
-      const updates: Partial<User> = {
+      const updates: Partial<User> & {
+        profilePic?: File;
+        referredBy?: string;
+        profilePublic?: boolean;
+      } = {
         bio,
         accentColor,
+        profilePublic,
+        ...(profilePicFile ? { profilePic: profilePicFile } : {}),
+        ...(selectedReferrer?.username ? { referredBy: selectedReferrer.username } : {}),
       };
   
-      if (profilePicFile) {
-        // Upload the file to your backend endpoint or directly to S3
-        const formData = new FormData();
-        formData.append("file", profilePicFile);
-      
-        const res = await fetch(`/api/upload-profile-pic`, {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        });
-      
-        if (!res.ok) throw new Error("Failed to upload profile picture");
-      
-        const data = await res.json(); // Assume backend returns { key: string }
-        const uploadedUrl = getS3Url(data.key); // now pass the key, not File
-        updates.profilePictureUrl = uploadedUrl;
-      }
-      
-  
-      // First update profile fields (bio, pic, accent)
-      let updatedUser: User = await updateUserProfile(username, updates);
-  
-      // Then update referredBy if selected
-      if (selectedReferrer) {
-        updatedUser = await updateReferredBy(username, selectedReferrer.username);
-      }
-  
-      // Update profile visibility
-      updatedUser = await updateProfileVisibility(username, profilePublic);
+      const updatedUser = await updateUserProfile(updates);
   
       onSave(updatedUser);
       onProfileVisibilityChange(profilePublic);
@@ -146,6 +127,7 @@ export default function EditProfileModal({
       setLoading(false);
     }
   };
+  
   
   const handleDisconnectSpotify = async () => {
     setDisconnecting(true);

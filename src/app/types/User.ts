@@ -46,5 +46,5 @@ export interface User {
   trunks?: Trunk[];
   branchCount: number;
   spotifyPremium: boolean;
-  referredBy: User;
+  referredBy: string | null;
 }
