@@ -165,19 +165,21 @@ export default function Navbar() {
             })}
 
           {user ? (
+            // Desktop profile pic
             <Link
               href={`/profile/${user.username}`}
               className="flex items-center rounded-full overflow-hidden border border-transparent hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition h-8 mb-3"
               aria-label="Profile"
             >
-              <Image
-                src={getS3Url(profileUser?.profilePictureUrl)}
-                alt={`${user.username}'s profile`}
-                width={32}
-                height={32}
-                className="rounded-full object-cover"
-                unoptimized
-              />
+              <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                <Image
+                  src={getS3Url(profileUser?.profilePictureUrl)}
+                  alt={`${user.username}'s profile`}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
             </Link>
           ) : (
             <div className="flex items-center space-x-4 h-8 mb-3">
@@ -233,18 +235,20 @@ export default function Navbar() {
               // Desktop profile pic
               <Link
                 href={`/profile/${user.username}`}
-                className="flex items-center rounded-full overflow-hidden border border-transparent border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition h-8 mb-3"
+                className="flex items-center rounded-full border border-transparent hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition h-8 mb-3"
                 aria-label="Profile"
+                onClick={() => setIsOpen(false)}
               >
                 <div className="relative w-8 h-8 rounded-full overflow-hidden">
                   <Image
                     src={getS3Url(profileUser?.profilePictureUrl)}
                     alt={`${user.username}'s profile`}
                     fill
-                    className="object-cover object-center "
+                    className="object-cover"
                     unoptimized
                   />
                 </div>
+                <span className="text-sm ml-2">{user.username}</span>
               </Link>
             ) : (
               <div className="flex items-center space-x-4 h-8 mb-3">
