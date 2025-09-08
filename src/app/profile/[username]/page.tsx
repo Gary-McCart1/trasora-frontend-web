@@ -184,9 +184,7 @@ export default function ProfilePage() {
         showAlert("You must be logged in!", "error");
         return;
     }
-    window.location.href = `https://trasora-backend-e03193d24a86.herokuapp.com/auth/spotify/login?state=${encodeURIComponent(
-      loggedInUser.username
-    )}`;
+    window.location.href = `https://trasora-backend-e03193d24a86.herokuapp.com/auth/spotify/callback`;
   };
 
   // --- Edit Profile Save ---

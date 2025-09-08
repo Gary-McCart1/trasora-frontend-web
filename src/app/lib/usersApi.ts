@@ -184,7 +184,6 @@ export async function getCurrentUser(): Promise<User> {
       throw new Error(data.message || "Verification failed");
     }
   
-    // success: just return
   }
   
   
