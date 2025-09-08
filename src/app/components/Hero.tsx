@@ -21,7 +21,7 @@ export default function Hero() {
         ))}
       </div>
 
-      <h1 className="relative text-5xl md:text-7xl font-extrabold tracking-tight max-w-4xl mb-6 leading-tight drop-shadow-lg z-10">
+      <h1 className="relative text-3xl md:text-7xl font-extrabold tracking-tight max-w-4xl mb-6 leading-tight drop-shadow-lg z-10">
         Welcome to{" "}
         <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">
           Trasora
@@ -33,7 +33,7 @@ export default function Hero() {
         </span>
       </h1>
 
-      <p className="relative max-w-3xl text-xl md:text-2xl text-zinc-300 mb-10 drop-shadow-md z-10">
+      <p className="relative max-w-3xl text-lg md:text-2xl text-zinc-300 mb-10 drop-shadow-md z-10">
         Connect through the beats that move you. Share your favorite tracks,
         discover fresh sounds, and build your ultimate playlist community — all
         in one place.
