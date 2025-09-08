@@ -97,15 +97,27 @@ export default function NotificationsList() {
   const timeAgo = (dateStr: string) => {
     const now = new Date();
     const then = new Date(dateStr);
-    const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
-    if (seconds < 60) return `${seconds}s ago`;
+  
+    // prevent negative times
+    let seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
+    if (seconds < 0) seconds = 0;
+  
+    if (seconds < 60) return "just now";
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    if (days < 7) return `${days}d ago`;
+  
+    // for anything older than a week, show full date
+    return then.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
+  
 
   const getDateGroup = (dateStr: string) => {
     const date = new Date(dateStr);

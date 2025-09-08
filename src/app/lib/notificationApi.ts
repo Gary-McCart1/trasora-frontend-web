@@ -49,13 +49,14 @@ export async function markAllExceptFollowRequestsAsRead(): Promise<void> {
 
 // Handle follow notification (accept/reject)
 export async function handleFollowNotification(
-  followId: number,
-  action: "accept" | "reject"
-): Promise<void> {
-  const res = await fetch(`${BASE_URL}/api/follow/${followId}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-    body: JSON.stringify({ action }),
-  });
-  if (!res.ok) throw new Error("Failed to handle follow notification");
-}
+    followId: number,
+    action: "accept" | "reject"
+  ): Promise<void> {
+    const url = `${BASE_URL}/api/follow/${followId}/${action}`; // append action to path
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    });
+    if (!res.ok) throw new Error("Failed to handle follow notification");
+  }
+  
