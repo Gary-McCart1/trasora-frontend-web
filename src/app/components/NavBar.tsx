@@ -235,11 +235,11 @@ export default function Navbar() {
               // Desktop profile pic
               <Link
                 href={`/profile/${user.username}`}
-                className="flex items-center rounded-full border border-transparent hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition h-8 mb-3"
+                className="flex items-center hover:bg-zinc-800 rounded  focus:outline-none focus:ring-2 focus:ring-purple-400 transition h-8 mb-3"
                 aria-label="Profile"
                 onClick={() => setIsOpen(false)}
               >
-                <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                <div className="relative w-6 h-6 rounded-full overflow-hidden ml-4">
                   <Image
                     src={getS3Url(profileUser?.profilePictureUrl)}
                     alt={`${user.username}'s profile`}
