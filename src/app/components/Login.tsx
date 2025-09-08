@@ -40,13 +40,9 @@ export default function Login() {
         console.error("Login failed:", error.message);
   
         if (error.message.includes("Please verify your email")) {
-          try {
-            await resendVerificationEmail(form.login); // pass email/username here
-            alert("Verification email resent! Please check your inbox.");
-          } catch (resendErr) {
-            console.error("Resend verification error:", resendErr);
-            alert("Could not resend verification email. Try again later.");
-          }
+          alert(
+            "Please verify your email!"
+          )
         } else {
           alert("Login failed: " + error.message);
         }
