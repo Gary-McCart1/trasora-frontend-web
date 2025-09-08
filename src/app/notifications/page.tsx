@@ -16,37 +16,57 @@ import getS3Url from "../utils/S3Url";
 import {
   fetchUnreadNotifications,
   handleFollowNotification,
+  markAllExceptFollowRequestsAsRead,
 } from "../lib/notificationApi";
+import { getUser } from "../lib/usersApi";
 
-function timeAgo(dateStr: string) {
-  const now = new Date();
-  const then = new Date(dateStr);
-  const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
-
-function getDateGroup(dateStr: string) {
-  const date = new Date(dateStr);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-
-  if (date.toDateString() === today.toDateString()) return "Today";
-  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
-  return "Earlier";
-}
+type UserProfileMap = Record<string, string | null>;
 
 export default function NotificationsList() {
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
+  const [userProfiles, setUserProfiles] = useState<UserProfileMap>({});
 
   useEffect(() => {
     fetchUnreadNotifications().then(setNotifications);
+  }, []);
+
+  // Fetch profile pictures for all unique senders
+  useEffect(() => {
+    const usernames = Array.from(new Set(notifications.map((n) => n.senderUsername)));
+    usernames.forEach(async (username) => {
+      if (!userProfiles[username]) {
+        try {
+          const user = await getUser(username);
+          setUserProfiles((prev) => ({
+            ...prev,
+            [username]: user.profilePictureUrl || null,
+          }));
+        } catch (err) {
+          console.error(`Failed to fetch user ${username}`, err);
+        }
+      }
+    });
+  }, [notifications, userProfiles]);
+
+  useEffect(() => {
+    const handleLeave = async () => {
+      try {
+        await markAllExceptFollowRequestsAsRead();
+      } catch (err) {
+        console.error("Failed to mark notifications as read", err);
+      }
+    };
+
+    // Listen for page unload or visibility change
+    window.addEventListener("beforeunload", handleLeave);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") handleLeave();
+    });
+
+    return () => {
+      window.removeEventListener("beforeunload", handleLeave);
+      document.removeEventListener("visibilitychange", handleLeave);
+    };
   }, []);
 
   const handleFollowAction = async (
@@ -58,27 +78,43 @@ export default function NotificationsList() {
       await handleFollowNotification(followId, action);
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
     } catch {
-      // error already logged in API
+      // error already logged
     }
   };
 
   const getIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case "like":
-        return <Heart className="w-4 h-4 text-pink-500" />;
-      case "comment":
-        return <MessageCircle className="w-4 h-4 text-blue-400" />;
-      case "follow":
-        return <UserPlus className="w-4 h-4 text-green-400" />;
-      case "follow_request":
-        return <UserPlus className="w-4 h-4 text-yellow-400" />;
-      case "follow_accepted":
-        return <UserCheck className="w-4 h-4 text-green-400" />;
-      case "branch_added":
-        return <GitBranch className="w-4 h-4 text-emerald-400" />;
-      default:
-        return null;
+      case "like": return <Heart className="w-4 h-4 text-pink-500" />;
+      case "comment": return <MessageCircle className="w-4 h-4 text-blue-400" />;
+      case "follow": return <UserPlus className="w-4 h-4 text-green-400" />;
+      case "follow_request": return <UserPlus className="w-4 h-4 text-yellow-400" />;
+      case "follow_accepted": return <UserCheck className="w-4 h-4 text-green-400" />;
+      case "branch_added": return <GitBranch className="w-4 h-4 text-emerald-400" />;
+      default: return null;
     }
+  };
+
+  const timeAgo = (dateStr: string) => {
+    const now = new Date();
+    const then = new Date(dateStr);
+    const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
+
+  const getDateGroup = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+    return "Earlier";
   };
 
   const groupedNotifications = notifications.reduce(
@@ -108,12 +144,13 @@ export default function NotificationsList() {
         <div className="space-y-6 max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600">
           {Object.entries(groupedNotifications).map(([group, items]) => (
             <div key={group}>
-              <h3 className="text-sm font-semibold text-gray-400 mb-2">
-                {group}
-              </h3>
+              <h3 className="text-sm font-semibold text-gray-400 mb-2">{group}</h3>
               <ul className="space-y-3">
                 {items.map((n) => {
                   const isBranch = n.type.toLowerCase() === "branch_added";
+                  const profilePicUrl =
+                    getS3Url(userProfiles[n.senderUsername]) || n.albumArtUrl || "/default-avatar.png";
+
                   return (
                     <li
                       key={n.id}
@@ -126,12 +163,9 @@ export default function NotificationsList() {
                       <div className="flex items-center gap-3 min-w-0">
                         <Link href={`/profile/${n.senderUsername}`}>
                           <img
-                            src={
-                              getS3Url(n.senderProfilePictureUrl) ||
-                              "/default-avatar.png"
-                            }
+                            src={profilePicUrl}
                             alt={`${n.senderUsername} avatar`}
-                            className={`w-10 h-10 rounded-full object-cover border transition ${
+                            className={`w-10 h-10 min-w-[40px] rounded-full object-cover border transition ${
                               isBranch
                                 ? "border-emerald-600 hover:border-emerald-400"
                                 : "border-gray-700 hover:border-indigo-500"
@@ -167,9 +201,7 @@ export default function NotificationsList() {
                             {isBranch && (
                               <>
                                 {" added a branch to your "}
-                                <span className="font-semibold">
-                                  {n.trunkName}
-                                </span>
+                                <span className="font-semibold">{n.trunkName}</span>
                                 {" trunk "}
                                 <Link
                                   href={`/profile/${n.recipientUsername}`}
@@ -199,11 +231,7 @@ export default function NotificationsList() {
                             <div className="mt-1 flex gap-2">
                               <button
                                 onClick={() =>
-                                  handleFollowAction(
-                                    n.followId!,
-                                    "accept",
-                                    n.id
-                                  )
+                                  handleFollowAction(n.followId!, "accept", n.id)
                                 }
                                 className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-full text-xs flex items-center gap-1"
                               >
@@ -211,11 +239,7 @@ export default function NotificationsList() {
                               </button>
                               <button
                                 onClick={() =>
-                                  handleFollowAction(
-                                    n.followId!,
-                                    "reject",
-                                    n.id
-                                  )
+                                  handleFollowAction(n.followId!, "reject", n.id)
                                 }
                                 className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs flex items-center gap-1"
                               >
