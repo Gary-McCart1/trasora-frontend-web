@@ -44,24 +44,22 @@ function VerifyEmailContent() {
 
     if (!token) {
       setStatus("error");
-      setMessage("❌ Invalid verification link.");
+      setMessage("Invalid verification link.");
       return;
     }
 
     async function verify() {
       try {
-        if(!token) return;
-        await verifyEmail(token);
+        if (!token) return;
+        await verifyEmail(token); // verifyEmail now throws only if backend said "error"
         setStatus("success");
-        setMessage("✅ Email verified successfully! Redirecting to login...");
+        setMessage("Email verified successfully. Redirecting to login...");
         setTimeout(() => router.push("/login"), 3000);
       } catch (err: unknown) {
         console.error("Email verification error:", err);
         setStatus("error");
         setMessage(
-          err instanceof Error
-            ? `❌ Verification failed: ${err.message}`
-            : "❌ Verification failed due to network or server error. Please try again."
+          err instanceof Error ? err.message : "Verification failed due to network or server error."
         );
       }
     }
@@ -76,17 +74,13 @@ function VerifyEmailContent() {
 
     try {
       await resendVerificationEmail(email);
-      setMessage("✅ Verification email resent. Please check your inbox.");
+      setMessage("Verification email resent. Please check your inbox.");
       setResendSuccess(true);
       setStatus("success");
     } catch (err: unknown) {
       console.error("Resend verification error:", err);
       setStatus("error");
-      setMessage(
-        err instanceof Error
-          ? `❌ ${err.message}`
-          : "❌ An error occurred while resending verification email."
-      );
+      setMessage(err instanceof Error ? err.message : "An error occurred while resending verification email.");
     } finally {
       setResendLoading(false);
     }
@@ -98,13 +92,13 @@ function VerifyEmailContent() {
         {status === "success" && (
           <>
             <CheckCircleIcon />
-            Verification Successful
+            Success
           </>
         )}
         {status === "error" && (
           <>
             <AlertCircleIcon />
-            Verification Failed
+            Error
           </>
         )}
         {status === "verifying" && "Verifying Email..."}
