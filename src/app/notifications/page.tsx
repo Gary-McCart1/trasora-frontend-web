@@ -26,6 +26,7 @@ export default function NotificationsList() {
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [userProfiles, setUserProfiles] = useState<UserProfileMap>({});
 
+  // Fetch unread notifications
   useEffect(() => {
     fetchUnreadNotifications().then(setNotifications);
   }, []);
@@ -48,16 +49,22 @@ export default function NotificationsList() {
     });
   }, [notifications, userProfiles]);
 
+  // Mark non-follow-request notifications as read on page leave or tab hide
   useEffect(() => {
     const handleLeave = async () => {
       try {
         await markAllExceptFollowRequestsAsRead();
+        // Update local state to remove or mark read notifications
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.type.toLowerCase() === "follow_request" ? n : { ...n, read: true }
+          )
+        );
       } catch (err) {
         console.error("Failed to mark notifications as read", err);
       }
     };
 
-    // Listen for page unload or visibility change
     window.addEventListener("beforeunload", handleLeave);
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") handleLeave();
@@ -69,6 +76,7 @@ export default function NotificationsList() {
     };
   }, []);
 
+  // Handle follow accept/reject actions
   const handleFollowAction = async (
     followId: number,
     action: "accept" | "reject",
@@ -76,6 +84,7 @@ export default function NotificationsList() {
   ) => {
     try {
       await handleFollowNotification(followId, action);
+      // Remove notification from local state
       setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
     } catch {
       // error already logged
@@ -97,11 +106,8 @@ export default function NotificationsList() {
   const timeAgo = (dateStr: string) => {
     const now = new Date();
     const then = new Date(dateStr);
-  
-    // prevent negative times
     let seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
     if (seconds < 0) seconds = 0;
-  
     if (seconds < 60) return "just now";
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
@@ -109,15 +115,8 @@ export default function NotificationsList() {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     if (days < 7) return `${days}d ago`;
-  
-    // for anything older than a week, show full date
-    return then.toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    return then.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
   };
-  
 
   const getDateGroup = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -148,7 +147,7 @@ export default function NotificationsList() {
         <h2 className="text-2xl font-bold">Your Notifications</h2>
       </div>
 
-      {notifications.length === 0 ? (
+      {notifications.filter(n => !n.read).length === 0 ? (
         <p className="text-gray-400 text-center mt-8 text-sm">
           No unread notifications
         </p>
@@ -159,6 +158,7 @@ export default function NotificationsList() {
               <h3 className="text-sm font-semibold text-gray-400 mb-2">{group}</h3>
               <ul className="space-y-3">
                 {items.map((n) => {
+                  if (n.read) return null; // hide read notifications
                   const isBranch = n.type.toLowerCase() === "branch_added";
                   const profilePicUrl =
                     getS3Url(userProfiles[n.senderUsername]) || n.albumArtUrl || "/default-avatar.png";
