@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import getS3Url from "@/app/utils/S3Url";
 import { FaTrophy } from "react-icons/fa";
+import { getReferralLeaderboard, ReferralDto, getUser } from "@/app/lib/usersApi";
 
-interface ReferralLeaderboardEntry {
-  username: string;
+interface ReferralLeaderboardEntry extends ReferralDto {
   profilePictureUrl?: string | null;
-  referralCount: number;
 }
 
 export default function ReferralLeaderboardPage() {
@@ -15,6 +14,7 @@ export default function ReferralLeaderboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [timeLeft, setTimeLeft] = useState("");
+  console.log(leaderboard)
 
   // Countdown logic
   useEffect(() => {
@@ -42,16 +42,22 @@ export default function ReferralLeaderboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch leaderboard
+  // Fetch leaderboard and profile pictures
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/auth/referral-leaderboard", {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch leaderboard");
-        const data: ReferralLeaderboardEntry[] = await res.json();
-        setLeaderboard(data);
+        const data = await getReferralLeaderboard(); // fetch from API
+        const enrichedData: ReferralLeaderboardEntry[] = await Promise.all(
+          data.map(async (entry) => {
+            try {
+              const user = await getUser(entry.username);
+              return { ...entry, profilePictureUrl: user.profilePictureUrl || null };
+            } catch {
+              return { ...entry, profilePictureUrl: null };
+            }
+          })
+        );
+        setLeaderboard(enrichedData);
       } catch (err) {
         console.error(err);
         if (err instanceof Error) setError(err.message);
@@ -60,7 +66,7 @@ export default function ReferralLeaderboardPage() {
         setLoading(false);
       }
     };
-
+  
     fetchLeaderboard();
   }, []);
 

@@ -220,3 +220,19 @@ export async function getCurrentUser(): Promise<User> {
     if (!res.ok) throw new Error("Failed to update referredBy");
     return res.json();
   }
+
+
+  export interface ReferralDto {
+    username: string;
+    referralCount: number;
+  }
+  
+  export async function getReferralLeaderboard(): Promise<ReferralDto[]> {
+    const res = await fetch(`${BASE_URL}/api/auth/referral-leaderboard`, {
+      headers: getAuthHeaders(),
+    });
+  
+    if (!res.ok) throw new Error("Failed to fetch referral leaderboard");
+  
+    return res.json();
+  }

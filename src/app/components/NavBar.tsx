@@ -35,24 +35,23 @@ export default function Navbar() {
 
   // Fetch unread notifications & poll
   // Fetch unread notifications & poll
-useEffect(() => {
-  if (!user) return;
+  useEffect(() => {
+    if (!user) return;
 
-  const fetchCount = async () => {
-    try {
-      const notifications = await fetchUnreadNotifications();
-      setUnreadCount(notifications.length);
-    } catch (err) {
-      console.error("Failed to fetch unread notifications:", err);
-    }
-  };
+    const fetchCount = async () => {
+      try {
+        const notifications = await fetchUnreadNotifications();
+        setUnreadCount(notifications.length);
+      } catch (err) {
+        console.error("Failed to fetch unread notifications:", err);
+      }
+    };
 
-  fetchCount();
+    fetchCount();
 
-  const interval = setInterval(fetchCount, 30000);
-  return () => clearInterval(interval);
-}, [user]);
-
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   // Clear badge on notifications page
   useEffect(() => {
@@ -231,44 +230,37 @@ useEffect(() => {
                 </li>
               ))}
             {user ? (
-              <li>
-                <Link
-                  href={`/profile/${user.username}`}
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-zinc-800 rounded"
-                >
+              // Desktop profile pic
+              <Link
+                href={`/profile/${user.username}`}
+                className="flex items-center rounded-full overflow-hidden border border-transparent hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition h-8 mb-3"
+                aria-label="Profile"
+              >
+                <div className="relative w-8 h-8 rounded-full overflow-hidden">
                   <Image
                     src={getS3Url(profileUser?.profilePictureUrl)}
-                    alt="Profile"
-                    width={32}
-                    height={32}
-                    className="rounded-full object-cover"
+                    alt={`${user.username}'s profile`}
+                    fill
+                    className="object-cover object-center "
                     unoptimized
                   />
-                  <span className="text-sm">{user.username}</span>
-                </Link>
-              </li>
+                </div>
+              </Link>
             ) : (
-              <>
-                <li>
-                  <Link
-                    href="/login"
-                    onClick={() => setIsOpen(false)}
-                    className="block py-2 px-4 rounded hover:bg-zinc-800 transition"
-                  >
-                    Log in
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/signup"
-                    onClick={() => setIsOpen(false)}
-                    className="block py-2 px-4 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700"
-                  >
-                    Sign up
-                  </Link>
-                </li>
-              </>
+              <div className="flex items-center space-x-4 h-8 mb-3">
+                <Link
+                  href="/login"
+                  className="text-zinc-300 hover:text-purple-400 text-sm font-medium leading-none flex items-center h-full"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-purple-600 px-4 py-1 rounded text-white font-semibold hover:bg-purple-700 transition text-sm flex items-center h-full"
+                >
+                  Sign up
+                </Link>
+              </div>
             )}
           </ul>
           <div className="px-4">
