@@ -7,7 +7,7 @@ interface FloatingParticlesProps {
 }
 
 export default function FloatingParticles({ color }: FloatingParticlesProps) {
-  const particles = Array.from({ length: 30 });
+  const particles = Array.from({ length: 10 });
 
   return (
     <div className="fixed inset-0 z-10 pointer-events-none overflow-x-clip">

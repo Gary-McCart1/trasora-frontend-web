@@ -213,7 +213,7 @@ export default function MainFeed({
         <StoriesBar />
       </div>
       {/* Floating particles always on */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="absolute inset-0 z-0 pointer-events-none hidden sm:block">
         <FloatingParticles color="#8c52ff" />
       </div>
 
