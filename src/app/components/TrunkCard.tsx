@@ -38,11 +38,19 @@ export default function TrunkCard({
   };
 
   const handleSendToSpotify = async () => {
+    // Open a blank window immediately
+    const win = window.open("", "_blank");
+    if (!win) {
+      alert("Popup blocked! Please allow popups for this site.");
+      return;
+    }
+  
     try {
       const { playlistUrl } = await sendTrunkToSpotify(String(trunk.id));
-      window.open(playlistUrl, "_blank"); // now it's a string
+      win.location.href = playlistUrl; // redirect popup
     } catch (err) {
       console.error(err);
+      win.close(); // close popup if something went wrong
       alert(
         err instanceof Error
           ? err.message
@@ -50,6 +58,7 @@ export default function TrunkCard({
       );
     }
   };
+  
   
 
   return (
