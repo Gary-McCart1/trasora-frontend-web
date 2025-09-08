@@ -193,7 +193,7 @@ export default function RootsStrip({
   return (
     <section className="relative mt-8 mb-12 px-4 rounded-lg py-10">
       <h3 className="text-xl font-extrabold mb-6 tracking-wide flex justify-between items-center">
-        {isOwner ? "Your" : `${pageUsername.toUpperCase()}'s`} Top 10
+        {isOwner ? "My" : `${pageUsername.toUpperCase()}'s`} Top 10
         {isOwner && (
           <button
             className="px-3 py-1 rounded text-sm transition-all duration-200"
