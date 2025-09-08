@@ -233,7 +233,7 @@ export default function Navbar() {
               // Desktop profile pic
               <Link
                 href={`/profile/${user.username}`}
-                className="flex items-center rounded-full overflow-hidden border border-transparent hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition h-8 mb-3"
+                className="flex items-center rounded-full overflow-hidden border border-transparent border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition h-8 mb-3"
                 aria-label="Profile"
               >
                 <div className="relative w-8 h-8 rounded-full overflow-hidden">
