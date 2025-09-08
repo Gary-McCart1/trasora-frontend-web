@@ -33,7 +33,7 @@ export default function PostsGrid({
     return (
       <div className="text-gray-400 italic text-sm mt-2 text-center px-2 py-[5rem]">
         {isOwner ? (
-          <p>No posts yet. Visit the create page to share what you&apos;ve been listening to.</p>
+          <p>No posts yet of this type. Visit the create page to share what you&apos;ve been listening to.</p>
         ) : (
           <p>This user currently does not have any posts.</p>
         )}
