@@ -181,11 +181,15 @@ export default function ProfilePage() {
   // --- Spotify connect ---
   const onConnectToSpotify = () => {
     if (!loggedInUser?.username) {
-        showAlert("You must be logged in!", "error");
-        return;
+      showAlert("You must be logged in!", "error");
+      return;
     }
-    window.location.href = `https://trasora-backend-e03193d24a86.herokuapp.com/auth/spotify/callback`;
+    // Start the login flow, not callback
+    window.location.href = `https://trasora-backend-e03193d24a86.herokuapp.com/auth/spotify/login?state=${encodeURIComponent(
+      loggedInUser.username
+    )}`;
   };
+  
 
   // --- Edit Profile Save ---
   const handleEditSave = (updatedUser: User) => {
