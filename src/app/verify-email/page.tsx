@@ -41,29 +41,24 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("token");
-
+  
     if (!token) {
       setStatus("error");
       setMessage("❌ Invalid verification link.");
       return;
     }
-
+  
     async function verify() {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/verify-email?token=${token}`);
-        const text = await res.text();
-
-        if (!res.ok) {
-          if (res.status === 400 && text.includes("Invalid")) {
-            setStatus("error");
-            setMessage("❌ This verification link is invalid or has already been used.");
-          } else {
-            setStatus("error");
-            setMessage(`❌ Verification failed: ${text || "Unknown error"}`);
-          }
+        const res = await fetch(`https://trasora-backend-e03193d24a86.herokuapp.com/api/auth/verify-email?token=${token}`);
+        const data: { status: string; message: string } = await res.json();
+  
+        if (!res.ok || data.status !== "success") {
+          setStatus("error");
+          setMessage(`❌ ${data.message || "Verification failed."}`);
           return;
         }
-
+  
         setStatus("success");
         setMessage("✅ Email verified successfully! Redirecting to login...");
         setTimeout(() => router.push("/login"), 3000);
@@ -77,9 +72,10 @@ function VerifyEmailContent() {
         );
       }
     }
-
+  
     verify();
   }, [router]);
+  
 
   async function handleResend() {
     setResendLoading(true);
