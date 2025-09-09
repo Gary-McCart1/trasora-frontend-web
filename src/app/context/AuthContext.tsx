@@ -31,6 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
   
         const publicPaths = [
+          "/about",
           "/login",
           "/signup",
           "/forgot-password",
