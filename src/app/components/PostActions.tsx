@@ -25,6 +25,7 @@ import { Trunk } from "../types/User";
 import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunksApi";
 import { incrementPostBranchCount } from "../lib/postsApi";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 
 interface Comment {
   id: number;
@@ -263,7 +264,7 @@ export default function PostActions({
             className="w-11 h-11 rounded-full object-cover border border-purple-500"
           />
           <div className="flex flex-col">
-            <span className="font-semibold text-base">{authorUsername}</span>
+            <Link href={`/profile/${authorUsername}`} className="font-semibold text-base hover:text-purple-400">{authorUsername}</Link>
             <span className="text-xs text-zinc-500">
               {createdAt
                 ? (() => {
