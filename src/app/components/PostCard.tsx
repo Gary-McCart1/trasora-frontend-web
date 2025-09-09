@@ -83,9 +83,8 @@ export default function PostCard({
     videoRef.current?.pause();
   }, []);
 
-  const isCurrentlyPlaying = (trackId?: string) => {
-    return !isManuallyPaused && currentTrackId === trackId;
-  };
+  const isCurrentlyPlaying = (trackId?: string) =>
+    !isManuallyPaused && currentTrackId === trackId;
 
   const togglePlayPause = useCallback(() => {
     const isVideoPaused = videoRef.current?.paused ?? true;
@@ -214,7 +213,9 @@ export default function PostCard({
               src={post.customVideoUrl}
               className={`absolute top-0 left-0 w-full h-full object-cover ${
                 !isDetailView ? "rounded-b-lg" : ""
-              } ${videoLoaded ? "opacity-100" : "opacity-0"} transition-opacity duration-300`}
+              } ${
+                videoLoaded ? "opacity-100" : "opacity-0"
+              } transition-opacity duration-300`}
               loop
               playsInline
               preload="auto"
@@ -239,11 +240,17 @@ export default function PostCard({
           </div>
         ) : (
           <img
-            src={post.customImageUrl || post.albumArtUrl || "/default-album-cover.png"}
+            src={
+              post.customImageUrl ||
+              post.albumArtUrl ||
+              "/default-album-cover.png"
+            }
             alt={post.trackName ?? "Track"}
             className={`absolute top-0 left-0 w-full h-full object-cover ${
               profileFeed ? "rounded-b-lg" : ""
-            } ${imageLoaded ? "opacity-100" : "opacity-0"} transition-opacity duration-300`}
+            } ${
+              imageLoaded ? "opacity-100" : "opacity-0"
+            } transition-opacity duration-300`}
             onLoad={(e) => {
               setImageLoaded(true);
               setIsLoading(false);
@@ -262,56 +269,78 @@ export default function PostCard({
 
         {/* Spotify Track UI */}
         {post.trackId && (
-          <div
-            className={`absolute top-[-60px] left-1/2 transform -translate-x-1/2 w-full h-[85px] rounded-t-xl backdrop-blur-md border flex items-center px-4 gap-4 transition-all duration-300 ${
-              isActive
-                ? "bg-purple-800 border-purple-600 shadow-lg shadow-purple-500/20"
-                : "bg-zinc-800 border-zinc-800"
-            }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={post.albumArtUrl || "/default-album-cover.png"}
-              alt={post.trackName ?? "Track"}
-              className={`w-14 h-14 rounded-md object-cover transition-all duration-300 ${
-                isActive ? "shadow-md animate-pulse" : ""
-              }`}
-            />
-            <div className="flex flex-col overflow-hidden flex-1">
-              <span
-                className={`font-semibold truncate ${
-                  isActive ? "text-purple-100" : "text-white"
+          <>
+            {user?.spotifyConnected && user?.spotifyPremium ? (
+              // Custom player bar
+              <div
+                className={`absolute top-[-60px] left-1/2 transform -translate-x-1/2 w-full h-[85px] rounded-t-xl backdrop-blur-md border flex items-center px-4 gap-4 transition-all duration-300 ${
+                  isActive
+                    ? "bg-purple-800 border-purple-600 shadow-lg shadow-purple-500/20"
+                    : "bg-zinc-800 border-zinc-800"
                 }`}
+                onClick={(e) => e.stopPropagation()}
               >
-                {post.trackName}
-              </span>
-              <span
-                className={`text-sm truncate ${
-                  isActive ? "text-purple-200" : "text-gray-400"
-                }`}
-              >
-                {post.artistName ?? "Unknown Artist"}
-              </span>
-            </div>
+                <img
+                  src={post.albumArtUrl || "/default-album-cover.png"}
+                  alt={post.trackName ?? "Track"}
+                  className={`w-14 h-14 rounded-md object-cover transition-all duration-300 ${
+                    isActive ? "shadow-md animate-pulse" : ""
+                  }`}
+                />
+                <div className="flex flex-col overflow-hidden flex-1">
+                  <span
+                    className={`font-semibold truncate ${
+                      isActive ? "text-purple-100" : "text-white"
+                    }`}
+                  >
+                    {post.trackName}
+                  </span>
+                  <span
+                    className={`text-sm truncate ${
+                      isActive ? "text-purple-200" : "text-gray-400"
+                    }`}
+                  >
+                    {post.artistName ?? "Unknown Artist"}
+                  </span>
+                </div>
 
-            <div
-              className={`ml-auto cursor-pointer p-2 rounded-full transition-all duration-300 hover:scale-110 ${
-                isActive
-                  ? "bg-purple-600 hover:bg-purple-500"
-                  : "bg-zinc-700 hover:bg-zinc-600"
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                togglePlayPause();
-              }}
-            >
-              {isPlaying ? (
-                <Pause className="text-white w-6 h-6" />
-              ) : (
-                <Play className="text-white w-6 h-6 ml-0.5" />
-              )}
-            </div>
-          </div>
+                <div
+                  className={`ml-auto cursor-pointer p-2 rounded-full transition-all duration-300 hover:scale-110 ${
+                    isActive
+                      ? "bg-purple-600 hover:bg-purple-500"
+                      : "bg-zinc-700 hover:bg-zinc-600"
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePlayPause();
+                  }}
+                >
+                  {isPlaying ? (
+                    <Pause className="text-white w-6 h-6" />
+                  ) : (
+                    <Play className="text-white w-6 h-6 ml-0.5" />
+                  )}
+                </div>
+              </div>
+            ) : (
+              // Fallback iframe for non-premium or not connected
+              <div
+                className={`mt-1 w-[101%] absolute top-[-80px] left-1/2 transform -translate-x-1/2 h-[85px] rounded-t-xl overflow-hidden shadow-md ${
+                  isActive
+                    ? "border-purple-600 shadow-purple-500/20"
+                    : "border-zinc-800"
+                }`}
+              >
+                <iframe
+                  className="w-[101%] h-full"
+                  src={`https://open.spotify.com/embed/track/${post.trackId}?utm_source=generator`}
+                  frameBorder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                  loading="lazy"
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 
