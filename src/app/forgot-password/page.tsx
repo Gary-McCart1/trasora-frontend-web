@@ -12,6 +12,7 @@ export default function ForgotPassword() {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    console.log(message)
 
     try {
       console.log(email)
