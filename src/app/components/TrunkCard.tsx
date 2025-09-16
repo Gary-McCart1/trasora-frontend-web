@@ -139,18 +139,6 @@ export default function TrunkCard({
             </button>
           )}
           <div className="flex justify-between">
-            {trunk.branches && trunk.branches.length > 0 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSendToSpotify();
-                }}
-                className="p-1.5 mx-2 rounded-full bg-gray-700 hover:bg-green-700 text-white flex items-center justify-center shadow-md transition"
-                title="Send to Spotify"
-              >
-                <FaSpotify size={16} />
-              </button>
-            )}
             {onDelete && (
               <button
                 onClick={(e) => {

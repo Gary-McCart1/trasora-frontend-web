@@ -171,26 +171,6 @@ export default function ProfileHeader({
         </div>
 
         {/* Spotify / Connect button under profile picture */}
-        {isOwnProfile &&
-          (profileUser.spotifyConnected ? (
-            <div className="mt-3 inline-flex items-center px-4 py-2 rounded-full bg-green-600 text-white font-semibold shadow-md">
-              <Image
-                src="/spotify-icon.png"
-                alt="Spotify Logo"
-                width={20}
-                height={20}
-                className="mr-2"
-              />
-              Connected
-            </div>
-          ) : (
-            <button
-              onClick={onConnectSpotify}
-              className="mt-3 px-6 py-2 rounded-full bg-green-500 hover:bg-green-600 text-white font-semibold shadow-md transition"
-            >
-              Connect to Spotify
-            </button>
-          ))}
       </div>
 
       {/* User info & actions */}

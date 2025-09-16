@@ -5,24 +5,31 @@ import { IoMdAddCircle } from "react-icons/io";
 import { LuGitBranchPlus } from "react-icons/lu";
 import { useState } from "react";
 import AvailableTrunksList from "./AvailableTrunksList";
-import { Branch, Trunk } from "../types/User";
-import { RootSongInput } from "./RootsSearchBar";
+import { Trunk } from "../types/User";
 import { useAuth } from "../context/AuthContext";
 import DraggablePlayer from "./DraggablePlayer";
 import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunksApi";
+import { getAuthHeaders } from "../lib/usersApi";
 
+// SoundCloud track type
 interface Track {
   id: string;
-  name: string;
-  artists: { name: string }[];
-  album: { images: { url: string }[] };
+  title: string;
+  user: {
+    id: string;
+    username: string;
+    avatar_url?: string | null;
+  };
+  artwork_url?: string | null;
+  stream_url?: string;
 }
 
 type PlayerTrack = {
   id: string;
   name: string;
-  artists?: { name: string }[];
-  albumArtUrl: string;
+  artistName: string;
+  albumArtUrl?: string;
+  streamUrl?: string;
 };
 
 export default function TrackResultItem({ track }: { track: Track }) {
@@ -31,10 +38,9 @@ export default function TrackResultItem({ track }: { track: Track }) {
   const [availableTrunks, setAvailableTrunks] = useState<Trunk[]>([]);
   const { user } = useAuth();
 
-  // 🎵 Player state
   const [playingTrack, setPlayingTrack] = useState<PlayerTrack | null>(null);
+  console.log(track)
 
-  // Open branch modal
   const handleBranchClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setLoadingTrunks(true);
@@ -50,8 +56,10 @@ export default function TrackResultItem({ track }: { track: Track }) {
     }
   };
 
-  // Add track to trunk from modal
-  const handleSelectTrunk = async (song: RootSongInput, trunkId: number) => {
+  const handleSelectTrunk = async (
+    song: { trackId: string; title: string; artist: string; albumArtUrl: string },
+    trunkId: number
+  ) => {
     if (!user) return;
     try {
       await addTrackToTrunk(trunkId, song, user.username);
@@ -63,68 +71,67 @@ export default function TrackResultItem({ track }: { track: Track }) {
     }
   };
 
-  // Add track to trunk from draggable player
-  const handleBranchFromPlayer = async (
-    track: PlayerTrack,
-    trunkId: number
-  ) => {
-    if (!user) return;
+  const selectedSong: PlayerTrack = {
+    id: track.id,
+    name: track.title,
+    artistName: track.user.username,
+    albumArtUrl: track.artwork_url || undefined,
+    streamUrl: track.stream_url,
+  };
+  const selectedSongForTrunks = {
+    trackId: selectedSong.id,
+    title: selectedSong.name,
+    artist: selectedSong.artistName,
+    albumArtUrl: selectedSong.albumArtUrl || "",
+  };
 
+  const handleTrackClick = async () => {
     try {
-      await addTrackToTrunk(
-        trunkId,
-        {
-          trackId: track.id,
-          title: track.name,
-          artist: track.artists?.[0]?.name || "",
-          albumArtUrl: track.albumArtUrl,
-        },
-        user.username
+      const res = await fetch(
+        `https://trasora-backend-e03193d24a86.herokuapp.com/api/apple-music/to-spotify?trackName=${encodeURIComponent(track.title)}&artistName=${encodeURIComponent(track.user.username)}`,
+        { 
+          method: "POST",
+          headers: { ...getAuthHeaders() } }
       );
-      alert("Song successfully added to branch!");
+  
+      if (!res.ok) {
+        console.warn("Spotify lookup failed", await res.text());
+        return;
+      }
+  
+      const spotifyTrack = await res.json();
+  
+      setPlayingTrack({
+        id: spotifyTrack.id,
+        name: spotifyTrack.name,
+        artistName: spotifyTrack.artistName,
+        albumArtUrl: spotifyTrack.albumArtUrl,
+        streamUrl: spotifyTrack.previewUrl,
+      });
     } catch (err) {
-      console.error(err);
-      alert("Failed to add track. Try again.");
+      console.error("Error fetching Spotify track:", err);
     }
   };
-
-  const selectedSong = {
-    trackId: track.id,
-    title: track.name,
-    artist: track.artists[0]?.name || "",
-    albumArtUrl: track.album.images[0]?.url || "",
-  };
-
-  // Open draggable player
-  const handleTrackClick = () => {
-    setPlayingTrack({
-      id: track.id,
-      name: track.name,
-      artists: track.artists,
-      albumArtUrl: track.album.images[0]?.url || "",
-    });
-  };
+  
 
   return (
     <>
       <li
         className="flex items-center justify-between px-4 py-2 hover:bg-zinc-800 transition cursor-pointer"
-        key={track.id}
         onClick={handleTrackClick}
       >
         <div className="flex items-center gap-4 justify-between">
           <img
-            src={track.album.images[0]?.url}
-            alt={track.name}
+            src={track.artwork_url || track.user.avatar_url || "/placeholder.png"}
+            alt={track.title}
             className="w-10 h-10 rounded-md object-cover"
           />
           <div>
-            <p className="text-white font-medium">{track.name}</p>
-            <p className="text-sm text-zinc-400">{track.artists[0]?.name}</p>
+            <p className="text-white font-medium">{track.title}</p>
+            <p className="text-sm text-zinc-400">{track.user.username}</p>
           </div>
         </div>
         <div className="flex items-center">
-          {/* Branch Button */}
           <button
             onClick={handleBranchClick}
             disabled={loadingTrunks}
@@ -134,37 +141,33 @@ export default function TrackResultItem({ track }: { track: Track }) {
             <LuGitBranchPlus size={24} />
           </button>
 
-          {/* Add Button */}
           <Link
             onClick={(e) => e.stopPropagation()}
             className="pl-5 text-purple-400 hover:text-purple-500 transition-colors"
             href={`/create?${new URLSearchParams({
               id: track.id,
-              name: track.name,
-              artist: track.artists[0]?.name || "",
-              image: track.album.images[0]?.url || "",
+              name: track.title,
+              artist: track.user.username,
+              image: track.artwork_url || track.user.avatar_url || "",
             }).toString()}`}
-            aria-label={`Add ${track.name} by ${track.artists[0]?.name}`}
+            aria-label={`Add ${track.title} by ${track.user.username}`}
           >
             <IoMdAddCircle size={24} />
           </Link>
         </div>
       </li>
 
-      {/* Branch Modal */}
       {branchModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-zinc-900 p-6 rounded-xl max-h-[80vh] overflow-y-auto w-96">
-            <h2 className="text-white text-lg font-semibold mb-4">
-              Add to Trunk
-            </h2>
+            <h2 className="text-white text-lg font-semibold mb-4">Add to Trunk</h2>
 
             {loadingTrunks ? (
               <p className="text-zinc-400">Loading...</p>
             ) : (
               <AvailableTrunksList
                 trunks={availableTrunks}
-                selectedSong={selectedSong}
+                selectedSong={selectedSongForTrunks}
                 onSelectTrunk={handleSelectTrunk}
               />
             )}
@@ -179,29 +182,11 @@ export default function TrackResultItem({ track }: { track: Track }) {
         </div>
       )}
 
-      {/* 🎵 Draggable Player */}
       {playingTrack && (
         <DraggablePlayer
           track={playingTrack}
           onClose={() => setPlayingTrack(null)}
-          onBranchAdded={() => {
-            if (!playingTrack) return;
-
-            // Open the branch modal so the user can pick a trunk
-            setBranchModalOpen(true);
-
-            // Pre-fill the selected song for modal
-            const song = {
-              trackId: playingTrack.id,
-              title: playingTrack.name,
-              artist: playingTrack.artists?.[0]?.name || "",
-              albumArtUrl: playingTrack.albumArtUrl,
-            };
-            setBranchModalOpen(false);
-            window.location.reload();
-            setAvailableTrunks((prev) => prev); // just to ensure modal has trunks loaded
-            // pass this song to AvailableTrunksList via selectedSong
-          }}
+          onBranchAdded={() => setBranchModalOpen(true)}
         />
       )}
     </>

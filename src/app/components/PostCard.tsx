@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import PostActions from "./PostActions";
 import { Loader2, Play, Pause } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { getAuthHeaders } from "../lib/usersApi";
 
 interface PostCardProps {
   post: PostDto;
@@ -69,6 +70,51 @@ export default function PostCard({
   const isVideo = !!post.customVideoUrl;
   const containerAspect = isVideo ? 9 / 16 : 1;
   const containerPaddingBottom = `${100 / containerAspect}%`;
+  const [updatedPost, setUpdatedPost] = useState<PostDto>(post);
+
+  useEffect(() => {
+    const fetchAppleData = async () => {
+      if (
+        !updatedPost.appleTrackId &&
+        updatedPost.id &&
+        updatedPost.trackName &&
+        updatedPost.artistName
+      ) {
+        try {
+          const res = await fetch(
+            `https://trasora-backend-e03193d24a86.herokuapp.com/api/apple-music/match/${updatedPost.id}?trackName=${encodeURIComponent(
+              updatedPost.trackName
+            )}&artistName=${encodeURIComponent(updatedPost.artistName)}`, 
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...getAuthHeaders(),
+              }
+            }
+          );
+  
+          if (res.ok) {
+            const data = await res.json();
+            setUpdatedPost(data); // 🔄 replace with Apple-enriched post
+          } else {
+            console.warn("Apple Music enrichment failed:", await res.text());
+          }
+        } catch (err) {
+          console.error("Error fetching Apple Music data:", err);
+        }
+      }
+    };
+  
+    // stagger requests based on post ID
+    const delay = (updatedPost.id ?? 0) * 300; // 300ms per post
+    const timer = setTimeout(() => {
+      fetchAppleData();
+    }, delay);
+  
+    return () => clearTimeout(timer);
+  }, [updatedPost]);
+  
 
   const playVideo = useCallback(async () => {
     if (!videoRef.current) return;
@@ -173,7 +219,7 @@ export default function PostCard({
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`rounded-3xl shadow-lg relative mt-12 cursor-pointer bg-opacity-10 backdrop-blur-sm ${
+      className={`rounded-3xl shadow-lg relative mt-[5rem] cursor-pointer bg-opacity-10 backdrop-blur-sm ${
         fullWidth
           ? "w-[75%]"
           : large

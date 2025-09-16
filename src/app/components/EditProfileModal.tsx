@@ -283,26 +283,7 @@ export default function EditProfileModal({
               ></div>
             </label>
           </div>
-
-          {/* Disconnect Spotify */}
-          {spotifyConnected && (
-            <div
-              className="flex items-center justify-between bg-zinc-800 rounded-xl p-4 mt-4 cursor-pointer"
-              onClick={handleDisconnectSpotify}
-            >
-              <div>
-                <p className="text-purple-100 font-semibold">
-                  Disconnect Spotify
-                </p>
-                <p className="text-purple-300 text-sm">
-                  {disconnecting
-                    ? "Disconnecting..."
-                    : "Click to disconnect your Spotify account"}
-                </p>
-              </div>
-            </div>
-          )}
-
+          
           {/* Referred By */}
           {!user?.referredBy && (
             <div className="mt-6">
