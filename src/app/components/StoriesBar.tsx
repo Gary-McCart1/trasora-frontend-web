@@ -142,7 +142,7 @@ export default function StoriesBar() {
               </div>
 
               <p className="text-xs mt-2 truncate w-16 text-center text-gray-200">
-                {isCurrentUser ? "Your Story" : author}
+                {isCurrentUser ? "My Story" : author}
               </p>
             </motion.div>
           );
