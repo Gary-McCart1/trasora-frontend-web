@@ -188,7 +188,7 @@ export default function PostCard({
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`w-full sm:rounded-3xl shadow-lg relative cursor-pointer bg-opacity-10 backdrop-blur-sm ${
+      className={`overflow-x-hidden w-full sm:rounded-2xl shadow-lg relative cursor-pointer bg-opacity-10 backdrop-blur-sm ${
         fullWidth
           ? "sm:w-[75%] w-full"  // full width on mobile, 75% on sm+
           : large
@@ -202,7 +202,7 @@ export default function PostCard({
     >
       {/* Track Info Bar */}
       <div
-        className={`absolute top-0 left-1/2 transform -translate-x-1/2 w-[100.5%] h-[90px] sm:rounded-t-xl flex items-center px-4 gap-4 z-10 ${
+        className={`absolute top-0 left-1/2 transform -translate-x-1/2 w-[100%] h-[90px] sm:rounded-t-xl flex items-center px-4 gap-4 z-10 ${
           isActive ? "bg-purple-600" : "bg-zinc-900"
         }`}
         onClick={(e) => e.stopPropagation()}
