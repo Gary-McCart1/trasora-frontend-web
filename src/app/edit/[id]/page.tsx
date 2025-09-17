@@ -13,6 +13,7 @@ import PostCard from "../../components/PostCard";
 import { getPostById, editPost } from "../../lib/postsApi";
 import { PostDto } from "../../types/Post";
 import { LuAudioLines } from "react-icons/lu";
+import { useApplePlayer } from "../../context/ApplePlayerContext";
 
 export interface AppleMusicTrack {
   id: string;
@@ -27,6 +28,7 @@ export default function EditPostPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const { width, height } = useWindowSize();
+  const { playPreview, pausePreview, setVolume } = useApplePlayer();
 
   const [post, setPost] = useState<PostDto | null>(null);
   const [selectedTrack, setSelectedTrack] = useState<AppleMusicTrack | null>(null);
@@ -72,6 +74,7 @@ export default function EditPostPage() {
 
         if (fetchedPost.trackVolume !== undefined) {
           setTrackVolume(fetchedPost.trackVolume);
+          setVolume(fetchedPost.trackVolume);
         }
       } catch (err) {
         console.error("Failed to fetch post:", err);
@@ -79,9 +82,9 @@ export default function EditPostPage() {
     }
 
     fetchPost();
-  }, [id]);
+  }, [id, setVolume]);
 
-  // Update media preview when new file is chosen
+  // Update preview when file changes
   useEffect(() => {
     if (!mediaFile) return;
     const url = URL.createObjectURL(mediaFile);
@@ -90,12 +93,17 @@ export default function EditPostPage() {
     return () => URL.revokeObjectURL(url);
   }, [mediaFile]);
 
-  // Sync video volume
+  // Sync video volume (independent of song volume)
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.volume = trackVolume;
+      videoRef.current.volume = 1; // keep videos at normal volume
     }
   }, [trackVolume]);
+
+  // Sync song preview volume
+  useEffect(() => {
+    setVolume(trackVolume);
+  }, [trackVolume, setVolume]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +120,7 @@ export default function EditPostPage() {
           trackName: selectedTrack.name,
           artistName: selectedTrack.artistName ?? "",
           albumArtUrl: selectedTrack.albumArtUrl || DEFAULT_ALBUM_IMAGE,
-          trackVolume: isVideo ? trackVolume : 1,
+          trackVolume: trackVolume,
           applePreviewUrl: selectedTrack.previewUrl,
         },
         mediaFile || undefined
@@ -212,7 +220,7 @@ export default function EditPostPage() {
                 </h3>
 
                 <div className="flex flex-col w-full items-center gap-4">
-                  {(isVideo || selectedTrack?.previewUrl) && (
+                  {selectedTrack?.previewUrl && (
                     <div className="flex items-center gap-3 w-80">
                       <span className="text-sm text-zinc-100 text-nowrap">Song Volume</span>
                       <LuAudioLines className="w-6 h-6 text-purple-400" />
@@ -230,7 +238,7 @@ export default function EditPostPage() {
                   )}
                   <PostCard
                     post={mockPost}
-                    trackVolume={trackVolume} // pass volume directly
+                    trackVolume={trackVolume}
                     isMock={false}
                     showActions={true}
                     isDetailView={true}
@@ -239,9 +247,9 @@ export default function EditPostPage() {
                     large={true}
                     fullWidth={true}
                     currentTrackId={mockPost.trackId}
-                    isActive={true} // active track in preview
+                    isActive={true}
                     onMediaDimensionsChange={() => {}}
-                    videoRef={videoRef} // pass video ref for volume control
+                    videoRef={videoRef}
                   />
                 </div>
               </div>

@@ -12,6 +12,7 @@ import PostCard from "../components/PostCard";
 import { createPost } from "../lib/postsApi";
 import { PostDto } from "../types/Post";
 import { LuAudioLines } from "react-icons/lu";
+import { useApplePlayer } from "../context/ApplePlayerContext"; // ✅ import context
 
 export interface AppleMusicTrack {
   id: string;
@@ -29,6 +30,7 @@ export default function CreatePostPage({
   const router = useRouter();
   const { user } = useAuth();
   const { width, height } = useWindowSize();
+  const { setVolume: setSongVolume } = useApplePlayer(); // ✅ hook into ApplePlayer
 
   const [selectedTrack, setSelectedTrack] = useState<AppleMusicTrack | null>(null);
   const [caption, setCaption] = useState("");
@@ -77,12 +79,12 @@ export default function CreatePostPage({
     return () => URL.revokeObjectURL(url);
   }, [mediaFile, imageSrc]);
 
-  // Control video playback volume live
+  // ✅ Control Apple song audio volume when video is uploaded
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.volume = trackVolume;
+    if (isVideo) {
+      setSongVolume(trackVolume);
     }
-  }, [trackVolume]);
+  }, [trackVolume, isVideo, setSongVolume]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,7 +123,11 @@ export default function CreatePostPage({
         Create a Post
       </h1>
 
-      <div className={`flex flex-col xl:flex-row w-full ${!showPreview ? "items-center justify-center" : ""}`}>
+      <div
+        className={`flex flex-col xl:flex-row w-full ${
+          !showPreview ? "items-center justify-center" : ""
+        }`}
+      >
         <div className="w-full max-w-2xl">
           <form
             onSubmit={handleSubmit}
@@ -184,9 +190,11 @@ export default function CreatePostPage({
                 </h3>
 
                 <div className="flex flex-col w-full items-center gap-4">
-                  {(isVideo || selectedTrack?.previewUrl) && (
+                  {isVideo && ( // ✅ slider only when video uploaded
                     <div className="flex items-center gap-3 w-80">
-                      <span className="text-sm text-zinc-100 text-nowrap">Song Volume</span>
+                      <span className="text-sm text-zinc-100 text-nowrap">
+                        Song Volume
+                      </span>
                       <LuAudioLines className="w-6 h-6 text-purple-400" />
                       <input
                         type="range"
@@ -194,15 +202,19 @@ export default function CreatePostPage({
                         max={1}
                         step={0.01}
                         value={trackVolume}
-                        onChange={(e) => setTrackVolume(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          setTrackVolume(parseFloat(e.target.value))
+                        }
                         className="w-full accent-purple-500 h-2 rounded-lg cursor-pointer"
                       />
-                      <span className="text-sm text-purple-300">{Math.round(trackVolume * 100)}%</span>
+                      <span className="text-sm text-purple-300">
+                        {Math.round(trackVolume * 100)}%
+                      </span>
                     </div>
                   )}
                   <PostCard
                     post={mockPost}
-                    trackVolume={trackVolume} // pass volume directly
+                    trackVolume={trackVolume}
                     isMock={false}
                     showActions={true}
                     isDetailView={true}
@@ -211,9 +223,9 @@ export default function CreatePostPage({
                     large={true}
                     fullWidth={true}
                     currentTrackId={mockPost.trackId}
-                    isActive={true} // active track in preview
+                    isActive={true}
                     onMediaDimensionsChange={() => {}}
-                    videoRef={videoRef} // pass video ref for volume control
+                    videoRef={videoRef}
                   />
                 </div>
               </div>
