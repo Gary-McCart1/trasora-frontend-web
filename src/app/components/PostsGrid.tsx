@@ -57,8 +57,8 @@ export default function PostsGrid({
             isActive={currentTrackId === post.trackId && isPlaying}
             playTrack={() => post.trackId ? playTrack(post.trackId, { volume: post.trackVolume ?? 1 }) : Promise.resolve()}
 
-            pauseTrack={pauseTrack}
-            currentTrackId={currentTrackId}
+            pauseTrack={() => Promise.resolve()}
+            currentTrackId={currentTrackId || ""}
             onClick={() => post.id && setSelectedPostId(post.id)}
             profilePage={true}
           />
