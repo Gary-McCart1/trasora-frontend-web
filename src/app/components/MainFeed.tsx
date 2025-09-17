@@ -34,10 +34,18 @@ export default function MainFeed({
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [manuallyPausedUrl, setManuallyPausedUrl] = useState<string | null>(null);
+  const [showInitModal, setShowInitModal] = useState(false);
 
   const scrollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const { user } = useAuth();
-  const { currentUrl, isPlaying, playPreview, pausePreview, setVolume } = useApplePlayer();
+  const { currentUrl, isPlaying, playPreview, pausePreview, setVolume, initPlayer, isReady } = useApplePlayer();
+
+  // Show init modal if player isn't ready
+  useEffect(() => {
+    if (user && !isReady) {
+      setShowInitModal(true);
+    }
+  }, [user, isReady]);
 
   // Reset active index on posts change
   useEffect(() => {
@@ -114,7 +122,7 @@ export default function MainFeed({
 
   // Autoplay Apple previews for active post
   useEffect(() => {
-    if (isUserScrolling) return;
+    if (isUserScrolling || !isReady) return;
 
     const activePost = posts[activeIndex];
     const previewUrl = activePost?.applePreviewUrl;
@@ -126,17 +134,54 @@ export default function MainFeed({
       return;
     }
 
-    if (manuallyPausedUrl === previewUrl) return; // user manually paused
+    if (manuallyPausedUrl === previewUrl) return;
 
     if (currentUrl !== previewUrl) {
       playPreview(previewUrl, postVolume);
     } else {
       setVolume(postVolume);
     }
-  }, [activeIndex, posts, isUserScrolling, playPreview, pausePreview, setVolume, currentUrl, manuallyPausedUrl]);
+  }, [activeIndex, posts, isUserScrolling, playPreview, pausePreview, setVolume, currentUrl, manuallyPausedUrl, isReady]);
 
   return (
     <div className="relative w-full min-h-screen">
+      {/* Apple Player Init Modal */}
+      {showInitModal && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="bg-[#1a1a1a] rounded-2xl p-8 w-80 md:w-96 shadow-2xl flex flex-col items-center"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+          >
+            <h2 className="text-white text-xl font-bold mb-4 text-center">
+              Enable Player
+            </h2>
+            
+            <button
+              onClick={() => {
+                initPlayer();
+                setShowInitModal(false);
+              }}
+              className="w-full px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold shadow-md hover:bg-purple-700 transition-colors"
+            >
+              Ok
+            </button>
+            <button
+              onClick={() => setShowInitModal(false)}
+              className="mt-4 text-gray-400 text-sm hover:text-white transition-colors"
+            >
+              Cancel
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+
       <div className="sticky md:top-[6.2rem] 4xl:top-[7.8rem] z-40 bg-zinc-950 flex justify-center pb-2 border-b border-zinc-900">
         <StoriesBar />
       </div>
@@ -154,7 +199,7 @@ export default function MainFeed({
             key={post.id || index}
             data-index={index}
             ref={(el) => {
-              postRefs.current[index] = el; // ✅ just assign, don't return
+              postRefs.current[index] = el;
             }}
             className="w-full relative gap-5 flex justify-center"
             style={{ scrollSnapAlign: "start" }}
@@ -171,8 +216,6 @@ export default function MainFeed({
               large={!isProfileView}
               fullWidth
               isActive={currentUrl === post.applePreviewUrl && isPlaying}
-              
-              
               currentTrackId={currentUrl || ""}
               profileFeed={false}
               profilePage={false}

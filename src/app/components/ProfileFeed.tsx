@@ -7,7 +7,7 @@ import { PostDto } from "../types/Post";
 import PostCard from "./PostCard";
 import FloatingParticles from "./FloatingParticles";
 import { useAuth } from "../context/AuthContext";
-import { useSpotifyPlayer } from "../context/SpotifyContext";
+import { useApplePlayer } from "../context/ApplePlayerContext";
 
 interface ProfileFeedProps {
   posts: PostDto[];
@@ -32,17 +32,19 @@ export default function ProfileFeed({
   const postRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [manuallyPausedUrl, setManuallyPausedUrl] = useState<string | null>(null);
+  const [showInitModal, setShowInitModal] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const { user } = useAuth();
-  const {
-    currentTrackId,
-    playTrack,
-    pauseTrack,
-    isReady,
-    initPlayer,
-    setVolume,
-  } = useSpotifyPlayer();
+  const { currentUrl, isPlaying, playPreview, pausePreview, setVolume, initPlayer, isReady } = useApplePlayer();
+
+  // Show init modal if player isn't ready
+  useEffect(() => {
+    if (user && !isReady) {
+      setShowInitModal(true);
+    }
+  }, [user, isReady]);
 
   // Intersection observer for active post
   useEffect(() => {
@@ -58,33 +60,32 @@ export default function ProfileFeed({
         let mostVisibleIndex = 0;
 
         entries.forEach((entry) => {
-          const index = parseInt(
-            entry.target.getAttribute("data-index") || "0"
-          );
+          const index = parseInt(entry.target.getAttribute("data-index") || "0");
+          const rect = entry.boundingClientRect;
+          const containerRect = container.getBoundingClientRect();
+          const elementCenter = rect.top + rect.height / 2;
+          const viewportCenter = containerRect.top + containerRect.height / 2;
+          const distanceFromCenter = Math.abs(elementCenter - viewportCenter);
+          const maxDistance = containerRect.height / 2;
+          const centerScore = 1 - distanceFromCenter / maxDistance;
+          const score = entry.intersectionRatio * 0.7 + centerScore * 0.3;
 
-          if (entry.isIntersecting && entry.intersectionRatio > maxVisibility) {
-            maxVisibility = entry.intersectionRatio;
+          if (score > maxVisibility && entry.isIntersecting) {
+            maxVisibility = score;
             mostVisibleIndex = index;
           }
         });
 
-        if (mostVisibleIndex !== activeIndex && maxVisibility > 0.5) {
+        if (mostVisibleIndex !== activeIndex && maxVisibility > 0.3) {
           setActiveIndex(mostVisibleIndex);
         }
       },
-      {
-        root: container,
-        threshold: [0, 0.25, 0.5, 0.75, 1.0],
-        rootMargin: "-20% 0px -20% 0px",
-      }
+      { root: container, rootMargin: "0px", threshold: [0, 0.1, 0.25, 0.5, 0.75, 1.0] }
     );
 
-    children.forEach((child) => {
-      if (child) observer.observe(child);
-    });
-
+    children.forEach((child) => child && observer.observe(child));
     return () => observer.disconnect();
-  }, [activeIndex, isUserScrolling]);
+  }, [activeIndex, isUserScrolling, posts.length]);
 
   // Scroll detection
   useEffect(() => {
@@ -94,10 +95,7 @@ export default function ProfileFeed({
     const onScroll = () => {
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       setIsUserScrolling(true);
-      scrollTimeoutRef.current = setTimeout(
-        () => setIsUserScrolling(false),
-        150
-      );
+      scrollTimeoutRef.current = setTimeout(() => setIsUserScrolling(false), 150);
     };
 
     container.addEventListener("scroll", onScroll, { passive: true });
@@ -107,42 +105,30 @@ export default function ProfileFeed({
     };
   }, []);
 
-  // Track autoplay with volume
+  // Autoplay Apple previews for active post
   useEffect(() => {
     if (!isReady || isUserScrolling) return;
 
     const activePost = posts[activeIndex];
-    const newTrackId = activePost?.trackId;
-    const postVolume = activePost?.trackVolume ?? 0.5; // default volume
+    const previewUrl = activePost?.applePreviewUrl;
+    const postVolume = activePost?.trackVolume ?? 0.5;
 
-    if (!newTrackId) {
-      if (currentTrackId) pauseTrack();
+    if (!previewUrl) {
+      pausePreview();
+      setManuallyPausedUrl(null);
       return;
     }
 
-    if (currentTrackId === newTrackId) {
-      setVolume(postVolume); // reset volume if same track
-      return;
+    if (manuallyPausedUrl === previewUrl) return;
+
+    if (currentUrl !== previewUrl) {
+      playPreview(previewUrl, postVolume);
+    } else {
+      setVolume(postVolume);
     }
+  }, [activeIndex, posts, isReady, isUserScrolling, currentUrl, manuallyPausedUrl, playPreview, pausePreview, setVolume]);
 
-    const timeout = setTimeout(async () => {
-      if (currentTrackId && currentTrackId !== newTrackId) pauseTrack();
-      await playTrack(newTrackId, { volume: postVolume });
-    }, 200);
-
-    return () => clearTimeout(timeout);
-  }, [
-    activeIndex,
-    isReady,
-    currentTrackId,
-    playTrack,
-    pauseTrack,
-    isUserScrolling,
-    setVolume,
-    posts,
-  ]);
-
-  // Initialize active post and auto-scroll to it
+  // Initialize active post and scroll to it
   useEffect(() => {
     setActiveIndex(initialIndex);
     const container = containerRef.current;
@@ -153,10 +139,7 @@ export default function ProfileFeed({
   }, [initialIndex]);
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 bg-black z-50 overflow-y-auto"
-    >
+    <div ref={containerRef} className="fixed inset-0 bg-black z-50 overflow-y-auto">
       <button
         onClick={onClose}
         className="fixed top-40 left-2 md:top-40 md:left-6 flex items-center justify-center w-12 h-12 text-white text-lg z-50 bg-zinc-800 rounded-full shadow-lg hover:cursor-pointer"
@@ -164,7 +147,8 @@ export default function ProfileFeed({
         <HiArrowLeft className="text-2xl" />
       </button>
 
-      {!isReady && user?.spotifyPremium && (
+      {/* Apple Player Init Modal */}
+      {showInitModal && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
           initial={{ opacity: 0 }}
@@ -178,19 +162,19 @@ export default function ProfileFeed({
             exit={{ scale: 0.8, opacity: 0 }}
           >
             <h2 className="text-white text-xl font-bold mb-4 text-center">
-              Enable Spotify Player
+              Enable Apple Music Player
             </h2>
-            <p className="text-gray-300 text-sm mb-6 text-center">
-              Connect your Spotify account to play music directly in Trasora.
-            </p>
             <button
-              onClick={initPlayer}
+              onClick={() => {
+                initPlayer();
+                setShowInitModal(false);
+              }}
               className="w-full px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold shadow-md hover:bg-purple-700 transition-colors"
             >
-              Enable Player
+              Ok
             </button>
             <button
-              onClick={onClose}
+              onClick={() => setShowInitModal(false)}
               className="mt-4 text-gray-400 text-sm hover:text-white transition-colors"
             >
               Cancel
@@ -227,9 +211,10 @@ export default function ProfileFeed({
               showActions
               large={false}
               fullWidth
-              isActive={currentTrackId === post.trackId}
-              currentTrackId={currentTrackId || ""}
+              isActive={currentUrl === post.applePreviewUrl && isPlaying}
+              currentTrackId={currentUrl || ""}
               profileFeed={true}
+              onManualPause={(url) => setManuallyPausedUrl(url)}
             />
           </motion.div>
         ))}
