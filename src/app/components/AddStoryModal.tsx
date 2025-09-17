@@ -6,10 +6,10 @@ import Confetti from "react-confetti";
 import { StoryDto } from "../types/Story";
 import { uploadStory } from "../lib/storiesApi";
 import TrackSearch from "../components/TrackSearch";
-import { Track } from "../types/spotify";
 import StoryPreview from "./StoryPreview";
 import { useAuth } from "../context/AuthContext";
 import MediaUploader from "../components/MediaUploader";
+import { AppleMusicTrack } from "../create/CreatePostPage";
 
 interface AddStoryModalProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+  const [selectedTrack, setSelectedTrack] = useState<AppleMusicTrack | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewStory, setPreviewStory] = useState<StoryDto | null>(null);
@@ -48,13 +48,13 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
       authorProfilePictureUrl: user?.profilePictureUrl || "",
       contentUrl: mediaFile
         ? URL.createObjectURL(mediaFile)
-        : selectedTrack?.album?.images[0]?.url || "",
+        : selectedTrack?.albumArtUrl || "",
       s3Key: "",
       type: mediaFile ? (videoFlag ? "VIDEO" : "IMAGE") : "TRACK",
       trackId: selectedTrack?.id,
       trackName: selectedTrack?.name,
-      artistName: selectedTrack?.artists[0]?.name,
-      albumArtUrl: selectedTrack?.album?.images[0]?.url,
+      artistName: selectedTrack?.artistName,
+      albumArtUrl: selectedTrack?.albumArtUrl,
       createdAt: new Date().toISOString(),
       expiresAt: new Date().toISOString(),
       viewers: [],
@@ -83,16 +83,15 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
         type: "TRACK",
         trackId: selectedTrack.id,
         trackName: selectedTrack.name,
-        artistName: selectedTrack.artists.map(a => a.name).join(", ") || "Unknown Artist",
-        albumArtUrl: selectedTrack.album.images[0]?.url || "/default-album-cover.png",
+        artistName: selectedTrack.artistName,
+        albumArtUrl: selectedTrack.albumArtUrl || "/default-album-cover.png",
         caption: "", // optional
         createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // example: 24h expiry
-        viewers: [], // starts empty
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24h expiry
+        viewers: [],
       };
   
       const newStory = await uploadStory(storyPayload, mediaFile ?? undefined);
-  
       onStoryAdded(newStory);
   
       // Show confetti
@@ -133,13 +132,18 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
             <TrackSearch onSelectTrack={(track) => setSelectedTrack(track)} />
             {selectedTrack && previewStory?.trackId && (
               <div className="mt-2">
-                <iframe
-                  src={`https://open.spotify.com/embed/track/${previewStory.trackId}`}
-                  width="100%"
-                  height="80"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  className="rounded-lg shadow-inner"
-                ></iframe>
+                {/* Apple Music preview (if available) */}
+                {selectedTrack.previewUrl ? (
+                  <audio
+                    src={selectedTrack.previewUrl}
+                    controls
+                    className="w-full mt-2"
+                  />
+                ) : (
+                  <p className="text-xs text-zinc-400">
+                    No preview available for this track.
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -150,7 +154,7 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
             setPreview={setPreviewUrl}
             setFile={setMediaFile}
             file={mediaFile}
-            albumArt={selectedTrack?.album?.images[0]?.url}
+            albumArt={selectedTrack?.albumArtUrl}
           />
 
           {/* Preview Story */}

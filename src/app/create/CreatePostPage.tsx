@@ -13,7 +13,7 @@ import { createPost } from "../lib/postsApi";
 import { PostDto } from "../types/Post";
 import { LuAudioLines } from "react-icons/lu";
 
-interface AppleMusicTrack {
+export interface AppleMusicTrack {
   id: string;
   name: string;
   artistName: string;
