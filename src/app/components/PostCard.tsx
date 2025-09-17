@@ -375,7 +375,7 @@ export default function PostCard({
           <video
             ref={activeVideoRef}
             src={post.customVideoUrl ?? ""}
-            className="w-full h-full object-cover rounded-md"
+            className="w-full h-[450px] object-cover rounded-md"
             autoPlay={!profileFeed}
             loop
             playsInline
