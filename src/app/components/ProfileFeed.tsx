@@ -228,11 +228,9 @@ export default function ProfileFeed({
               large={false}
               fullWidth
               isActive={currentTrackId === post.trackId}
-              playTrack={(trackId, options) =>
-                playTrack(trackId, { ...options, volume: post.trackVolume ?? 0.3 })
-              }
-              pauseTrack={pauseTrack}
-              currentTrackId={currentTrackId}
+              playTrack={() => Promise.resolve()}
+              pauseTrack={() => Promise.resolve()}
+              currentTrackId={currentTrackId || ""}
               profileFeed={true}
             />
           </motion.div>
