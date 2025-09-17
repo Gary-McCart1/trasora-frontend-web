@@ -304,16 +304,8 @@ export default function MainFeed({
                 }
                 pauseTrack();
               }}
-              resumeTrack={() => {
-                if (post.trackId) {
-                  const pos = trackPositions[post.trackId] || 0;
-                  playTrack(post.trackId, {
-                    position_ms: pos,
-                    volume: post.trackVolume ?? 0.3,
-                  });
-                }
-              }}
-              currentTrackId={currentTrackId}
+              
+              currentTrackId={currentTrackId || ""}
               profileFeed={false}
               profilePage={false}
             />

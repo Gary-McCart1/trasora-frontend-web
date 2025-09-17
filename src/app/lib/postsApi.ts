@@ -10,6 +10,7 @@ export type CreatePostData = {
   albumArtUrl?: string;
   branchCount?: number;
   trackVolume?: number;
+  applePreviewUrl?: string;
 };
 
 interface PostFormData extends CreatePostData {
@@ -58,6 +59,7 @@ export async function createPost(data: CreatePostData, file?: File) {
       albumArtUrl: data.albumArtUrl || undefined,
       branchCount: data.branchCount ?? 0,
       trackVolume: data.trackVolume ?? 1,
+      applePreviewUrl: data.applePreviewUrl || "",
     };
   
     formData.append(

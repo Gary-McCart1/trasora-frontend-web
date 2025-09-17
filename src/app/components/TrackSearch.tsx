@@ -1,46 +1,86 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { SpotifyTrack, Track } from "../types/spotify";
 import { useAuth } from "../context/AuthContext";
-import { searchSpotify } from "../lib/spotifyApi";
+import { getAuthHeaders } from "../lib/usersApi";
+
+interface AppleMusicTrack {
+  id: string;
+  name: string;
+  artistName: string;
+  albumArtUrl?: string;
+  previewUrl?: string;
+}
+
+interface AppleMusicApiSong {
+  id: string;
+  attributes: {
+    name: string;
+    artistName: string;
+    artwork?: { url: string };
+    previews?: { url: string }[];
+  };
+}
+
 
 interface TrackSearchProps {
-  onSelectTrack: (track: Track) => void;
-  initialTrack?: Track | null;
+  onSelectTrack: (track: AppleMusicTrack) => void;
 }
 
 export default function TrackSearch({ onSelectTrack }: TrackSearchProps) {
   const { user } = useAuth();
   const [query, setQuery] = useState("");
-  const [tracks, setTracks] = useState<Track[]>([]);
+  const [tracks, setTracks] = useState<AppleMusicTrack[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchResults = async (searchTerm: string) => {
-    if (!searchTerm.trim() || !user?.username) return setTracks([]);
-  
-    const resultsObj = await searchSpotify(searchTerm, user.username);
-  
-    const mappedTracks: Track[] = (resultsObj?.tracks?.items || []).map((r: SpotifyTrack) => ({
-      id: r.id,
-      name: r.name,
-      artists: r.artists,
-      album: r.album,
-    }));
-    
-  
-    setTracks(mappedTracks);
-  };
-  
+    if (!searchTerm.trim() || !user?.username) {
+      setTracks([]);
+      return;
+    }
 
-  const handleSelectTrack = (track: Track) => {
+    try {
+      const res = await fetch(`https://trasora-backend-e03193d24a86.herokuapp.com/api/apple-music/search?q=${encodeURIComponent(searchTerm)}`,{
+        headers: {
+          ...getAuthHeaders()
+        }
+      });
+      const data = await res.json();
+
+      const songs: AppleMusicApiSong[] = data?.results?.songs?.data || [];
+
+      const mapped: AppleMusicTrack[] = songs.map((song) => {
+        const attrs = song.attributes;
+        return {
+          id: song.id,
+          name: attrs.name,
+          artistName: attrs.artistName,
+          albumArtUrl: attrs.artwork?.url
+            ? attrs.artwork.url.replace("{w}", "200").replace("{h}", "200")
+            : undefined,
+          previewUrl:
+            attrs.previews && attrs.previews.length > 0
+              ? attrs.previews[0].url
+              : undefined,
+        };
+      });
+
+      setTracks(mapped);
+    } catch (err) {
+      console.error("Apple Music search failed:", err);
+      setTracks([]);
+    }
+  };
+
+  const handleSelectTrack = (track: AppleMusicTrack) => {
     onSelectTrack(track);
     setIsFocused(false);
     setQuery(""); // clear input after selecting
   };
 
+  // Debounced search
   useEffect(() => {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {
@@ -52,6 +92,7 @@ export default function TrackSearch({ onSelectTrack }: TrackSearchProps) {
     };
   }, [query]);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -87,15 +128,13 @@ export default function TrackSearch({ onSelectTrack }: TrackSearchProps) {
               className="flex items-center gap-4 px-4 py-3 hover:bg-zinc-800 cursor-pointer"
             >
               <img
-                src={track.album.images[0]?.url}
+                src={track.albumArtUrl || "/placeholder.png"}
                 alt={track.name}
                 className="w-12 h-12 rounded object-cover"
               />
               <div>
                 <p className="font-semibold text-white">{track.name}</p>
-                <p className="text-sm text-zinc-400">
-                  {track.artists[0]?.name}
-                </p>
+                <p className="text-sm text-zinc-400">{track.artistName}</p>
               </div>
             </li>
           ))}

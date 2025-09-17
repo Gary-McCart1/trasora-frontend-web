@@ -4,12 +4,14 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { PostDto } from "../types/Post";
 import { motion } from "framer-motion";
 import PostActions from "./PostActions";
-import { Loader2, Play, Pause } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { getAuthHeaders } from "../lib/usersApi";
+
+let currentlyPlayingAudio: HTMLAudioElement | null = null;
 
 interface PostCardProps {
   post: PostDto;
+  trackVolume?: number; // <-- added
   isDetailView?: boolean;
   currentUsername?: string;
   onEdit?: (postId: number) => void;
@@ -22,23 +24,19 @@ interface PostCardProps {
   fullWidth?: boolean;
   isMock?: boolean;
   profileFeed: boolean;
-  isActive?: boolean;
-  playTrack?: (
-    trackId: string,
-    options?: { position_ms?: number; volume?: number }
-  ) => Promise<void>;
-  pauseTrack?: () => void;
-  resumeTrack?: () => void;
-  currentTrackId?: string | null;
-  onMediaDimensionsChange?: (dimensions: {
-    width: number;
-    height: number;
-  }) => void;
+  onMediaDimensionsChange?: (dimensions: { width: number; height: number }) => void;
+  currentTrackId: string;
+  isActive: boolean;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
+
+  playTrack?: () => Promise<void>;
+  pauseTrack?: () => Promise<void>;
   profilePage?: boolean;
 }
 
 export default function PostCard({
   post,
+  trackVolume, // <-- destructure
   isDetailView = false,
   currentUsername,
   onEdit,
@@ -51,233 +49,117 @@ export default function PostCard({
   fullWidth,
   isMock,
   profileFeed = false,
-  isActive = false,
-  playTrack,
-  pauseTrack,
-  resumeTrack,
   currentTrackId,
+  isActive,
   onMediaDimensionsChange,
-  profilePage = false,
+  videoRef,
 }: PostCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isManuallyPaused, setIsManuallyPaused] = useState(false);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const internalVideoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const { user } = useAuth();
   const isVideo = !!post.customVideoUrl;
-  const containerAspect = isVideo ? 9 / 16 : 1;
-  const containerPaddingBottom = `${100 / containerAspect}%`;
-  const [updatedPost, setUpdatedPost] = useState<PostDto>(post);
 
+  // Use external videoRef if provided, otherwise internal
+  const activeVideoRef = videoRef || internalVideoRef;
+
+  // Apply volume to audio + video
   useEffect(() => {
-    const fetchAppleData = async () => {
-      if (
-        !updatedPost.appleTrackId &&
-        updatedPost.id &&
-        updatedPost.trackName &&
-        updatedPost.artistName
-      ) {
-        try {
-          const res = await fetch(
-            `https://trasora-backend-e03193d24a86.herokuapp.com/api/apple-music/match/${updatedPost.id}?trackName=${encodeURIComponent(
-              updatedPost.trackName
-            )}&artistName=${encodeURIComponent(updatedPost.artistName)}`, 
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...getAuthHeaders(),
-              }
-            }
-          );
+    const volume = typeof trackVolume === "number" && !isNaN(trackVolume) ? Math.max(0, Math.min(1, trackVolume)) : 0.3;
   
-          if (res.ok) {
-            const data = await res.json();
-            setUpdatedPost(data); // 🔄 replace with Apple-enriched post
-          } else {
-            console.warn("Apple Music enrichment failed:", await res.text());
-          }
-        } catch (err) {
-          console.error("Error fetching Apple Music data:", err);
-        }
-      }
-    };
   
-    // stagger requests based on post ID
-    const delay = (updatedPost.id ?? 0) * 300; // 300ms per post
-    const timer = setTimeout(() => {
-      fetchAppleData();
-    }, delay);
-  
-    return () => clearTimeout(timer);
-  }, [updatedPost]);
-  
-
-  const playVideo = useCallback(async () => {
-    if (!videoRef.current) return;
-    try {
-      await videoRef.current.play();
-    } catch (error) {
-      console.warn("Video play interrupted:", error);
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
     }
-  }, []);
+  }, [trackVolume, activeVideoRef]);
+  
+  
 
-  const pauseVideo = useCallback(() => {
-    videoRef.current?.pause();
-  }, []);
-
-  const isCurrentlyPlaying = (trackId?: string) =>
-    !isManuallyPaused && currentTrackId === trackId;
-
+  // Toggle play/pause
   const togglePlayPause = useCallback(() => {
-    const isVideoPaused = videoRef.current?.paused ?? true;
-
     if (isVideo) {
-      if (isVideoPaused) {
-        videoRef.current!.muted = false;
-        videoRef.current!.volume = 0.3;
-        videoRef
-          .current!.play()
-          .catch((err) => console.warn("Video play prevented:", err));
-        setIsManuallyPaused(false);
+      if (!activeVideoRef.current) return;
+      if (activeVideoRef.current.paused) {
+        activeVideoRef.current.play().catch(() => {});
       } else {
-        pauseVideo();
-        setIsManuallyPaused(true);
+        activeVideoRef.current.pause();
+      }
+      setIsPlaying(!activeVideoRef.current.paused);
+    } else if (post.applePreviewUrl && audioRef.current) {
+      // Only play audio if not a video
+      if (!audioRef.current.paused) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        if (currentlyPlayingAudio && currentlyPlayingAudio !== audioRef.current) {
+          currentlyPlayingAudio.pause();
+        }
+        currentlyPlayingAudio = audioRef.current;
+        audioRef.current.play().catch(() => {});
+        setIsPlaying(true);
       }
     }
+  }, [isVideo, activeVideoRef, post.applePreviewUrl]);
+  
 
-    if (post.trackId && user?.spotifyConnected && user?.spotifyPremium) {
-      if (isCurrentlyPlaying(post.trackId)) {
-        pauseTrack?.();
-        setIsManuallyPaused(true);
-      } else {
-        if (currentTrackId === post.trackId) resumeTrack?.();
-        else playTrack?.(post.trackId, { volume: post.trackVolume ?? 1 });
-        setIsManuallyPaused(false);
-      }
-    }
-  }, [
-    post.trackId,
-    post.trackVolume,
-    playTrack,
-    pauseTrack,
-    resumeTrack,
-    currentTrackId,
-    isVideo,
-    user,
-    isCurrentlyPlaying,
-    pauseVideo,
-  ]);
-
-  useEffect(() => {
-    if (!isVideo) return;
-    if (isActive && !isManuallyPaused) playVideo();
-    else pauseVideo();
-  }, [isActive, isManuallyPaused, isVideo, playVideo, pauseVideo]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const onPlay = () => setIsVideoPlaying(true);
-    const onPause = () => setIsVideoPlaying(false);
-    video.addEventListener("play", onPlay);
-    video.addEventListener("pause", onPause);
-    return () => {
-      video.removeEventListener("play", onPlay);
-      video.removeEventListener("pause", onPause);
-    };
-  }, []);
-
+  // Pause media when tab is hidden
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        videoRef.current?.pause();
-        pauseTrack?.();
+        audioRef.current?.pause();
+        activeVideoRef.current?.pause();
+        setIsPlaying(false);
       }
     };
-    const handleBeforeUnload = () => {
-      videoRef.current?.pause();
-      pauseTrack?.();
-    };
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [pauseTrack]);
-
-  const isPlaying = isVideo
-    ? isVideoPlaying && !isManuallyPaused
-    : isCurrentlyPlaying(post.trackId);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [activeVideoRef]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`rounded-3xl shadow-lg relative mt-[5rem] cursor-pointer bg-opacity-10 backdrop-blur-sm ${
-        fullWidth
-          ? "w-[75%]"
-          : large
-          ? "max-w-lg"
-          : isMock
-          ? "max-w-xs"
-          : "max-w-md"
+      className={`rounded-3xl shadow-lg relative cursor-pointer bg-opacity-10 backdrop-blur-sm ${
+        fullWidth ? "w-[75%]" : large ? "max-w-lg" : isMock ? "max-w-xs" : "max-w-md"
       } sm:ml-0`}
       onClick={onClick}
     >
-      {isLoading && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black bg-opacity-40 rounded-3xl">
-          <Loader2 className="w-10 h-10 animate-spin text-white" />
-        </div>
-      )}
-
+      {/* Track Info Bar */}
       <div
-        className="relative w-full"
-        style={{ paddingBottom: containerPaddingBottom }}
+        className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[101%] h-[90px] bg-zinc-900 rounded-t-xl flex items-center px-4 gap-4 z-10"
+        onClick={(e) => e.stopPropagation()}
       >
+        <img
+          src={post.albumArtUrl || "/default-album-cover.png"}
+          alt={post.trackName || "Track"}
+          className="w-14 h-14 rounded-md object-cover"
+        />
+        <div className="flex flex-col overflow-hidden flex-1">
+          <span className="font-semibold truncate text-white">{post.trackName}</span>
+          <span className="text-sm truncate text-gray-400">{post.artistName || "Unknown Artist"}</span>
+        </div>
+        {(post.applePreviewUrl || isVideo) && (
+          <div
+            className="cursor-pointer p-2 rounded-full bg-purple-600 hover:bg-purple-500"
+            onClick={togglePlayPause}
+          >
+            {isPlaying ? <Pause className="text-white w-6 h-6" /> : <Play className="text-white w-6 h-6" />}
+          </div>
+        )}
+      </div>
+
+      {/* Post Media */}
+      <div className="relative w-full mt-[90px]">
         {isVideo ? (
-          <div className="absolute top-0 left-0 w-full h-full">
-            {/* Video thumbnail */}
-            {!videoLoaded && (
-              <video
-                src={post.customVideoUrl}
-                className={`absolute top-0 left-0 w-full h-full object-cover ${
-                  !isDetailView ? "rounded-b-lg" : ""
-                } opacity-60`}
-                muted
-                preload="metadata"
-                onLoadedData={() => setVideoLoaded(true)}
-              />
-            )}
+          <div className="relative w-full" style={{ paddingBottom: "177.78%" }}>
             <video
-              ref={videoRef}
+              ref={activeVideoRef}
               src={post.customVideoUrl}
-              className={`absolute top-0 left-0 w-full h-full object-cover ${
-                !isDetailView ? "rounded-b-lg" : ""
-              } ${
-                videoLoaded ? "opacity-100" : "opacity-0"
-              } transition-opacity duration-300`}
+              className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full object-cover rounded-md"
               loop
               playsInline
-              preload="auto"
-              onLoadedData={() => {
-                setVideoLoaded(true);
-                setIsLoading(false);
-                const video = videoRef.current!;
-                onMediaDimensionsChange?.({
-                  width: video.videoWidth,
-                  height: video.videoHeight,
-                });
-              }}
-              onError={(e) => {
-                console.error("Video load error:", e);
-                setIsLoading(false);
-              }}
               onClick={(e) => {
                 e.stopPropagation();
                 togglePlayPause();
@@ -285,108 +167,24 @@ export default function PostCard({
             />
           </div>
         ) : (
-          <img
-            src={
-              post.customImageUrl ||
-              post.albumArtUrl ||
-              "/default-album-cover.png"
-            }
-            alt={post.trackName ?? "Track"}
-            className={`absolute top-0 left-0 w-full h-full object-cover ${
-              profileFeed ? "rounded-b-lg" : ""
-            } ${
-              imageLoaded ? "opacity-100" : "opacity-0"
-            } transition-opacity duration-300`}
-            onLoad={(e) => {
-              setImageLoaded(true);
-              setIsLoading(false);
-              const img = e.currentTarget;
-              onMediaDimensionsChange?.({
-                width: img.naturalWidth,
-                height: img.naturalHeight,
-              });
-            }}
-            onError={(e) => {
-              console.error("Image load error:", e);
-              setIsLoading(false);
-            }}
-          />
-        )}
-
-        {/* Spotify Track UI */}
-        {post.trackId && (
-          <>
-            {user?.spotifyConnected && user?.spotifyPremium ? (
-              // Custom player bar
-              <div
-                className={`absolute top-[-60px] left-1/2 transform -translate-x-1/2 w-full h-[85px] rounded-t-xl backdrop-blur-md border flex items-center px-4 gap-4 transition-all duration-300 ${
-                  isActive
-                    ? "bg-purple-800 border-purple-600 shadow-lg shadow-purple-500/20"
-                    : "bg-zinc-800 border-zinc-800"
-                }`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <img
-                  src={post.albumArtUrl || "/default-album-cover.png"}
-                  alt={post.trackName ?? "Track"}
-                  className={`w-14 h-14 rounded-md object-cover transition-all duration-300 ${
-                    isActive ? "shadow-md animate-pulse" : ""
-                  }`}
-                />
-                <div className="flex flex-col overflow-hidden flex-1">
-                  <span
-                    className={`font-semibold truncate ${
-                      isActive ? "text-purple-100" : "text-white"
-                    }`}
-                  >
-                    {post.trackName}
-                  </span>
-                  <span
-                    className={`text-sm truncate ${
-                      isActive ? "text-purple-200" : "text-gray-400"
-                    }`}
-                  >
-                    {post.artistName ?? "Unknown Artist"}
-                  </span>
-                </div>
-
-                <div
-                  className={`ml-auto cursor-pointer p-2 rounded-full transition-all duration-300 hover:scale-110 ${
-                    isActive
-                      ? "bg-purple-600 hover:bg-purple-500"
-                      : "bg-zinc-700 hover:bg-zinc-600"
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePlayPause();
-                  }}
-                >
-                  {isPlaying ? (
-                    <Pause className="text-white w-6 h-6" />
-                  ) : (
-                    <Play className="text-white w-6 h-6 ml-0.5" />
-                  )}
-                </div>
-              </div>
-            ) : (
-              // Fallback iframe for non-premium or not connected
-              <div
-                className={`mt-1 w-[101%] absolute top-[-80px] left-1/2 transform -translate-x-1/2 h-[85px] rounded-t-xl overflow-hidden shadow-md ${
-                  isActive
-                    ? "border-purple-600 shadow-purple-500/20"
-                    : "border-zinc-800"
-                }`}
-              >
-                <iframe
-                  className="w-[101%] h-full"
-                  src={`https://open.spotify.com/embed/track/${post.trackId}?utm_source=generator`}
-                  frameBorder="0"
-                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
-                  loading="lazy"
-                />
-              </div>
-            )}
-          </>
+          <div className="relative w-full" style={{ paddingBottom: "100%" }}>
+            <img
+              src={post.customImageUrl || post.albumArtUrl || "/default-album-cover.png"}
+              alt={post.trackName || "Track"}
+              className={`absolute top-0 left-0 w-full h-full object-cover ${
+                imageLoaded ? "opacity-100" : "opacity-0"
+              } transition-opacity duration-300`}
+              onLoad={(e) => {
+                setImageLoaded(true);
+                const img = e.currentTarget;
+                onMediaDimensionsChange?.({
+                  width: img.naturalWidth,
+                  height: img.naturalHeight,
+                });
+              }}
+            />
+            {post.applePreviewUrl && <audio ref={audioRef} src={post.applePreviewUrl} preload="auto" />}
+          </div>
         )}
       </div>
 
