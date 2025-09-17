@@ -18,6 +18,7 @@ export interface TrackOrAlbum {
   artists?: { name: string }[];
   postId?: number;
   albumArtUrl?: string;
+  type?: string;
 }
 
 interface DraggablePlayerProps {
@@ -31,6 +32,7 @@ export default function DraggablePlayer({
   onClose,
   onBranchAdded,
 }: DraggablePlayerProps) {
+  console.log(track)
   const playerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
@@ -45,7 +47,7 @@ export default function DraggablePlayer({
 
   const artistNames =
     track.artists?.map((a) => a.name).join(", ") || "Unknown Artist";
-  const albumArtUrl =
+  const albumArtUrl = 
     track.albumArtUrl || `https://i.scdn.co/image/${track.id}`;
 
   // Initial position
@@ -172,7 +174,7 @@ export default function DraggablePlayer({
           {/* Spotify iframe */}
           <iframe
             key={track.id}
-            src={`https://open.spotify.com/embed/track/${track.id}`}
+            src={`https://open.spotify.com/embed/${track.type}/${track.id}`}
             width="95%"
             height="80"
             frameBorder="0"

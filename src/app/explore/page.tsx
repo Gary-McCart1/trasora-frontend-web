@@ -13,6 +13,7 @@ type PlayerTrack = {
   name: string;
   artists?: { name: string }[];
   albumArtUrl: string;
+  type?: string;
 };
 
 export default function ExplorePage() {
@@ -23,9 +24,10 @@ export default function ExplorePage() {
   const [loading, setLoading] = useState(true);
   const [loadingRecs, setLoadingRecs] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  console.log(newReleases)
   // Draggable player state
   const [playingTrack, setPlayingTrack] = useState<PlayerTrack | null>(null);
+  console.log(playingTrack)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,11 +58,16 @@ export default function ExplorePage() {
 
   // Convert a TrackOrAlbum into the format expected by DraggablePlayer
   const handleTrackClick = (track: TrackOrAlbum) => {
+    console.log(track.type)
     const playerTrack: PlayerTrack = {
       id: track.id,
       name: track.name,
       artists: track.artists,
-      albumArtUrl: track.album?.images?.[0]?.url || "/default-album-cover.png", // ensure album art
+      albumArtUrl:
+    track.images?.[0]?.url ||
+    track.album?.images?.[0]?.url ||
+    "/default-album-cover.png",
+    type: track.type
     };
     setPlayingTrack(playerTrack);
   };

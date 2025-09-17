@@ -66,9 +66,11 @@ export default function PostCard({
   const { currentUrl, isPlaying: contextIsPlaying, playPreview, pausePreview } =
     useApplePlayer();
 
+
   const isVideo = !!post.customVideoUrl;
   const activeVideoRef = videoRef || internalVideoRef;
 
+  console.log(isVideo)
   // Reset state when another preview starts
   useEffect(() => {
     if (!post.applePreviewUrl) return;
@@ -310,7 +312,7 @@ export default function PostCard({
       onClick={onClick}
     >
       {/* Track Info */}
-      <div
+      {(isDetailView || isVideo) && <div
         className={`absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-[90px] sm:rounded-t-xl flex items-center px-4 gap-4 z-10 ${
           isActive ? "bg-purple-600" : "bg-zinc-900"
         }`}
@@ -368,9 +370,9 @@ export default function PostCard({
           </div>
         )}
       </div>
-
+        }
       {/* Media */}
-      <div className="relative w-full mt-[90px]">
+      <div className={`relative w-full ${!isDetailView ? "mt-0" : "mt-[90px]"}`}>
         {isVideo ? (
           <video
             ref={activeVideoRef}
@@ -396,7 +398,7 @@ export default function PostCard({
               !isDetailView ? "rounded-b-lg" : ""
             } w-full h-[350px] object-cover ${
               imageLoaded ? "opacity-100" : "opacity-0"
-            } transition-opacity duration-300`}
+            } transition-opacity duration-300 ${!isDetailView ? "rounded-t-2xl" : ""}`}
             onLoad={(e) => {
               setImageLoaded(true);
               const img = e.currentTarget;

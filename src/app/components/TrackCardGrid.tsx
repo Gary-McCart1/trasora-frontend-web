@@ -17,6 +17,7 @@ export interface TrackOrAlbum {
   images?: { url: string }[];
   release_date?: string;
   total_tracks?: number;
+  type?: string;
 }
 
 interface TrackCardGridProps {
