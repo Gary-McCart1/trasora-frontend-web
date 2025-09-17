@@ -6,7 +6,7 @@ import { PostDto } from "../types/Post";
 import PostCard from "./PostCard";
 import FloatingParticles from "./FloatingParticles";
 import { useAuth } from "../context/AuthContext";
-import { useSpotifyPlayer } from "../context/SpotifyContext";
+import { useApplePlayer } from "../context/ApplePlayerContext";
 import StoriesBar from "./StoriesBar";
 
 interface MainFeedProps {
@@ -28,36 +28,22 @@ export default function MainFeed({
   onEdit,
   onDelete,
   isProfileView,
-  onClose,
 }: MainFeedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const postRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const [pendingTrackChange, setPendingTrackChange] = useState<string | null>();
-  const [trackPositions, setTrackPositions] = useState<Record<string, number>>(
-    {}
-  );
+  const [manuallyPausedUrl, setManuallyPausedUrl] = useState<string | null>(null);
 
   const scrollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const trackChangeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-
   const { user } = useAuth();
-  const {
-    currentTrackId,
-    playTrack,
-    pauseTrack,
-    isReady,
-    initPlayer,
-    player,
-    setVolume,
-  } = useSpotifyPlayer();
+  const { currentUrl, isPlaying, playPreview, pausePreview, setVolume } = useApplePlayer();
 
-  // Reset active index on initial load / posts change
+  // Reset active index on posts change
   useEffect(() => {
     setActiveIndex(initialIndex);
     setIsUserScrolling(false);
-    setPendingTrackChange(null);
+    setManuallyPausedUrl(null);
   }, [initialIndex, posts.length, isProfileView]);
 
   // Scroll detection
@@ -67,25 +53,20 @@ export default function MainFeed({
     const onScroll = () => {
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       setIsUserScrolling(true);
-      scrollTimeoutRef.current = setTimeout(
-        () => setIsUserScrolling(false),
-        200
-      );
+      scrollTimeoutRef.current = setTimeout(() => setIsUserScrolling(false), 200);
     };
 
-    if (container instanceof HTMLElement)
-      container.addEventListener("scroll", onScroll, { passive: true });
+    if (container instanceof HTMLElement) container.addEventListener("scroll", onScroll, { passive: true });
     else window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-      if (container instanceof HTMLElement)
-        container.removeEventListener("scroll", onScroll);
+      if (container instanceof HTMLElement) container.removeEventListener("scroll", onScroll);
       else window.removeEventListener("scroll", onScroll);
     };
   }, [isProfileView]);
 
-  // IntersectionObserver for active post
+  // Determine active post via IntersectionObserver
   useEffect(() => {
     const children = postRefs.current.filter(Boolean);
     if (!children.length) return;
@@ -99,15 +80,10 @@ export default function MainFeed({
         let mostVisibleIndex = 0;
 
         entries.forEach((entry) => {
-          const index = parseInt(
-            entry.target.getAttribute("data-index") || "0"
-          );
+          const index = parseInt(entry.target.getAttribute("data-index") || "0");
           const visibilityRatio = entry.intersectionRatio;
           const rect = entry.boundingClientRect;
-          const containerRect = container?.getBoundingClientRect() || {
-            top: 0,
-            height: window.innerHeight,
-          };
+          const containerRect = container?.getBoundingClientRect() || { top: 0, height: window.innerHeight };
           const elementCenter = rect.top + rect.height / 2;
           const viewportCenter = containerRect.top + containerRect.height / 2;
           const distanceFromCenter = Math.abs(elementCenter - viewportCenter);
@@ -136,121 +112,38 @@ export default function MainFeed({
     return () => observer.disconnect();
   }, [activeIndex, isProfileView, isUserScrolling, posts.length]);
 
-  // Track management with volume reset
+  // Autoplay Apple previews for active post
   useEffect(() => {
-    if (!isReady || isUserScrolling) return;
+    if (isUserScrolling) return;
 
     const activePost = posts[activeIndex];
-    const newTrackId = activePost?.trackId;
-    const postVolume = activePost?.trackVolume ?? 0.3; // default volume
+    const previewUrl = activePost?.applePreviewUrl;
+    const postVolume = activePost?.trackVolume ?? 0.3;
 
-    if (!newTrackId) {
-      if (currentTrackId) pauseTrack();
+    if (!previewUrl) {
+      pausePreview();
+      setManuallyPausedUrl(null);
       return;
     }
 
-    if (currentTrackId === newTrackId) {
-      setVolume(postVolume); // reset volume even if same track
-      return;
+    if (manuallyPausedUrl === previewUrl) return; // user manually paused
+
+    if (currentUrl !== previewUrl) {
+      playPreview(previewUrl, postVolume);
+    } else {
+      setVolume(postVolume);
     }
-
-    setPendingTrackChange(newTrackId);
-    if (trackChangeTimeoutRef.current)
-      clearTimeout(trackChangeTimeoutRef.current);
-
-    trackChangeTimeoutRef.current = setTimeout(async () => {
-      const currentActivePost = posts[activeIndex];
-      if (
-        currentActivePost?.trackId === newTrackId &&
-        pendingTrackChange === newTrackId
-      ) {
-        if (currentTrackId && currentTrackId !== newTrackId && player) {
-          const state = await player.getCurrentState();
-          const currentTrackIdFromState =
-            state?.track_window?.current_track?.id;
-          const pos = state?.position || 0;
-          if (currentTrackIdFromState) {
-            setTrackPositions((prev) => ({
-              ...prev,
-              [currentTrackIdFromState]: pos,
-            }));
-          }
-          pauseTrack();
-        }
-
-        const startPosition = trackPositions[newTrackId] || 0;
-        await playTrack(newTrackId, {
-          position_ms: startPosition,
-          volume: postVolume,
-        });
-        setPendingTrackChange(null);
-      } else {
-        setPendingTrackChange(null);
-      }
-    }, 200);
-
-    return () => {
-      if (trackChangeTimeoutRef.current)
-        clearTimeout(trackChangeTimeoutRef.current);
-    };
-  }, [
-    activeIndex,
-    posts,
-    isReady,
-    currentTrackId,
-    playTrack,
-    pauseTrack,
-    isUserScrolling,
-    pendingTrackChange,
-    player,
-    trackPositions,
-    setVolume,
-  ]);
+  }, [activeIndex, posts, isUserScrolling, playPreview, pausePreview, setVolume, currentUrl, manuallyPausedUrl]);
 
   return (
     <div className="relative w-full min-h-screen">
       <div className="sticky md:top-[6.2rem] 4xl:top-[7.8rem] z-40 bg-zinc-950 flex justify-center pb-2 border-b border-zinc-900">
         <StoriesBar />
       </div>
-      {/* Floating particles always on */}
+
       <div className="absolute inset-0 z-0 pointer-events-none hidden sm:block">
         <FloatingParticles color="#8c52ff" />
       </div>
-
-      {!isReady && user?.spotifyPremium && user?.spotifyConnected && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <motion.div
-            className="bg-[#1a1a1a] rounded-2xl p-8 w-80 md:w-96 shadow-2xl flex flex-col items-center"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-          >
-            <h2 className="text-white text-xl font-bold mb-4 text-center">
-              Enable Spotify Player
-            </h2>
-            <p className="text-gray-300 text-sm mb-6 text-center">
-              Connect your Spotify account to play music directly in Trasora.
-            </p>
-            <button
-              onClick={initPlayer}
-              className="w-full px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold shadow-md hover:bg-purple-700 transition-colors"
-            >
-              Enable Player
-            </button>
-            <button
-              onClick={onClose}
-              className="mt-4 text-gray-400 text-sm hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-          </motion.div>
-        </motion.div>
-      )}
 
       <div
         ref={containerRef}
@@ -261,7 +154,7 @@ export default function MainFeed({
             key={post.id || index}
             data-index={index}
             ref={(el) => {
-              postRefs.current[index] = el;
+              postRefs.current[index] = el; // ✅ just assign, don't return
             }}
             className="w-full relative gap-5 flex justify-center"
             style={{ scrollSnapAlign: "start" }}
@@ -277,37 +170,13 @@ export default function MainFeed({
               showActions
               large={!isProfileView}
               fullWidth
-              isActive={
-                currentTrackId === post.trackId ||
-                pendingTrackChange === post.trackId
-              }
-              playTrack={() =>
-                post.trackId
-                  ? playTrack(post.trackId, {
-                      position_ms: trackPositions[post.trackId] || 0,
-                      volume: post.trackVolume ?? 0.5,
-                    })
-                  : Promise.resolve()
-              }
-              pauseTrack={async () => {
-                if (player && post.trackId) {
-                  const state = await player.getCurrentState();
-                  const currentTrackIdFromState =
-                    state?.track_window?.current_track?.id;
-                  const pos = state?.position || 0;
-                  if (currentTrackIdFromState) {
-                    setTrackPositions((prev) => ({
-                      ...prev,
-                      [currentTrackIdFromState]: pos,
-                    }));
-                  }
-                }
-                pauseTrack();
-              }}
+              isActive={currentUrl === post.applePreviewUrl && isPlaying}
               
-              currentTrackId={currentTrackId || ""}
+              
+              currentTrackId={currentUrl || ""}
               profileFeed={false}
               profilePage={false}
+              onManualPause={(url) => setManuallyPausedUrl(url)}
             />
           </motion.div>
         ))}

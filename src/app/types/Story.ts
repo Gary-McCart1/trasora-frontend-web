@@ -16,6 +16,8 @@ export interface StoryDto {
   artistName?: string;
   albumArtUrl?: string;
 
+  applePreviewUrl?: string;
+
   createdAt: string;
   expiresAt: string;
   viewers: number[];

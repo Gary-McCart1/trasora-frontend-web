@@ -11,7 +11,8 @@ const nextConfig = {
       'mosaic.scdn.co',
       'lineup-images.scdn.co',
       'wrapped-images.spotifycdn.com',
-      "i.pravatar.cc"
+      "i.pravatar.cc",
+      "is1-ssl.mzstatic.com"
     ],
   },
 }

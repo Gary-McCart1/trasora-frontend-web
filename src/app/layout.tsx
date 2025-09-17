@@ -4,9 +4,9 @@ import "./globals.css";
 import Navbar from "./components/NavBar";
 import Footer from "./components/Footer";
 import ClientProviders from "./components/ClientProviders";
-import { SpotifyPlayerProvider } from "./context/SpotifyContext";
 import { StoriesProvider } from "./context/StoriesContext";
 import { AlertProvider } from "./context/AlertContext"; // Import the AlertProvider
+import { ApplePlayerProvider } from "./context/ApplePlayerContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +37,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased !m-0 !pt-0 bg-zinc-950 overflow-x-clip text-zinc-50`}
       >
         <ClientProviders>
-          <SpotifyPlayerProvider>
+          <ApplePlayerProvider>
             <StoriesProvider>
               <AlertProvider> {/* Wrap the entire layout with the alert provider */}
                 <div className="flex flex-col min-h-screen">
@@ -47,7 +47,7 @@ export default function RootLayout({
                 </div>
               </AlertProvider>
             </StoriesProvider>
-          </SpotifyPlayerProvider>
+          </ApplePlayerProvider>
         </ClientProviders>
       </body>
     </html>

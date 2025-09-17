@@ -228,8 +228,6 @@ export default function ProfileFeed({
               large={false}
               fullWidth
               isActive={currentTrackId === post.trackId}
-              playTrack={() => Promise.resolve()}
-              pauseTrack={() => Promise.resolve()}
               currentTrackId={currentTrackId || ""}
               profileFeed={true}
             />

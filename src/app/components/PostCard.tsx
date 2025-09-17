@@ -6,12 +6,11 @@ import { motion } from "framer-motion";
 import PostActions from "./PostActions";
 import { Play, Pause } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-
-let currentlyPlayingAudio: HTMLAudioElement | null = null;
+import { useApplePlayer } from "../context/ApplePlayerContext";
 
 interface PostCardProps {
   post: PostDto;
-  trackVolume?: number; // <-- added
+  trackVolume?: number;
   isDetailView?: boolean;
   currentUsername?: string;
   onEdit?: (postId: number) => void;
@@ -24,19 +23,20 @@ interface PostCardProps {
   fullWidth?: boolean;
   isMock?: boolean;
   profileFeed: boolean;
-  onMediaDimensionsChange?: (dimensions: { width: number; height: number }) => void;
+  onMediaDimensionsChange?: (dimensions: {
+    width: number;
+    height: number;
+  }) => void;
   currentTrackId?: string;
   isActive?: boolean;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
-
-  playTrack?: () => Promise<void>;
-  pauseTrack?: () => Promise<void>;
   profilePage?: boolean;
+  onManualPause?: (url: string) => void;
 }
 
 export default function PostCard({
   post,
-  trackVolume, // <-- destructure
+  trackVolume,
   isDetailView = false,
   currentUsername,
   onEdit,
@@ -49,31 +49,54 @@ export default function PostCard({
   fullWidth,
   isMock,
   profileFeed = false,
-  currentTrackId,
   isActive,
   onMediaDimensionsChange,
   videoRef,
+  onManualPause,
 }: PostCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const internalVideoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
   const { user } = useAuth();
-  const isVideo = !!post.customVideoUrl;
+  const {
+    currentUrl,
+    isPlaying: contextIsPlaying,
+    playPreview,
+    pausePreview,
+  } = useApplePlayer();
 
-  // Use external videoRef if provided, otherwise internal
+  const isVideo = !!post.customVideoUrl;
   const activeVideoRef = videoRef || internalVideoRef;
 
-  // Apply volume to audio + video
+  // Sync local isPlaying state with context and props
   useEffect(() => {
-    const volume = typeof trackVolume === "number" && !isNaN(trackVolume) ? Math.max(0, Math.min(1, trackVolume)) : 0.3;
-  
-  
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
+    if (!isVideo && post.applePreviewUrl) {
+      setIsPlaying(currentUrl === post.applePreviewUrl && contextIsPlaying);
+    } else if (isVideo && activeVideoRef.current) {
+      setIsPlaying(!activeVideoRef.current.paused);
     }
-  }, [trackVolume, activeVideoRef]);
-  
+  }, [
+    currentUrl,
+    contextIsPlaying,
+    isVideo,
+    post.applePreviewUrl,
+    activeVideoRef,
+  ]);
+
+  // Apply volume for audio previews
+  useEffect(() => {
+    if (!isVideo && trackVolume !== undefined && post.applePreviewUrl) {
+      playPreview(post.applePreviewUrl, trackVolume);
+      pausePreview(); // Ensure we only set volume without autoplaying
+    }
+  }, [trackVolume, isVideo, post.applePreviewUrl, playPreview, pausePreview]);
+
+  useEffect(() => {
+    if (!isVideo && isActive && post.applePreviewUrl) {
+      playPreview(post.applePreviewUrl, trackVolume ?? 0.3);
+      setIsPlaying(true);
+    }
+  }, [isActive, isVideo, post.applePreviewUrl, playPreview, trackVolume]);
   
 
   // Toggle play/pause
@@ -82,39 +105,48 @@ export default function PostCard({
       if (!activeVideoRef.current) return;
       if (activeVideoRef.current.paused) {
         activeVideoRef.current.play().catch(() => {});
+        setIsPlaying(true);
+        onManualPause?.("");
       } else {
         activeVideoRef.current.pause();
-      }
-      setIsPlaying(!activeVideoRef.current.paused);
-    } else if (post.applePreviewUrl && audioRef.current) {
-      // Only play audio if not a video
-      if (!audioRef.current.paused) {
-        audioRef.current.pause();
         setIsPlaying(false);
+        onManualPause?.("");
+      }
+    } else if (post.applePreviewUrl) {
+      if (currentUrl === post.applePreviewUrl && contextIsPlaying) {
+        pausePreview();
+        setIsPlaying(false);
+        onManualPause?.(post.applePreviewUrl);
       } else {
-        if (currentlyPlayingAudio && currentlyPlayingAudio !== audioRef.current) {
-          currentlyPlayingAudio.pause();
-        }
-        currentlyPlayingAudio = audioRef.current;
-        audioRef.current.play().catch(() => {});
+        playPreview(post.applePreviewUrl, trackVolume ?? 0.3);
         setIsPlaying(true);
+        onManualPause?.("");
       }
     }
-  }, [isVideo, activeVideoRef, post.applePreviewUrl]);
-  
+  }, [
+    isVideo,
+    activeVideoRef,
+    post.applePreviewUrl,
+    currentUrl,
+    contextIsPlaying,
+    playPreview,
+    pausePreview,
+    trackVolume,
+    onManualPause,
+  ]);
 
-  // Pause media when tab is hidden
+  // Pause video on tab hidden
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        audioRef.current?.pause();
+      if (document.hidden && isVideo) {
         activeVideoRef.current?.pause();
         setIsPlaying(false);
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [activeVideoRef]);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [activeVideoRef, isVideo]);
 
   return (
     <motion.div
@@ -122,13 +154,20 @@ export default function PostCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={`rounded-3xl shadow-lg relative cursor-pointer bg-opacity-10 backdrop-blur-sm ${
-        fullWidth ? "w-[75%]" : large ? "max-w-lg" : isMock ? "max-w-xs" : "max-w-md"
+        fullWidth
+          ? "w-[75%]"
+          : large
+          ? "max-w-lg"
+          : isMock
+          ? "max-w-xs"
+          : "max-w-md"
       } sm:ml-0`}
       onClick={onClick}
     >
       {/* Track Info Bar */}
       <div
-        className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[101%] h-[90px] bg-zinc-900 rounded-t-xl flex items-center px-4 gap-4 z-10"
+        className={`absolute top-0 left-1/2 transform -translate-x-1/2 w-[100.5%] h-[90px] rounded-t-xl flex items-center px-4 gap-4 z-10
+          ${isActive ? "bg-purple-600" : "bg-zinc-900"}`}
         onClick={(e) => e.stopPropagation()}
       >
         <img
@@ -137,15 +176,23 @@ export default function PostCard({
           className="w-14 h-14 rounded-md object-cover"
         />
         <div className="flex flex-col overflow-hidden flex-1">
-          <span className="font-semibold truncate text-white">{post.trackName}</span>
-          <span className="text-sm truncate text-gray-400">{post.artistName || "Unknown Artist"}</span>
+          <span className="font-semibold truncate text-white">
+            {post.trackName}
+          </span>
+          <span className="text-sm truncate text-gray-200">
+            {post.artistName || "Unknown Artist"}
+          </span>
         </div>
         {(post.applePreviewUrl || isVideo) && (
           <div
-            className="cursor-pointer p-2 rounded-full bg-purple-600 hover:bg-purple-500"
+            className="cursor-pointer p-2 rounded-full bg-purple-700"
             onClick={togglePlayPause}
           >
-            {isPlaying ? <Pause className="text-white w-6 h-6" /> : <Play className="text-white w-6 h-6" />}
+            {isPlaying ? (
+              <Pause className="text-white w-6 h-6" />
+            ) : (
+              <Play className="text-white w-6 h-6" />
+            )}
           </div>
         )}
       </div>
@@ -169,7 +216,11 @@ export default function PostCard({
         ) : (
           <div className="relative w-full" style={{ paddingBottom: "100%" }}>
             <img
-              src={post.customImageUrl || post.albumArtUrl || "/default-album-cover.png"}
+              src={
+                post.customImageUrl ||
+                post.albumArtUrl ||
+                "/default-album-cover.png"
+              }
               alt={post.trackName || "Track"}
               className={`absolute top-0 left-0 w-full h-full object-cover ${
                 imageLoaded ? "opacity-100" : "opacity-0"
@@ -183,7 +234,6 @@ export default function PostCard({
                 });
               }}
             />
-            {post.applePreviewUrl && <audio ref={audioRef} src={post.applePreviewUrl} preload="auto" />}
           </div>
         )}
       </div>

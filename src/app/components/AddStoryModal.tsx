@@ -85,6 +85,7 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
         trackName: selectedTrack.name,
         artistName: selectedTrack.artistName,
         albumArtUrl: selectedTrack.albumArtUrl || "/default-album-cover.png",
+        applePreviewUrl: selectedTrack.previewUrl,
         caption: "", // optional
         createdAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24h expiry
