@@ -25,8 +25,8 @@ interface PostCardProps {
   isMock?: boolean;
   profileFeed: boolean;
   onMediaDimensionsChange?: (dimensions: { width: number; height: number }) => void;
-  currentTrackId: string;
-  isActive: boolean;
+  currentTrackId?: string;
+  isActive?: boolean;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
 
   playTrack?: () => Promise<void>;
