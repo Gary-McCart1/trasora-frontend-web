@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { useWindowSize } from "react-use";
@@ -10,82 +10,78 @@ import TrackSearch from "../../components/TrackSearch";
 import MediaUploader from "../../components/MediaUploader";
 import PostCard from "../../components/PostCard";
 
-import { getPostById, editPost } from "../../lib/postsApi"
+import { getPostById, editPost } from "../../lib/postsApi";
 import { PostDto } from "../../types/Post";
-import { Track } from "../../types/spotify";
 import { LuAudioLines } from "react-icons/lu";
-import { useSpotifyPlayer } from "../../context/SpotifyContext";
+
+export interface AppleMusicTrack {
+  id: string;
+  name: string;
+  artistName?: string;
+  albumArtUrl?: string;
+  previewUrl?: string;
+}
 
 export default function EditPostPage() {
   const router = useRouter();
   const { id } = useParams();
   const { user } = useAuth();
   const { width, height } = useWindowSize();
-  const { player, playTrack, pauseTrack, currentTrackId, initPlayer } =
-    useSpotifyPlayer();
 
   const [post, setPost] = useState<PostDto | null>(null);
-  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
+  const [selectedTrack, setSelectedTrack] = useState<AppleMusicTrack | null>(null);
   const [caption, setCaption] = useState("");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [isVideo, setIsVideo] = useState(false);
-  const [spotifyVolume, setSpotifyVolume] = useState(0.1);
+  const [trackVolume, setTrackVolume] = useState(0.3);
   const [loading, setLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [mediaDimensions, setMediaDimensions] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
 
-  useEffect(() => {
-    initPlayer();
-  }, [initPlayer]);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const DEFAULT_ALBUM_IMAGE = "/default-album-cover.png";
 
+  // Load the post
   useEffect(() => {
     async function fetchPost() {
       if (!id) return;
-  
       const postId = Array.isArray(id) ? id[0] : id;
-  
+
       try {
         const fetchedPost = await getPostById(postId);
         setPost(fetchedPost);
         setCaption(fetchedPost.text);
-  
+
         setSelectedTrack({
           id: fetchedPost.trackId,
           name: fetchedPost.trackName,
-          artists: [{ name: fetchedPost.artistName ?? "Unknown Artist" }],
-          album: {
-            images: [
-              { url: fetchedPost.albumArtUrl ?? "/default-album-cover.png" },
-            ],
-          },
+          artistName: fetchedPost.artistName || undefined,
+          albumArtUrl: fetchedPost.albumArtUrl ?? DEFAULT_ALBUM_IMAGE,
+          previewUrl: fetchedPost.applePreviewUrl ?? undefined,
         });
-  
+
         if (fetchedPost.customVideoUrl) {
           setMediaPreview(fetchedPost.customVideoUrl);
           setIsVideo(true);
         } else {
           setMediaPreview(
-            fetchedPost.customImageUrl ?? fetchedPost.albumArtUrl ?? null
+            fetchedPost.customImageUrl ?? fetchedPost.albumArtUrl ?? DEFAULT_ALBUM_IMAGE
           );
           setIsVideo(false);
         }
-  
+
         if (fetchedPost.trackVolume !== undefined) {
-          setSpotifyVolume(fetchedPost.trackVolume ?? 0.1);
+          setTrackVolume(fetchedPost.trackVolume);
         }
       } catch (err) {
         console.error("Failed to fetch post:", err);
       }
     }
-  
+
     fetchPost();
   }, [id]);
-  
 
+  // Update media preview when new file is chosen
   useEffect(() => {
     if (!mediaFile) return;
     const url = URL.createObjectURL(mediaFile);
@@ -94,20 +90,18 @@ export default function EditPostPage() {
     return () => URL.revokeObjectURL(url);
   }, [mediaFile]);
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    setSpotifyVolume(newVolume);
-    if (player && isVideo) {
-      player.setVolume(newVolume);
+  // Sync video volume
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.volume = trackVolume;
     }
-  };
+  }, [trackVolume]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTrack || !user || !post) return;
 
     setLoading(true);
-
     try {
       await editPost(
         String(post.id),
@@ -116,9 +110,10 @@ export default function EditPostPage() {
           text: caption,
           trackId: selectedTrack.id,
           trackName: selectedTrack.name,
-          artistName: selectedTrack.artists[0]?.name || "Unknown Artist",
-          albumArtUrl: selectedTrack.album.images[0]?.url || "",
-          trackVolume: isVideo ? spotifyVolume : 1,
+          artistName: selectedTrack.artistName ?? "",
+          albumArtUrl: selectedTrack.albumArtUrl || DEFAULT_ALBUM_IMAGE,
+          trackVolume: isVideo ? trackVolume : 1,
+          applePreviewUrl: selectedTrack.previewUrl,
         },
         mediaFile || undefined
       );
@@ -137,25 +132,21 @@ export default function EditPostPage() {
   }
 
   const mockPost: PostDto = {
-    id: post.id!,
+    ...post,
     title: caption,
     text: caption,
     customVideoUrl: isVideo ? mediaPreview || undefined : undefined,
-    customImageUrl: !isVideo ? mediaPreview || undefined : undefined,
-    albumArtUrl: selectedTrack?.album.images[0]?.url || "",
+    customImageUrl: !isVideo ? mediaPreview || selectedTrack?.albumArtUrl : undefined,
+    albumArtUrl: selectedTrack?.albumArtUrl || DEFAULT_ALBUM_IMAGE,
     trackId: selectedTrack?.id || "",
-    trackName: selectedTrack?.name || "",
-    artistName: selectedTrack?.artists[0]?.name || "",
+    trackName: selectedTrack?.name || "Select a track",
+    artistName: selectedTrack?.artistName || "Artist",
+    applePreviewUrl: selectedTrack?.previewUrl,
     authorUsername: user?.username || "you",
     authorProfilePictureUrl: user?.profilePictureUrl || "",
-    likesCount: post.likesCount || 0,
-    likedByCurrentUser: post.likedByCurrentUser || false,
-    createdAt: post.createdAt || new Date().toISOString(),
-    branchCount: post.branchCount,
-    comments: post.comments || [],
   };
 
-  const showPreview = selectedTrack && user;
+  const showPreview = selectedTrack;
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 text-white flex flex-col items-center">
@@ -163,30 +154,26 @@ export default function EditPostPage() {
         Edit Your Post
       </h1>
 
-      <div
-        className={`flex flex-col xl:flex-row w-full ${
-          !showPreview ? "items-center justify-center" : ""
-        }`}
-      >
+      <div className={`flex flex-col xl:flex-row w-full ${!showPreview ? "items-center justify-center" : ""}`}>
         <div className="w-full max-w-2xl">
           <form
             onSubmit={handleSubmit}
             className="space-y-6 bg-gradient-to-b from-zinc-900 to-zinc-800 p-8 rounded-3xl shadow-xl border border-zinc-700"
           >
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Track
-              </label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Track</label>
               <TrackSearch
-                onSelectTrack={setSelectedTrack}
-                initialTrack={selectedTrack}
+                onSelectTrack={(track: AppleMusicTrack) => {
+                  setSelectedTrack(track);
+                  const albumUrl = track.albumArtUrl || DEFAULT_ALBUM_IMAGE;
+                  setMediaPreview(albumUrl);
+                  setIsVideo(false);
+                }}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Caption
-              </label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">Caption</label>
               <textarea
                 rows={3}
                 maxLength={300}
@@ -203,7 +190,7 @@ export default function EditPostPage() {
               setPreview={setMediaPreview}
               setFile={setMediaFile}
               file={mediaFile}
-              albumArt={selectedTrack?.album.images[0]?.url}
+              albumArt={selectedTrack?.albumArtUrl}
             />
 
             <button
@@ -217,34 +204,33 @@ export default function EditPostPage() {
         </div>
 
         {showPreview && (
-          <div className="w-full flex flex-col items-center gap-4">
+          <div className="w-full flex flex-col items-center gap-4 mt-6 xl:mt-0">
             <div className="w-[3/4] flex flex-col items-center">
               <div className="min-w-[400px] w-full max-w-3xl">
                 <h3 className="text-xl md:text-2xl font-bold text-white my-6 text-center">
                   Live Preview
                 </h3>
 
-                {isVideo && (
-                  <div className="flex justify-center items-center gap-3 my-4 w-full">
-                    <span className="text-purple-300 font-medium">
-                      Track Volume
-                    </span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      value={spotifyVolume}
-                      onChange={handleVolumeChange}
-                      className="w-32 h-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 accent-purple-400 hover:accent-pink-400 transition"
-                    />
-                    <LuAudioLines className="text-purple-400 w-6 h-6" />
-                  </div>
-                )}
-
-                <div className="flex justify-center">
+                <div className="flex flex-col w-full items-center gap-4">
+                  {(isVideo || selectedTrack?.previewUrl) && (
+                    <div className="flex items-center gap-3 w-80">
+                      <span className="text-sm text-zinc-100 text-nowrap">Song Volume</span>
+                      <LuAudioLines className="w-6 h-6 text-purple-400" />
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={trackVolume}
+                        onChange={(e) => setTrackVolume(parseFloat(e.target.value))}
+                        className="w-full accent-purple-500 h-2 rounded-lg cursor-pointer"
+                      />
+                      <span className="text-sm text-purple-300">{Math.round(trackVolume * 100)}%</span>
+                    </div>
+                  )}
                   <PostCard
                     post={mockPost}
+                    trackVolume={trackVolume} // pass volume directly
                     isMock={false}
                     showActions={true}
                     isDetailView={true}
@@ -252,17 +238,11 @@ export default function EditPostPage() {
                     profileFeed={false}
                     large={true}
                     fullWidth={true}
-                    playTrack={playTrack}
-                    pauseTrack={pauseTrack}
-                    currentTrackId={currentTrackId}
-                    isActive={currentTrackId === mockPost.trackId}
-                    onMediaDimensionsChange={(dims) => setMediaDimensions(dims)}
+                    currentTrackId={mockPost.trackId}
+                    isActive={true} // active track in preview
+                    onMediaDimensionsChange={() => {}}
+                    videoRef={videoRef} // pass video ref for volume control
                   />
-                </div>
-
-                <div className="flex justify-center mt-5 text-zinc-300">
-                  Media Dimensions: {mediaDimensions?.width || 370} px ×{" "}
-                  {mediaDimensions?.height || 460} px
                 </div>
               </div>
             </div>
