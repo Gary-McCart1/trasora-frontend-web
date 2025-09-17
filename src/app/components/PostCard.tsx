@@ -153,7 +153,7 @@ export default function PostCard({
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`rounded-3xl shadow-lg relative cursor-pointer bg-opacity-10 backdrop-blur-sm ${
+      className={`sm:w-[100%] rounded-3xl shadow-lg relative cursor-pointer bg-opacity-10 backdrop-blur-sm ${
         fullWidth
           ? "w-[75%]"
           : large
@@ -222,7 +222,7 @@ export default function PostCard({
                 "/default-album-cover.png"
               }
               alt={post.trackName || "Track"}
-              className={`absolute top-0 left-0 w-full h-full object-cover ${
+              className={`${!isDetailView ? "rounded-b-lg" : ""} absolute top-0 left-0 w-full h-full object-cover ${
                 imageLoaded ? "opacity-100" : "opacity-0"
               } transition-opacity duration-300`}
               onLoad={(e) => {

@@ -192,7 +192,7 @@ export default function MainFeed({
 
       <div
         ref={containerRef}
-        className="flex flex-col items-center gap-10 pt-6 pb-20 mx-auto max-w-lg scroll-smooth bg-zinc-950"
+        className="flex flex-col items-center gap-10 pt-6 pb-20 mx-auto md:max-w-md scroll-smooth bg-zinc-950 max-w-full"
       >
         {posts.map((post, index) => (
           <motion.div
