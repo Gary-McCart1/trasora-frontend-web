@@ -254,7 +254,7 @@ export default function PostActions({
   console.log(createdAt);
 
   return (
-    <div className="bg-zinc-900 rounded-b-xl overflow-hidden shadow border border-zinc-800 text-white">
+    <div className="bg-zinc-900 sm:rounded-b-xl overflow-hidden shadow border border-zinc-800 text-white">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4">
         <div className="flex items-center gap-3">
