@@ -396,7 +396,7 @@ export default function PostCard({
             alt={post.trackName || "Track"}
             className={`${
               !isDetailView ? "rounded-b-lg" : ""
-            } w-full h-[350px] object-cover ${
+            } w-full ${!isDetailView ? "h-[175px]" : "h-[350px"} object-cover ${
               imageLoaded ? "opacity-100" : "opacity-0"
             } transition-opacity duration-300 ${!isDetailView ? "rounded-t-2xl" : ""}`}
             onLoad={(e) => {
