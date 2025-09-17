@@ -188,15 +188,16 @@ export default function PostCard({
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`w-[100%] sm:rounded-3xl shadow-lg relative cursor-pointer bg-opacity-10 backdrop-blur-sm ${
+      className={`w-full sm:rounded-3xl shadow-lg relative cursor-pointer bg-opacity-10 backdrop-blur-sm ${
         fullWidth
-          ? "w-[75%]"
+          ? "sm:w-[75%] w-full"  // full width on mobile, 75% on sm+
           : large
-          ? "max-w-lg"
+          ? "sm:max-w-lg w-full"
           : isMock
-          ? "max-w-xs"
-          : "max-w-md"
+          ? "sm:max-w-xs w-full"
+          : "sm:max-w-md w-full"
       } sm:ml-0`}
+      
       onClick={onClick}
     >
       {/* Track Info Bar */}

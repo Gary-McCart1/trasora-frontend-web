@@ -192,7 +192,7 @@ export default function MainFeed({
 
       <div
         ref={containerRef}
-        className="flex flex-col items-center gap-10 pt-6 pb-20 mx-auto md:max-w-md scroll-smooth bg-zinc-950 max-w-full"
+        className="flex flex-col items-center gap-10 pt-6 pb-20 mx-auto md:max-w-md scroll-smooth bg-zinc-950 w-full"
       >
         {posts.map((post, index) => (
           <motion.div
@@ -201,7 +201,7 @@ export default function MainFeed({
             ref={(el) => {
               postRefs.current[index] = el;
             }}
-            className="w-full relative gap-5 flex justify-center"
+            className="w-full relative flex justify-center"
             style={{ scrollSnapAlign: "start" }}
           >
             <PostCard

@@ -40,7 +40,7 @@ export default function Home() {
 
   if (loading || authLoading) {
     return (
-      <div className="flex flex-col items-center gap-10 pt-6 pb-20 mx-auto max-w-lg">
+      <div className="flex flex-col items-center gap-10 pt-6 pb-20 mx-auto w-full">
         {Array.from({ length: 3 }).map((_, i) => (
           <PostSkeleton key={i} />
         ))}
