@@ -295,6 +295,7 @@ export default function PostCard({
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - progress * circumference;
 
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -313,7 +314,7 @@ export default function PostCard({
     >
       {/* Track Info */}
       {(isDetailView || isVideo) && <div
-        className={`absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-[90px] sm:rounded-t-xl flex items-center px-4 gap-4 z-10 ${
+        className={`absolute top-0 left-1/2 transform -translate-x-1/2 ${!isDetailView && "w-[100%] rounded-t-xl"} h-[90px] flex items-center px-4 gap-4 z-10 ${
           isActive ? "bg-purple-600" : "bg-zinc-900"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -377,7 +378,8 @@ export default function PostCard({
           <video
             ref={activeVideoRef}
             src={post.customVideoUrl ?? ""}
-            className="w-full h-[450px] object-cover rounded-md"
+            className={`w-full min-w-[400px] h-[450px] object-cover 
+    ${!isDetailView ? "rounded-t-2xl rounded-b-md" : "rounded-md"}`}
             autoPlay={!profileFeed}
             loop
             playsInline
@@ -396,7 +398,7 @@ export default function PostCard({
             alt={post.trackName || "Track"}
             className={`${
               !isDetailView ? "rounded-b-lg" : ""
-            } w-full ${!isDetailView ? "h-[175px]" : "h-[350px"} object-cover ${
+            } w-full ${!isDetailView ? "h-[250px]" : "h-[350px"} object-cover ${
               imageLoaded ? "opacity-100" : "opacity-0"
             } transition-opacity duration-300 ${!isDetailView ? "rounded-t-2xl" : ""}`}
             onLoad={(e) => {

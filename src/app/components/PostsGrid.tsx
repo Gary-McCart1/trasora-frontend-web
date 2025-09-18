@@ -10,12 +10,14 @@ interface PostsGridProps {
   posts: PostDto[];
   isProfileView?: boolean;
   isOwner?: boolean; // Add this if you want owner-specific messages
+  postType?: string;
 }
 
 export default function PostsGrid({
   posts,
   isProfileView = false,
   isOwner,
+  postType
 }: PostsGridProps) {
   console.log(posts)
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
@@ -43,7 +45,7 @@ export default function PostsGrid({
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-3 relative z-10">
+      <div className={`grid ${postType == "images" ? "grid-cols-3" : "grid-cols-1 lg:grid-cols-3"} gap-3 relative z-10`}>
         {posts.map((post) => (
           <PostCard
             key={post.id}

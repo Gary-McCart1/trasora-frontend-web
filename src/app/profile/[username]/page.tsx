@@ -366,6 +366,7 @@ export default function ProfilePage() {
                 posts={filteredPosts}
                 isProfileView={true}
                 isOwner={isOwnProfile}
+                postType={postType}
               />
             </>
           ) : (
