@@ -70,7 +70,6 @@ export default function PostCard({
   const isVideo = !!post.customVideoUrl;
   const activeVideoRef = videoRef || internalVideoRef;
 
-  console.log(isVideo)
   // Reset state when another preview starts
   useEffect(() => {
     if (!post.applePreviewUrl) return;

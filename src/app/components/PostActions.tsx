@@ -112,7 +112,6 @@ export default function PostActions({
   const router = useRouter();
   const { user } = useAuth();
   const isAuthor = user?.username === authorUsername;
-  console.log(comments);
 
   // Close menu on outside click
   useEffect(() => {
@@ -251,7 +250,6 @@ export default function PostActions({
       setLoadingBranch(false);
     }
   };
-  console.log(createdAt);
 
   return (
     <div className="bg-zinc-900 sm:rounded-b-2xl overflow-hidden shadow border border-zinc-800 text-white">

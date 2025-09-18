@@ -26,57 +26,92 @@ interface StoryCardProps {
   story: StoryDto;
   onDelete?: (storyId: number) => void;
   duration?: number; // ms
+  isStoryModal?: boolean;
 }
 
-const StoryCard: FC<StoryCardProps> = ({ story, onDelete, duration = 60000 }) => {
-  console.log(story)
+const StoryCard: FC<StoryCardProps> = ({ story, onDelete, duration = 60000, isStoryModal }) => {
   const { user } = useAuth();
   const isAuthor = user?.username === story.authorUsername;
 
   const imageUrl = story.contentUrl || story.albumArtUrl || "/placeholder.png";
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
   const [trackVolume, setTrackVolume] = useState(0.3);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { currentUrl, isPlaying: contextIsPlaying, playPreview, pausePreview } = useApplePlayer();
+  const { playPreview, pausePreview, initPlayer, isReady, currentUrl, isPlaying } = useApplePlayer();
 
   const isVideo = story.type === "VIDEO";
 
-  // Auto-play Apple Music preview if available
+  // Initialize player once
   useEffect(() => {
-    if (!isVideo && story.applePreviewUrl) {
-      playPreview(story.applePreviewUrl, trackVolume);
-      setIsPlaying(true);
+    if (!isReady) {
+      initPlayer();
     }
-  }, [story.applePreviewUrl, isVideo, playPreview, trackVolume]);
+  }, [initPlayer, isReady]);
 
-  // Sync volume live
+  // Autoplay Apple Music preview when story modal opens
   useEffect(() => {
-    if (!isVideo && story.applePreviewUrl) {
+    if (!isVideo && story.applePreviewUrl && isStoryModal && isReady) {
+      // Small delay to ensure modal is fully mounted
+      const timer = setTimeout(() => {
+        playPreview(story.applePreviewUrl!, trackVolume).catch((err) =>
+          console.warn("Autoplay blocked or failed:", err)
+        );
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+
+    // Pause preview when modal closes
+    if (!isStoryModal && story.applePreviewUrl) {
+      pausePreview();
+    }
+  }, [isStoryModal, story.applePreviewUrl, isVideo, trackVolume, playPreview, pausePreview, isReady]);
+
+  // Handle volume changes for currently playing track
+  useEffect(() => {
+    if (!isVideo && 
+        story.applePreviewUrl && 
+        isStoryModal && 
+        currentUrl === story.applePreviewUrl && 
+        isPlaying) {
       playPreview(story.applePreviewUrl, trackVolume);
     }
-  }, [trackVolume, story.applePreviewUrl, isVideo, playPreview]);
+  }, [trackVolume, story.applePreviewUrl, isVideo, playPreview, currentUrl, isPlaying, isStoryModal]);
 
-  // Handle play/pause for video or Apple Music
+  // Handle play/pause
   const togglePlayPause = () => {
     if (isVideo && videoRef.current) {
       if (videoRef.current.paused) {
         videoRef.current.play();
-        setIsPlaying(true);
+        
+        // Also play Apple preview if available - start fresh
+        if (story.applePreviewUrl) {
+          pausePreview(); // Stop any existing playback first
+          setTimeout(() => {
+            playPreview(story.applePreviewUrl!, trackVolume);
+          }, 50);
+        }
       } else {
         videoRef.current.pause();
-        setIsPlaying(false);
+        
+        // Also pause Apple preview
+        if (story.applePreviewUrl) {
+          pausePreview();
+        }
       }
     } else if (story.applePreviewUrl) {
-      if (currentUrl === story.applePreviewUrl && contextIsPlaying) {
+      if (currentUrl === story.applePreviewUrl && isPlaying) {
         pausePreview();
-        setIsPlaying(false);
       } else {
-        playPreview(story.applePreviewUrl, trackVolume);
-        setIsPlaying(true);
+        // Always start fresh when manually playing
+        pausePreview();
+        setTimeout(() => {
+          playPreview(story.applePreviewUrl!, trackVolume);
+        }, 50);
       }
     }
   };
@@ -107,15 +142,16 @@ const StoryCard: FC<StoryCardProps> = ({ story, onDelete, duration = 60000 }) =>
           autoPlay
           loop
           playsInline
+          muted={false}
           onClick={togglePlayPause}
         />
       ) : story.contentUrl ? (
-        <div className="absolute inset-0">
+        <div className="absolute inset-0" onClick={togglePlayPause}>
           <Image src={imageUrl} alt="Story" fill className="object-cover" priority />
         </div>
       ) : story.albumArtUrl ? (
-        <div className="flex items-center justify-center flex-1">
-          <Image src={imageUrl} alt="Album Art" width={356} height={356} className="object-cover" />
+        <div className="flex items-center justify-center flex-1" onClick={togglePlayPause}>
+          <img src={story.albumArtUrl} alt="Album Art" className="object-contain w-full h-full"  />
         </div>
       ) : null}
 
@@ -169,7 +205,7 @@ const StoryCard: FC<StoryCardProps> = ({ story, onDelete, duration = 60000 }) =>
         )}
       </div>
 
-      {/* Track info overlay with volume slider */}
+      {/* Track info overlay */}
       {story.applePreviewUrl && (
         <div className="absolute bottom-8 left-4 right-4 z-20 flex items-center gap-3 bg-black/90 px-3 py-2 rounded-md">
           <img
@@ -181,8 +217,6 @@ const StoryCard: FC<StoryCardProps> = ({ story, onDelete, duration = 60000 }) =>
             <span className="text-white font-semibold truncate">{story.trackName}</span>
             <span className="text-gray-300 text-sm truncate">{story.artistName || "Unknown Artist"}</span>
           </div>
-
-          
         </div>
       )}
     </div>

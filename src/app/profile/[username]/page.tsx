@@ -266,43 +266,7 @@ export default function ProfilePage() {
           onConnectSpotify={onConnectToSpotify}
         />
 
-        {!isReady &&
-          loggedInUser?.spotifyPremium &&
-          loggedInUser?.spotifyConnected && (
-            <motion.div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                className="bg-[#1a1a1a] rounded-2xl p-8 w-80 md:w-96 shadow-2xl flex flex-col items-center"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-              >
-                <h2 className="text-white text-xl font-bold mb-4 text-center">
-                  Enable Spotify Player
-                </h2>
-                <p className="text-gray-300 text-sm mb-6 text-center">
-                  Connect your Spotify account to play music directly in
-                  Trasora.
-                </p>
-                <button
-                  onClick={initPlayer}
-                  className="w-full px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold shadow-md hover:bg-purple-700 transition-colors"
-                >
-                  Enable Player
-                </button>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="mt-4 text-gray-400 text-sm hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
+       
 
         {pageUsername &&
           (followStatus === "following" || profilePublic || isOwnProfile) && (

@@ -4,12 +4,15 @@ import { FC, useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { StoryDto } from "../types/Story";
 import StoryCard from "./StoryCard";
+import { useApplePlayer } from "../context/ApplePlayerContext";
+import { truncate } from "node:fs";
 
 interface StoryViewerModalProps {
   stories: StoryDto[];
   startIndex: number;
   onClose: () => void;
   onDelete: (storyId: number) => void;
+
 }
 
 const STORY_DURATION = 20000; // 20 seconds
@@ -22,8 +25,16 @@ const StoryViewerModal: FC<StoryViewerModalProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [dotProgress, setDotProgress] = useState(0);
+  const { initPlayer, pausePreview } = useApplePlayer();
 
   const currentStory = stories[currentIndex];
+
+  useEffect(() => {
+    initPlayer();
+    return () => {
+      pausePreview(); // cleanup on close
+    };
+  }, [initPlayer, pausePreview]);
 
   // Auto-advance logic
   useEffect(() => {
@@ -109,7 +120,7 @@ const StoryViewerModal: FC<StoryViewerModalProps> = ({
           ))}
         </div>
 
-        <StoryCard story={currentStory} onDelete={onDelete} />
+        <StoryCard story={currentStory} onDelete={onDelete} isStoryModal={true} />
       </div>
     </div>,
     document.body // 👈 renders outside main app container

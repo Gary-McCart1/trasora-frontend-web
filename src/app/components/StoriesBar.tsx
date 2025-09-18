@@ -12,20 +12,28 @@ import { deleteStory, fetchActiveStories } from "../lib/storiesApi";
 import AddStoryModal from "./AddStoryModal";
 import StoryViewerModal from "./StoryViewerModal";
 
-const BASE_URL = "http://localhost:8080";
+interface StoriesBarProps {
+  onStoriesOpenChange?: (isOpen: boolean) => void; // Add callback prop
+}
 
-export default function StoriesBar() {
+export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
   const { user } = useAuth();
   const { stories, setStories } = useStories();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
-  const [selectedAuthorStories, setSelectedAuthorStories] = useState<
-    StoryDto[]
-  >([]);
+  const [selectedAuthorStories, setSelectedAuthorStories] = useState<StoryDto[]>([]);
+
+  // Track when stories are open and notify parent
+  const isStoriesOpen = activeStoryIndex !== null && selectedAuthorStories.length > 0;
+
+  useEffect(() => {
+    onStoriesOpenChange?.(isStoriesOpen);
+  }, [isStoriesOpen, onStoriesOpenChange]);
 
   const handleCloseModal = useCallback(() => {
     setActiveStoryIndex(null);
     setSelectedAuthorStories([]);
+    // onStoriesOpenChange will be called automatically via the useEffect above
   }, []);
 
   // Fetch active stories
@@ -46,12 +54,12 @@ export default function StoriesBar() {
 
   const handleDelete = async (storyId: number) => {
     console.log("Deleting storyId:", storyId);
-  
+
     try {
       await deleteStory(storyId);
-  
+
       alert("Story has been successfully deleted.");
-  
+
       // Update local state
       setStories((prev) => prev.filter((s) => s.id !== storyId));
       setSelectedAuthorStories((prev) => prev.filter((s) => s.id !== storyId));

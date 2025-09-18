@@ -36,6 +36,7 @@ export default function MainFeed({
   const [manuallyPausedUrls, setManuallyPausedUrls] = useState<Set<string>>(new Set());
   const [showInitModal, setShowInitModal] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [isStoriesOpen, setIsStoriesOpen] = useState(false); // Add internal state
 
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user } = useAuth();
@@ -159,9 +160,24 @@ export default function MainFeed({
     return () => observer.disconnect();
   }, [activeIndex, isProfileView, isUserScrolling, posts, setManuallyPausedUrls]);
 
+  // Pause main feed audio when stories are open
+  useEffect(() => {
+    if (isStoriesOpen) {
+      pausePreview();
+      // Also pause all videos
+      postRefs.current.forEach((ref) => {
+        if (!ref) return;
+        const video = ref.querySelector("video");
+        if (video && !video.paused) {
+          video.pause();
+        }
+      });
+    }
+  }, [isStoriesOpen, pausePreview]);
+
   // Autoplay logic - handle both new posts and manual control state
   useEffect(() => {
-    if (isUserScrolling || !isReady) return;
+    if (isUserScrolling || !isReady || isStoriesOpen) return; // Add isStoriesOpen check
     
     const activePost = posts[activeIndex];
     if (!activePost) return;
@@ -221,7 +237,7 @@ export default function MainFeed({
     } else {
       pausePreview();
     }
-  }, [activeIndex, posts, isUserScrolling, playPreview, pausePreview, setVolume, currentUrl, manuallyPausedUrls, isReady]);
+  }, [activeIndex, posts, isUserScrolling, playPreview, pausePreview, setVolume, currentUrl, manuallyPausedUrls, isReady, isStoriesOpen]);
 
   return (
     <div className="relative w-full min-h-screen">
@@ -250,7 +266,7 @@ export default function MainFeed({
       )}
 
       <div className="sticky md:top-[6.2rem] z-40 bg-zinc-950 flex justify-center pb-2 border-b border-zinc-900">
-        <StoriesBar />
+        <StoriesBar onStoriesOpenChange={setIsStoriesOpen} />
       </div>
 
       <div className="absolute inset-0 z-0 pointer-events-none hidden sm:block">
