@@ -314,7 +314,7 @@ export default function PostCard({
     >
       {/* Track Info */}
       {(isDetailView || isVideo) && <div
-        className={`absolute top-0 left-1/2 transform -translate-x-1/2 ${!isDetailView && "w-[100%] rounded-t-xl"} h-[90px] flex items-center px-4 gap-4 z-10 ${
+        className={`absolute top-0 left-1/2 transform -translate-x-1/2 ${!isDetailView ? "w-[100%] rounded-t-xl": "w-full"} h-[90px] flex items-center px-4 gap-4 z-10 ${
           isActive ? "bg-purple-600" : "bg-zinc-900"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -378,8 +378,7 @@ export default function PostCard({
           <video
             ref={activeVideoRef}
             src={post.customVideoUrl ?? ""}
-            className={`w-full min-w-[400px] h-[450px] object-cover 
-    ${!isDetailView ? "rounded-t-2xl rounded-b-md" : "rounded-md"}`}
+            className={`w-full min-w-[400px] h-[450px] object-cover rouned-t-xl`}
             autoPlay={!profileFeed}
             loop
             playsInline
