@@ -45,6 +45,7 @@ export async function getCurrentUser(): Promise<User> {
   
     const data = await res.json();
     localStorage.setItem("token", data.token);
+    console.log(data.token)
     return data.user;
   }
   
@@ -82,11 +83,28 @@ export async function getCurrentUser(): Promise<User> {
   
   // Delete user
   export async function deleteUser(username: string): Promise<void> {
-    const res = await fetch(`${BASE_URL}/api/auth/user/${username}`, {
-      method: "DELETE",
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to delete user");
+    console.log(localStorage.getItem("token"))
+    try {
+      const res = await fetch(`${BASE_URL}/api/auth/user/${username}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      
+      // if (res.status === 401) {
+      //   // Token expired - redirect to login or refresh token
+      //   localStorage.removeItem('token'); // Clear expired token
+      //   window.location.href = '/login'; // Redirect to login
+      //   throw new Error("Session expired. Please log in again.");
+      // }
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Failed to delete user: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Delete user error:', error);
+      throw error;
+    }
   }
   
   // Update profile visibility
