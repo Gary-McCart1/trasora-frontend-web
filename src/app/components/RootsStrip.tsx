@@ -137,6 +137,7 @@ export default function RootsStrip({
       name: song.trackTitle,
       artists: [{ name: song.artistName }],
       albumArtUrl: song.albumArtUrl,
+      type: "track"
     };
 
     onTrackPlay(trackObj);
