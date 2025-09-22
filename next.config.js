@@ -3,7 +3,13 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['konva'], // Modern way to transpile packages
   outputFileTracingRoot: __dirname, // This fixes the multiple lockfiles warning
+
+  // 👇 This enables static HTML export
+  output: 'export',
+
+  // 👇 Image optimization doesn't work in static export, so disable it
   images: {
+    unoptimized: true,
     domains: [
       'dreamr-user-content.s3.amazonaws.com',
       'i.scdn.co',

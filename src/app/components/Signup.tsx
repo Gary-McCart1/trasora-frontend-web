@@ -65,6 +65,8 @@ export default function Signup() {
           placeholder="Full Name"
           value={form.fullName}
           onChange={handleChange}
+          autoCapitalize="none"
+          autoCorrect="off"
           className="w-full bg-zinc-800 text-sm text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           required
         />

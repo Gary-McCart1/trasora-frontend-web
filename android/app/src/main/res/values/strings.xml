@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Trasora</string>
+    <string name="title_activity_main">Trasora</string>
+    <string name="package_name">com.trasora.app</string>
+    <string name="custom_url_scheme">com.trasora.app</string>
+</resources>

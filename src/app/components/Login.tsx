@@ -27,33 +27,29 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     try {
       const userData = await loginUser(form.login, form.password);
-  
-      setUser(userData); 
+
+      setUser(userData);
       alert("Login was successful");
       setForm({ login: "", password: "" });
       router.push("/");
     } catch (error) {
       if (error instanceof Error) {
         console.error("Login failed:", error.message);
-  
+
         if (error.message.includes("Please verify your email")) {
-          alert(
-            "Please verify your email!"
-          )
+          alert("Please verify your email!");
         } else {
           alert("Login failed: " + error.message);
         }
-        
       } else {
         console.error("Login failed:", error);
         alert("Login failed: Unknown error");
       }
     }
   };
-  
 
   return (
     <section className="relative bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-950 min-h-[60vh] flex items-center justify-center text-white px-4">
@@ -72,6 +68,8 @@ export default function Login() {
           placeholder="Username or email"
           value={form.login}
           onChange={handleChange}
+          autoCapitalize="none" 
+          autoCorrect="off" 
           className="w-full bg-zinc-800 text-sm text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           required
         />
