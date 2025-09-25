@@ -33,7 +33,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 
-        {/* iOS splash screens */}
+        {/* Splash screens */}
         <link
           rel="apple-touch-startup-image"
           href="/icons/iphone-splash.png"
@@ -49,12 +49,20 @@ export default function RootLayout({
           name="viewport"
           content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
         />
+
+        {/* iOS web app fullscreen */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+
+        {/* Theme color for Safari / Chrome */}
+        <meta name="theme-color" content="#18181B" />
 
         <style>{`
-          input, select, textarea, button { font-size: 16px; }
-        `}</style>
+    input, select, textarea, button { font-size: 16px; }
+  `}</style>
       </head>
 
       <body
