@@ -4,8 +4,8 @@
 
 /* Custom CSS variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #18181B; /* dark bg (matches bg-zinc-950) */
+  --foreground: #ededed;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -16,75 +16,53 @@
 /* Dark mode overrides */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #18181B;
     --foreground: #ededed;
   }
 }
 
-/* Global body styles */
+/* Global html/body styles for full iOS safe area support */
 html, body {
   height: 100%;
   margin: 0;
-  padding: 0;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   background-color: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+  -webkit-text-size-adjust: 100%; /* prevent zoom on input focus */
+  box-sizing: border-box;
+  overflow-x: clip;
+  scroll-behavior: smooth;
 }
 
-/* Scrollbar styles for desktop only */
-@media (hover: hover) and (pointer: fine) {
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #1e1e1e;
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background-color: #7c3aed;
-    border-radius: 4px;
-    border: 2px solid #1e1e1e;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: #9d4edd;
-  }
-
-  .scrollbar-small::-webkit-scrollbar {
-    height: 2px;
-  }
-
-  .scrollbar-small::-webkit-scrollbar-track {
-    background: #1f1f1f;
-    border-radius: 2px;
-  }
-
-  .scrollbar-small::-webkit-scrollbar-thumb {
-    background-color: #a855f7;
-    border-radius: 2px;
-  }
-
-  .scrollbar-small {
-    scrollbar-width: thin;
-    scrollbar-color: #a855f7 #1f1f1f;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    height: 4px;
-    background-color: transparent; /* iOS-safe */
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #a855f7;
-    border-radius: 2px;
-  }
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* Animations */
+::-webkit-scrollbar-track {
+  background: #1e1e1e;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #7c3aed;
+  border-radius: 4px;
+  border: 2px solid #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #9d4edd;
+}
+
+/* Safe-area padding helpers */
+.pt-safe { padding-top: env(safe-area-inset-top); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.pl-safe { padding-left: env(safe-area-inset-left); }
+.pr-safe { padding-right: env(safe-area-inset-right); }
+
+/* Animation keyframes */
 @keyframes gradient-x {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -103,14 +81,3 @@ html, body {
 .animate-gradient-x { background-size: 200% 200%; animation: gradient-x 6s ease infinite; }
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-slideDown { animation: slideDown 0.25s ease-out forwards; }
-
-/* Safe area padding */
-.pt-safe { padding-top: var(--safe-top); }
-.pb-safe { padding-bottom: var(--safe-bottom); }
-.pl-safe { padding-left: var(--safe-left); }
-.pr-safe { padding-right: var(--safe-right); }
-
-/* Prevent auto-zoom on inputs for iOS */
-input, select, textarea, button {
-  font-size: 16px;
-}

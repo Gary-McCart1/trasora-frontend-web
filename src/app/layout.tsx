@@ -25,9 +25,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="h-full bg-zinc-950">
       <head>
@@ -36,7 +34,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 
         {/* iOS splash screens */}
-        {/* <link
+        <link
           rel="apple-touch-startup-image"
           href="/icons/iphone-splash.png"
           media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
@@ -45,7 +43,7 @@ export default function RootLayout({
           rel="apple-touch-startup-image"
           href="/icons/ipad-splash.png"
           media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
-        /> */}
+        />
 
         <meta
           name="viewport"
@@ -55,27 +53,18 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
         <style>{`
-          html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background-color: #18181B; /* bg-zinc-950 */
-          }
-          input, select, textarea, button {
-            font-size: 16px;
-          }
+          input, select, textarea, button { font-size: 16px; }
         `}</style>
       </head>
 
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full overflow-x-clip text-zinc-50`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full text-zinc-50`}
       >
         <ClientProviders>
           <ApplePlayerProvider>
             <StoriesProvider>
               <AlertProvider>
-                {/* Full height flex container */}
-                <div className="flex flex-col min-h-full bg-zinc-950">
+                <div className="flex flex-col min-h-screen bg-zinc-950">
                   <Navbar />
                   <main className="flex-grow">{children}</main>
                   <Footer />
