@@ -86,7 +86,7 @@ export default function Navbar() {
 
   if (loading) {
     return (
-      <nav className="bg-zinc-950 text-white  px-4 pt-4 mt-[5rem]">
+      <nav className="bg-zinc-950 text-white  px-4 py-4 ">
         <div className="flex items-center justify-between">
           <Image
             src="/trasora.png"
@@ -109,7 +109,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-zinc-950 text-white shadow-md px-4 py-4 sticky top-0 z-50">
+    <nav className="bg-zinc-950 text-white shadow-md px-4 py-4 sticky top-0 z-50 pt-safe">
       <div className="flex items-center justify-between">
         {/* Logo */}
         <div className="flex-shrink-0 z-10">

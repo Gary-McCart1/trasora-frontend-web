@@ -122,3 +122,16 @@ body {
   background-color: #a855f7; /* accentColor fallback */
   border-radius: 2px;
 }
+
+.pt-safe {
+  padding-top: var(--safe-top);
+}
+.pb-safe {
+  padding-bottom: var(--safe-bottom);
+}
+.pl-safe {
+  padding-left: var(--safe-left);
+}
+.pr-safe {
+  padding-right: var(--safe-right);
+}
