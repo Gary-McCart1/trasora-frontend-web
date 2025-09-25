@@ -67,7 +67,7 @@ export default function Signup() {
           onChange={handleChange}
           autoCapitalize="none"
           autoCorrect="off"
-          className="w-full bg-zinc-800 text-sm text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+          className="w-full bg-zinc-800 text-base text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           required
         />
 
@@ -77,7 +77,7 @@ export default function Signup() {
           placeholder="Email"
           value={form.email}
           onChange={handleChange}
-          className="w-full bg-zinc-800 text-sm text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+          className="w-full bg-zinc-800 text-base text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           required
         />
 
@@ -87,7 +87,7 @@ export default function Signup() {
           placeholder="Username"
           value={form.username}
           onChange={handleChange}
-          className="w-full bg-zinc-800 text-sm text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+          className="w-full bg-zinc-800 text-base text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           required
         />
 
@@ -98,7 +98,7 @@ export default function Signup() {
             placeholder="Password"
             value={form.password}
             onChange={handleChange}
-            className="w-full bg-zinc-800 text-sm text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="w-full bg-zinc-800 text-base text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
             required
           />
           <button
