@@ -58,7 +58,7 @@ export default function RootLayout({
         />
 
         {/* Theme color for Safari / Chrome */}
-        <meta name="theme-color" content="#18181B" />
+        <meta name="theme-color" content="#09090b" />
 
         <style>{`
     input, select, textarea, button { font-size: 16px; }
