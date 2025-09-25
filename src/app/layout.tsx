@@ -30,26 +30,43 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased !m-0 !pt-0 bg-zinc-950 overflow-x-clip text-zinc-50`}
-      >
-        <ClientProviders>
-          <ApplePlayerProvider>
-            <StoriesProvider>
-              <AlertProvider> {/* Wrap the entire layout with the alert provider */}
-                <div className="flex flex-col min-h-screen">
-                  <Navbar />
-                  <main className="flex-grow">{children}</main>
-                  <Footer />
-                </div>
-              </AlertProvider>
-            </StoriesProvider>
-          </ApplePlayerProvider>
-        </ClientProviders>
-      </body>
-    </html>
+    <head>
+      <link rel="icon" href="/favicon.ico" />
+  
+      {/* Viewport fixes for iOS */}
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+      />
+  
+      {/* iOS web app fullscreen support */}
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  
+      {/* Prevent auto-zoom on input focus */}
+      <style>{`
+        input, select, textarea, button {
+          font-size: 16px;
+        }
+      `}</style>
+    </head>
+    <body
+      className={`${geistSans.variable} ${geistMono.variable} antialiased !m-0 !pt-0 bg-zinc-950 overflow-x-clip text-zinc-50`}
+    >
+      <ClientProviders>
+        <ApplePlayerProvider>
+          <StoriesProvider>
+            <AlertProvider>
+              <div className="flex flex-col min-h-screen pb-safe">
+                <Navbar />
+                <main className="flex-grow">{children}</main>
+                <Footer />
+              </div>
+            </AlertProvider>
+          </StoriesProvider>
+        </ApplePlayerProvider>
+      </ClientProviders>
+    </body>
+  </html>
   );
 }
