@@ -86,7 +86,7 @@ export default function Navbar() {
 
   if (loading) {
     return (
-      <nav className="bg-zinc-950 text-white  px-4 py-2">
+      <nav className="bg-zinc-950 text-white  px-4 py-4">
         <div className="flex items-center justify-between">
           <Image
             src="/trasora.png"
@@ -116,8 +116,8 @@ export default function Navbar() {
           <button onClick={() => router.push("/")}>
             <Image
               src="/trasora.png"
-              width={250}
-              height={250}
+              width={200}
+              height={200}
               alt="Dreamr Logo"
             />
           </button>
