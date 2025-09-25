@@ -5,7 +5,7 @@ import Navbar from "./components/NavBar";
 import Footer from "./components/Footer";
 import ClientProviders from "./components/ClientProviders";
 import { StoriesProvider } from "./context/StoriesContext";
-import { AlertProvider } from "./context/AlertContext"; // Import the AlertProvider
+import { AlertProvider } from "./context/AlertContext";
 import { ApplePlayerProvider } from "./context/ApplePlayerContext";
 
 const geistSans = Geist({
@@ -29,15 +29,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="h-full bg-zinc-950">
       <head>
-        {/* Favicon */}
         <link rel="icon" href="/favicon.ico" />
-
-        {/* Web app manifest */}
         <link rel="manifest" href="/manifest.json" />
-
-        {/* iOS home screen icon */}
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 
         {/* iOS splash screens */}
@@ -52,31 +47,35 @@ export default function RootLayout({
           media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
         />
 
-        {/* Viewport fixes & prevent zoom on input focus */}
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
         />
-
-        {/* iOS web app fullscreen */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
         <style>{`
-      input, select, textarea, button {
-        font-size: 16px;
-      }
-    `}</style>
+          html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #18181B; /* bg-zinc-950 */
+          }
+          input, select, textarea, button {
+            font-size: 16px;
+          }
+        `}</style>
       </head>
 
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased !m-0 !pt-0 bg-zinc-950 overflow-x-clip text-zinc-50`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full overflow-x-clip text-zinc-50`}
       >
         <ClientProviders>
           <ApplePlayerProvider>
             <StoriesProvider>
               <AlertProvider>
-                <div className="flex flex-col min-h-screen pb-safe">
+                {/* Full height flex container */}
+                <div className="flex flex-col min-h-full bg-zinc-950">
                   <Navbar />
                   <main className="flex-grow">{children}</main>
                   <Footer />
