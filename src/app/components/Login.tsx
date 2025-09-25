@@ -42,11 +42,11 @@ export default function Login() {
         if (error.message.includes("Please verify your email")) {
           alert("Please verify your email!");
         } else {
-          alert("Login failed: " + error.message);
+          alert("Login failed: Your username or password was incorrect.");
         }
       } else {
         console.error("Login failed:", error);
-        alert("Login failed: Unknown error");
+        alert("Login failed: Your username or password was incorrect.");
       }
     }
   };
@@ -60,7 +60,7 @@ export default function Login() {
         onSubmit={handleSubmit}
         className="relative z-10 w-full max-w-sm space-y-4 border border-zinc-800 bg-zinc-900/90 p-6 rounded-xl shadow-lg backdrop-blur"
       >
-        <h2 className="text-xl font-semibold mb-2 text-center">Login</h2>
+        <h2 className="text-2xl font-semibold mb-2 text-center">Login</h2>
 
         <input
           type="text"

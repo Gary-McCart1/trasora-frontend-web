@@ -57,7 +57,7 @@ export default function Signup() {
         onSubmit={handleSubmit}
         className="relative z-10 w-full max-w-sm space-y-4 border border-zinc-800 bg-zinc-900/90 p-6 rounded-xl shadow-lg backdrop-blur"
       >
-        <h2 className="text-xl font-semibold mb-2 text-center">Sign up</h2>
+        <h2 className="text-2xl font-semibold mb-2 text-center">Sign up</h2>
 
         <input
           type="text"
