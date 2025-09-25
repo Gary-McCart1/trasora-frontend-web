@@ -2,255 +2,287 @@ import { User } from "@/app/types/User";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-interface VerifyEmailResponse {
-    status?: "success" | "error";
-    message?: string;
-  }
-  
+// -------------------- TOKEN HELPERS --------------------
+export function getAccessToken(): string | null {
+  return localStorage.getItem("accessToken");
+}
 
-// Helper function to get the JWT token from local storage
-export const getAuthHeaders = () => {
-  const headers: Record<string, string> = {};
-  const token = localStorage.getItem("token");
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+export function getRefreshToken(): string | null {
+  return localStorage.getItem("refreshToken");
+}
+
+export function setTokens(accessToken: string, refreshToken?: string) {
+  localStorage.setItem("accessToken", accessToken);
+  if (refreshToken) {
+    localStorage.setItem("refreshToken", refreshToken);
   }
-  return headers;
-};
+}
+
+export function clearTokens() {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+}
+
+export function getAuthHeaders(): Record<string, string> {
+  const token = getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+// -------------------- REFRESH LOGIC --------------------
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return null;
+
+  const res = await fetch(`${BASE_URL}/api/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!res.ok) {
+    clearTokens();
+    return null;
+  }
+
+  const data = await res.json();
+  const newAccessToken = data.accessToken;
+  setTokens(newAccessToken);
+  return newAccessToken;
+}
+
+// -------------------- FETCH WRAPPER --------------------
+async function fetchWithAuth(
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const headers = {
+    ...options.headers,
+    ...getAuthHeaders(),
+  };
+
+  let res = await fetch(url, { ...options, headers });
+
+  if (res.status === 401) {
+    // try refresh
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      const retryHeaders = {
+        ...options.headers,
+        Authorization: `Bearer ${newToken}`,
+      };
+      res = await fetch(url, { ...options, headers: retryHeaders });
+    }
+  }
+
+  return res;
+}
 
 // -------------------- AUTH --------------------
 
 // Get current user
 export async function getCurrentUser(): Promise<User> {
-    const res = await fetch(`${BASE_URL}/api/auth/me`, { headers: getAuthHeaders() });
-    if (!res.ok) {
-      if (res.status === 401) localStorage.removeItem("token");
-      throw new Error("Failed to fetch current user");
-    }
-    return res.json();
-  }
-  
-  // Login
-  export async function loginUser(login: string, password: string): Promise<User> {
-    const res = await fetch(`${BASE_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ login, password }),
-    });
-  
-    if (!res.ok) {
-      const errText = await res.text().catch(() => null);
-      throw new Error(errText || `Login failed with status ${res.status}`);
-    }
-  
-    const data = await res.json();
-    localStorage.setItem("token", data.token);
-    console.log(data.token)
-    return data.user;
-  }
-  
-  // Logout
-  export async function logoutUser(): Promise<void> {
-    localStorage.removeItem("token");
-    await fetch(`${BASE_URL}/api/auth/logout`, { method: "POST", headers: getAuthHeaders() });
-  }
-  
-  // Signup
-  export async function signupUser(data: { email: string; username: string; password: string }): Promise<void> {
-    const res = await fetch(`${BASE_URL}/api/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Signup failed");
-  }
-  
-  // -------------------- USERS --------------------
-  
-  // Get user by username
-  export async function getUser(username: string): Promise<User> {
-    const res = await fetch(`${BASE_URL}/api/auth/user/${username}`, { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error("Failed to fetch user");
-    return res.json();
-  }
-  
-  // Get all users
-  export async function getAllUsers(): Promise<User[]> {
-    const res = await fetch(`${BASE_URL}/api/auth/users`, { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error("Failed to fetch users");
-    return res.json();
-  }
-  
-  // Delete user
-  export async function deleteUser(username: string): Promise<void> {
-    console.log(localStorage.getItem("token"))
-    try {
-      const res = await fetch(`${BASE_URL}/api/auth/user/${username}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(),
-      });
-      
-      // if (res.status === 401) {
-      //   // Token expired - redirect to login or refresh token
-      //   localStorage.removeItem('token'); // Clear expired token
-      //   window.location.href = '/login'; // Redirect to login
-      //   throw new Error("Session expired. Please log in again.");
-      // }
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Failed to delete user: ${errorText}`);
-      }
-    } catch (error) {
-      console.error('Delete user error:', error);
-      throw error;
-    }
-  }
-  
-  // Update profile visibility
-  export async function updateProfileVisibility(username: string, isPublic: boolean): Promise<User> {
-    const res = await fetch(
-      `${BASE_URL}/api/auth/${username}/profile-visibility?profilePublic=${isPublic}`,
-      { method: "PUT", headers: getAuthHeaders() }
-    );
-    if (!res.ok) throw new Error("Failed to update profile visibility");
-    return res.json();
-  }
-  
-  // Update user profile (bio, accentColor, profilePic)
-  export async function updateUserProfile(
-    updates: Partial<User> & { profilePic?: File; referredBy?: string; profilePublic?: boolean }
-  ): Promise<User> {
-    const formData = new FormData();
-    if (updates.bio) formData.append("bio", updates.bio);
-    if (updates.accentColor) formData.append("accentColor", updates.accentColor);
-    if (updates.profilePic) formData.append("profilePic", updates.profilePic);
-    if (updates.referredBy) formData.append("referredBy", updates.referredBy);
-  
-    if (updates.profilePublic !== undefined) {
-      formData.append("profilePublic", String(updates.profilePublic));
-    }
-  
-    const res = await fetch(`${BASE_URL}/api/auth/user`, {
-      method: "PUT",
-      headers: getAuthHeaders(), // Do NOT set Content-Type; browser sets multipart/form-data automatically
-      body: formData,
-    });
-  
-    if (!res.ok) {
-      const errData = await res.json().catch(() => null);
-      throw new Error(errData?.message || "Failed to update profile");
-    }
-  
-    return res.json();
-  }
-  
-  
-  
-  // -------------------- SEARCH --------------------
-  
-  export async function searchUsers(query: string): Promise<User[]> {
-    const res = await fetch(`${BASE_URL}/api/auth/search-bar?q=${encodeURIComponent(query)}`, {
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to search users");
-    const data = await res.json();
-    return data.users;
-  }
-  
-  // -------------------- PASSWORD --------------------
-  
-  export async function forgotPassword(email: string): Promise<void> {
-    const res = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-  
-    const data = await res.json(); // read the response body
-    if (!res.ok) throw new Error(data.message || "Failed to send password reset request");
-  }
-  
-  
-  export async function resetPassword(token: string, newPassword: string): Promise<void> {
-    const res = await fetch(`${BASE_URL}/api/auth/reset-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, newPassword }),
-    });
-    if (!res.ok) throw new Error("Failed to reset password");
-  }
-  
-  // -------------------- EMAIL --------------------
-  
-  interface VerifyEmailResponse {
-    status?: "success" | "error";
-    message?: string;
+  const res = await fetchWithAuth(`${BASE_URL}/api/auth/me`);
+  if (!res.ok) throw new Error("Failed to fetch current user");
+  return res.json();
+}
+
+// Login
+export async function loginUser(login: string, password: string): Promise<User> {
+  const res = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ login, password }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => null);
+    throw new Error(errText || `Login failed with status ${res.status}`);
   }
 
-  
-  export async function verifyEmail(token: string): Promise<void> {
-    if (!token) throw new Error("Missing verification token");
-  
-    const res = await fetch(
-      `${BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`
-    );
-  
-    const data = (await res.json()) as VerifyEmailResponse;
-  
-    if (!res.ok || data.status === "error") {
-      throw new Error(data.message || "Verification failed");
-    }
-  
+  const data = await res.json();
+  setTokens(data.accessToken, data.refreshToken);
+  return data.user;
+}
+
+// Logout
+export async function logoutUser(): Promise<void> {
+  clearTokens();
+  await fetchWithAuth(`${BASE_URL}/api/auth/logout`, { method: "POST" });
+}
+
+// Signup
+export async function signupUser(data: {
+  email: string;
+  username: string;
+  password: string;
+}): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Signup failed");
+}
+
+// -------------------- USERS --------------------
+export async function getUser(username: string): Promise<User> {
+  const res = await fetchWithAuth(`${BASE_URL}/api/auth/user/${username}`);
+  if (!res.ok) throw new Error("Failed to fetch user");
+  return res.json();
+}
+
+export async function getAllUsers(): Promise<User[]> {
+  const res = await fetchWithAuth(`${BASE_URL}/api/auth/users`);
+  if (!res.ok) throw new Error("Failed to fetch users");
+  return res.json();
+}
+
+export async function deleteUser(username: string): Promise<void> {
+  const res = await fetchWithAuth(`${BASE_URL}/api/auth/user/${username}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Failed to delete user: ${errorText}`);
   }
-  
-  
-  
-  
-  export async function resendVerificationEmail(email: string): Promise<void> {
-    const res = await fetch(`${BASE_URL}/api/auth/resend-verification`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    if (!res.ok) throw new Error("Failed to resend verification email");
+}
+
+export async function updateProfileVisibility(
+  username: string,
+  isPublic: boolean
+): Promise<User> {
+  const res = await fetchWithAuth(
+    `${BASE_URL}/api/auth/${username}/profile-visibility?profilePublic=${isPublic}`,
+    { method: "PUT" }
+  );
+  if (!res.ok) throw new Error("Failed to update profile visibility");
+  return res.json();
+}
+
+export async function updateUserProfile(
+  updates: Partial<User> & {
+    profilePic?: File;
+    referredBy?: string;
+    profilePublic?: boolean;
   }
-  
-  // -------------------- SPOTIFY --------------------
-  
-  export async function disconnectSpotify(username: string): Promise<void> {
-    const res = await fetch(`${BASE_URL}/api/auth/user/${username}/disconnect-spotify`, {
-      method: "PUT",
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error("Failed to disconnect Spotify");
-  }
-  
-  // Update referredBy
-  export async function updateReferredBy(username: string, referredBy: string): Promise<User> {
-    const res = await fetch(
-      `${BASE_URL}/api/auth/user/${username}/referred-by?referredByUsername=${encodeURIComponent(referredBy)}`,
-      {
-        method: "PUT",
-        headers: getAuthHeaders()
-      }
-    );
-    if (!res.ok) throw new Error("Failed to update referredBy");
-    return res.json();
+): Promise<User> {
+  const formData = new FormData();
+  if (updates.bio) formData.append("bio", updates.bio);
+  if (updates.accentColor) formData.append("accentColor", updates.accentColor);
+  if (updates.profilePic) formData.append("profilePic", updates.profilePic);
+  if (updates.referredBy) formData.append("referredBy", updates.referredBy);
+  if (updates.profilePublic !== undefined) {
+    formData.append("profilePublic", String(updates.profilePublic));
   }
 
+  const res = await fetchWithAuth(`${BASE_URL}/api/auth/user`, {
+    method: "PUT",
+    body: formData,
+  });
 
-  export interface ReferralDto {
-    username: string;
-    referralCount: number;
+  if (!res.ok) {
+    const errData = await res.json().catch(() => null);
+    throw new Error(errData?.message || "Failed to update profile");
   }
-  
-  export async function getReferralLeaderboard(): Promise<ReferralDto[]> {
-    const res = await fetch(`${BASE_URL}/api/auth/referral-leaderboard`, {
-      headers: getAuthHeaders(),
-    });
-  
-    if (!res.ok) throw new Error("Failed to fetch referral leaderboard");
-  
-    return res.json();
+
+  return res.json();
+}
+
+// -------------------- SEARCH --------------------
+export async function searchUsers(query: string): Promise<User[]> {
+  const res = await fetchWithAuth(
+    `${BASE_URL}/api/auth/search-bar?q=${encodeURIComponent(query)}`
+  );
+  if (!res.ok) throw new Error("Failed to search users");
+  const data = await res.json();
+  return data.users;
+}
+
+// -------------------- PASSWORD --------------------
+export async function forgotPassword(email: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.message || "Failed to send password reset request");
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, newPassword }),
+  });
+  if (!res.ok) throw new Error("Failed to reset password");
+}
+
+// -------------------- EMAIL --------------------
+interface VerifyEmailResponse {
+  status?: "success" | "error";
+  message?: string;
+}
+
+export async function verifyEmail(token: string): Promise<void> {
+  if (!token) throw new Error("Missing verification token");
+
+  const res = await fetch(
+    `${BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`
+  );
+
+  const data = (await res.json()) as VerifyEmailResponse;
+
+  if (!res.ok || data.status === "error") {
+    throw new Error(data.message || "Verification failed");
   }
+}
+
+export async function resendVerificationEmail(email: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/auth/resend-verification`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error("Failed to resend verification email");
+}
+
+// -------------------- SPOTIFY --------------------
+export async function disconnectSpotify(username: string): Promise<void> {
+  const res = await fetchWithAuth(
+    `${BASE_URL}/api/auth/user/${username}/disconnect-spotify`,
+    { method: "PUT" }
+  );
+  if (!res.ok) throw new Error("Failed to disconnect Spotify");
+}
+
+// Update referredBy
+export async function updateReferredBy(
+  username: string,
+  referredBy: string
+): Promise<User> {
+  const res = await fetchWithAuth(
+    `${BASE_URL}/api/auth/user/${username}/referred-by?referredByUsername=${encodeURIComponent(
+      referredBy
+    )}`,
+    { method: "PUT" }
+  );
+  if (!res.ok) throw new Error("Failed to update referredBy");
+  return res.json();
+}
+
+export interface ReferralDto {
+  username: string;
+  referralCount: number;
+}
+
+export async function getReferralLeaderboard(): Promise<ReferralDto[]> {
+  const res = await fetchWithAuth(`${BASE_URL}/api/auth/referral-leaderboard`);
+  if (!res.ok) throw new Error("Failed to fetch referral leaderboard");
+  return res.json();
+}
