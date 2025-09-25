@@ -18,56 +18,81 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
-    margin: 0 !important;
-    padding: 0;
   }
 }
 
 /* Global body styles */
-body {
-  background: var(--background);
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
 }
 
-/* Scrollbar styles */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+/* Scrollbar styles for desktop only */
+@media (hover: hover) and (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
 
-::-webkit-scrollbar-track {
-  background: #1e1e1e;
-  border-radius: 4px;
-}
+  ::-webkit-scrollbar-track {
+    background: #1e1e1e;
+    border-radius: 4px;
+  }
 
-::-webkit-scrollbar-thumb {
-  background-color: #7c3aed;
-  border-radius: 4px;
-  border: 2px solid #1e1e1e;
-}
+  ::-webkit-scrollbar-thumb {
+    background-color: #7c3aed;
+    border-radius: 4px;
+    border: 2px solid #1e1e1e;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background-color: #9d4edd;
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #9d4edd;
+  }
+
+  .scrollbar-small::-webkit-scrollbar {
+    height: 2px;
+  }
+
+  .scrollbar-small::-webkit-scrollbar-track {
+    background: #1f1f1f;
+    border-radius: 2px;
+  }
+
+  .scrollbar-small::-webkit-scrollbar-thumb {
+    background-color: #a855f7;
+    border-radius: 2px;
+  }
+
+  .scrollbar-small {
+    scrollbar-width: thin;
+    scrollbar-color: #a855f7 #1f1f1f;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 4px;
+    background-color: transparent; /* iOS-safe */
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #a855f7;
+    border-radius: 2px;
+  }
 }
 
 /* Animations */
 @keyframes gradient-x {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-15px) scale(1.1);
-  }
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-15px) scale(1.1); }
 }
 
 @keyframes slideDown {
@@ -75,63 +100,17 @@ body {
   100% { transform: translateY(0); opacity: 1; }
 }
 
-/* Animation classes */
-.animate-gradient-x {
-  background-size: 200% 200%;
-  animation: gradient-x 6s ease infinite;
-}
+.animate-gradient-x { background-size: 200% 200%; animation: gradient-x 6s ease infinite; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-slideDown { animation: slideDown 0.25s ease-out forwards; }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
+/* Safe area padding */
+.pt-safe { padding-top: var(--safe-top); }
+.pb-safe { padding-bottom: var(--safe-bottom); }
+.pl-safe { padding-left: var(--safe-left); }
+.pr-safe { padding-right: var(--safe-right); }
 
-.animate-slideDown {
-  animation: slideDown 0.25s ease-out forwards;
-}
-
-/* globals.css or a component-level CSS file */
-.scrollbar-small::-webkit-scrollbar {
-  height: 2px; /* smaller height for horizontal scrollbar */
-}
-
-.scrollbar-small::-webkit-scrollbar-track {
-  background: #1f1f1f;
-  border-radius: 2px;
-}
-
-.scrollbar-small::-webkit-scrollbar-thumb {
-  background-color: #a855f7; /* accentColor if you want dynamic color */
-  border-radius: 2px;
-}
-
-.scrollbar-small {
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #a855f7 /* thumb track */
-}
-
-
-/* Make horizontal scrollbar thinner */
-.scrollbar-thin::-webkit-scrollbar {
-  height: 4px; /* adjust thickness */
-  color: purple;
-  background-color: purple;
-}
-
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: #a855f7; /* accentColor fallback */
-  border-radius: 2px;
-}
-
-.pt-safe {
-  padding-top: var(--safe-top);
-}
-.pb-safe {
-  padding-bottom: var(--safe-bottom);
-}
-.pl-safe {
-  padding-left: var(--safe-left);
-}
-.pr-safe {
-  padding-right: var(--safe-right);
+/* Prevent auto-zoom on inputs for iOS */
+input, select, textarea, button {
+  font-size: 16px;
 }
