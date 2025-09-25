@@ -30,43 +30,62 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-    <head>
-      <link rel="icon" href="/favicon.ico" />
-  
-      {/* Viewport fixes for iOS */}
-      <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
-      />
-  
-      {/* iOS web app fullscreen support */}
-      <meta name="apple-mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  
-      {/* Prevent auto-zoom on input focus */}
-      <style>{`
-        input, select, textarea, button {
-          font-size: 16px;
-        }
-      `}</style>
-    </head>
-    <body
-      className={`${geistSans.variable} ${geistMono.variable} antialiased !m-0 !pt-0 bg-zinc-950 overflow-x-clip text-zinc-50`}
-    >
-      <ClientProviders>
-        <ApplePlayerProvider>
-          <StoriesProvider>
-            <AlertProvider>
-              <div className="flex flex-col min-h-screen pb-safe">
-                <Navbar />
-                <main className="flex-grow">{children}</main>
-                <Footer />
-              </div>
-            </AlertProvider>
-          </StoriesProvider>
-        </ApplePlayerProvider>
-      </ClientProviders>
-    </body>
-  </html>
+      <head>
+        {/* Favicon */}
+        <link rel="icon" href="/favicon.ico" />
+
+        {/* Web app manifest */}
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* iOS home screen icon */}
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
+        {/* iOS splash screens */}
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/iphone-splash.png"
+          media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/icons/ipad-splash.png"
+          media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+        />
+
+        {/* Viewport fixes & prevent zoom on input focus */}
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+        />
+
+        {/* iOS web app fullscreen */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+        <style>{`
+      input, select, textarea, button {
+        font-size: 16px;
+      }
+    `}</style>
+      </head>
+
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased !m-0 !pt-0 bg-zinc-950 overflow-x-clip text-zinc-50`}
+      >
+        <ClientProviders>
+          <ApplePlayerProvider>
+            <StoriesProvider>
+              <AlertProvider>
+                <div className="flex flex-col min-h-screen pb-safe">
+                  <Navbar />
+                  <main className="flex-grow">{children}</main>
+                  <Footer />
+                </div>
+              </AlertProvider>
+            </StoriesProvider>
+          </ApplePlayerProvider>
+        </ClientProviders>
+      </body>
+    </html>
   );
 }
