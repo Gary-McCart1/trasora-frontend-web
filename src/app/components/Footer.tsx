@@ -21,7 +21,10 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="bg-zinc-950 text-zinc-400 py-8 mt-20">
+    <footer
+      className="bg-zinc-950 text-zinc-400 py-8 mt-20"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
       <div className="max-w-6xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6">
         {/* Brand & Year */}
         <div className="text-center md:text-left space-y-1">
