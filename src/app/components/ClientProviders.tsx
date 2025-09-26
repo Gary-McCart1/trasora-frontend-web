@@ -1,8 +1,21 @@
-'use client'
+"use client";
 
-import { ReactNode } from 'react'
-import { AuthProvider } from '../context/AuthContext'
+import { ReactNode, useEffect } from "react";
+import { AuthProvider } from "../context/AuthContext";
 
 export default function ClientProviders({ children }: { children: ReactNode }) {
-  return <AuthProvider>{children}</AuthProvider>
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/service-worker.js")
+        .then((reg) => {
+          console.log("✅ Service worker registered:", reg);
+        })
+        .catch((err) => {
+          console.error("❌ Service worker registration failed:", err);
+        });
+    }
+  }, []);
+
+  return <AuthProvider>{children}</AuthProvider>;
 }
