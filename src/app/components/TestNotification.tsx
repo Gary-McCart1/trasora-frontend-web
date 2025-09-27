@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { subscribeUserToPush } from "../lib/pushService"; // adjust the path to where your pushService.ts is
+import { subscribeUserToPush } from "../lib/pushService"; // adjust path if needed
 
 export default function TestNotification() {
   const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
     if ("Notification" in window) {
@@ -13,24 +14,24 @@ export default function TestNotification() {
   }, []);
 
   const requestPermission = async () => {
-    if ("Notification" in window) {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-      console.log("✅ Notification permission updated:", result);
+    if (!("Notification" in window)) return;
 
-      if (result === "granted") {
-        // Automatically subscribe when user grants permission
-        try {
-          const subscription = await subscribeUserToPush();
-          console.log("✅ Subscribed to push:", subscription);
-        } catch (err) {
-          console.error("❌ Failed to subscribe to push:", err);
-        }
+    const result = await Notification.requestPermission();
+    setPermission(result);
+    console.log("✅ Notification permission updated:", result);
+
+    if (result === "granted") {
+      try {
+        const subscription = await subscribeUserToPush();
+        console.log("✅ Subscribed to push:", subscription);
+        setSubscribed(true);
+      } catch (err) {
+        console.error("❌ Failed to subscribe to push:", err);
       }
     }
   };
 
-  const sendNotification = async () => {
+  const sendTestNotification = async () => {
     if ("serviceWorker" in navigator && permission === "granted") {
       const registration = await navigator.serviceWorker.ready;
       console.log("✅ Service worker ready", registration);
@@ -49,25 +50,16 @@ export default function TestNotification() {
         onClick={requestPermission}
         className="px-4 py-2 bg-purple-600 text-white rounded"
       >
-        Enable Notifications
+        {permission === "granted" ? (subscribed ? "Subscribed ✅" : "Enable & Subscribe") : "Enable Notifications"}
       </button>
 
       {permission === "granted" && (
-        <>
-          <button
-            onClick={sendNotification}
-            className="px-4 py-2 bg-green-600 text-white rounded"
-          >
-            Send Test Notification
-          </button>
-
-          <button
-            onClick={subscribeUserToPush}
-            className="px-4 py-2 bg-blue-600 text-white rounded"
-          >
-            Subscribe to Push
-          </button>
-        </>
+        <button
+          onClick={sendTestNotification}
+          className="px-4 py-2 bg-green-600 text-white rounded"
+        >
+          Send Test Notification
+        </button>
       )}
     </div>
   );
