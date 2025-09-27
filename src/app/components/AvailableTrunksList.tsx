@@ -82,17 +82,40 @@ export default function AvailableTrunksList({
     }));
   };
 
-  const handleTrunkClick = (trunkId: number) => {
-    // Prevent clicks if still loading or if click is disabled
+  const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent, trunkId: number) => {
     if (clickDisabled[trunkId]) return;
     
-    // Add a small delay to prevent accidental double-clicks on mobile
-    setClickDisabled((prev) => ({ ...prev, [trunkId]: true }));
-    onSelectTrunk(selectedSong, trunkId);
+    const touch = e.touches[0];
+    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent, trunkId: number) => {
+    if (clickDisabled[trunkId] || !touchStartPos) return;
     
-    setTimeout(() => {
-      setClickDisabled((prev) => ({ ...prev, [trunkId]: false }));
-    }, 300);
+    const touch = e.changedTouches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartPos.x);
+    const deltaY = Math.abs(touch.clientY - touchStartPos.y);
+    
+    // Only trigger if the touch didn't move much (not a scroll)
+    if (deltaX < 10 && deltaY < 10) {
+      e.preventDefault();
+      e.stopPropagation();
+      onSelectTrunk(selectedSong, trunkId);
+    }
+    
+    setTouchStartPos(null);
+  };
+
+  const handleClick = (e: React.MouseEvent, trunkId: number) => {
+    // Only handle mouse clicks on desktop (not touch events converted to clicks)
+    if (clickDisabled[trunkId]) return;
+    
+    // Check if this is likely a converted touch event
+    if (e.detail === 0) return; // This is often a touch event converted to click
+    
+    onSelectTrunk(selectedSong, trunkId);
   };
 
   const TrunkItem = ({ trunk }: { trunk: Trunk }) => {
@@ -113,12 +136,17 @@ export default function AvailableTrunksList({
             ? 'opacity-70 cursor-wait' 
             : 'hover:bg-purple-700 cursor-pointer'
         }`}
-        onClick={() => handleTrunkClick(trunk.id)}
+        onClick={(e) => handleClick(e, trunk.id)}
+        onTouchStart={(e) => handleTouchStart(e, trunk.id)}
+        onTouchEnd={(e) => handleTouchEnd(e, trunk.id)}
         onMouseEnter={() => !isClickDisabled && setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
           // Prevent layout shift by setting a fixed height
           minHeight: `${coverSize + 16}px`,
+          // Improve touch target size on mobile
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent',
         }}
       >
         <div className="flex items-center gap-3">
