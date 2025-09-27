@@ -5,8 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiLogOut, FiTrash2, FiX, FiBell } from "react-icons/fi";
 import { deleteUser } from "../lib/usersApi"; 
-import { getUserPushSubscription} from "../lib/usersApi";
-import {subscribeUserToPush, unsubscribeUserFromPush } from "../lib/pushService";
+import { getUserPushSubscription } from "../lib/usersApi";
+import { subscribeUserToPush, unsubscribeUserFromPush } from "../lib/pushService";
 
 import { useAuth } from "../context/AuthContext";
 
@@ -23,13 +23,24 @@ export default function AccountSettingsModal({
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [pushEnabled, setPushEnabled] = useState(false);
   const [loadingPush, setLoadingPush] = useState(true);
+  const [supported, setSupported] = useState(true);
+
   const router = useRouter();
   const { username } = useParams() as { username: string };
   const { user } = useAuth();
 
+  // Check if push notifications are supported
+  useEffect(() => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setSupported(false);
+      setLoadingPush(false);
+      return;
+    }
+  }, []);
+
   // Fetch initial push subscription status
   useEffect(() => {
-    if (!user?.username) return;
+    if (!user?.username || !supported) return;
     (async () => {
       setLoadingPush(true);
       try {
@@ -42,8 +53,7 @@ export default function AccountSettingsModal({
         setLoadingPush(false);
       }
     })();
-  }, [user]);
-  
+  }, [user, supported]);
 
   const togglePush = async () => {
     if (!user?.username) return;
@@ -107,18 +117,20 @@ export default function AccountSettingsModal({
           <h2 className="text-3xl font-semibold mb-6 text-center">Account Settings</h2>
 
           {/* Push Notifications */}
-          <button
-            onClick={togglePush}
-            disabled={loadingPush}
-            className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl mb-4 text-lg font-medium shadow-md transition ${
-              pushEnabled
-                ? "bg-green-600 hover:bg-green-700 text-white"
-                : "bg-purple-600 hover:bg-purple-700 text-white"
-            }`}
-          >
-            <FiBell />
-            {pushEnabled ? "Disable Notifications" : "Enable Notifications"}
-          </button>
+          {supported && (
+            <button
+              onClick={togglePush}
+              disabled={loadingPush}
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl mb-4 text-lg font-medium shadow-md transition ${
+                pushEnabled
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "bg-purple-600 hover:bg-purple-700 text-white"
+              }`}
+            >
+              <FiBell />
+              {pushEnabled ? "Disable Notifications" : "Enable Notifications"}
+            </button>
+          )}
 
           {/* Logout */}
           <button
