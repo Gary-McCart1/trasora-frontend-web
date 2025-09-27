@@ -1,9 +1,19 @@
-import { fetchWithAuth } from "./usersApi"; // adjust path based on your file structure
+import { fetchWithAuth, getAuthHeaders, getAccessToken } from "./usersApi";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
 export async function subscribeUserToPush() {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return null;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    console.warn("Push notifications not supported in this browser.");
+    return null;
+  }
+
+  // Check for access token first
+  const token = getAccessToken();
+  if (!token) {
+    console.error("No access token found. User must be logged in.");
+    return null;
+  }
 
   const registration = await navigator.serviceWorker.ready;
 
@@ -16,27 +26,61 @@ export async function subscribeUserToPush() {
     applicationServerKey: convertedVapidKey,
   });
 
-  // Transform subscription object to match PushSubscriptionRequest DTO
   const payload = {
     endpoint: subscription.endpoint,
-    expirationTime: null, // can be null
+    expirationTime: null,
     keysP256dh: subscription.toJSON().keys?.p256dh,
     keysAuth: subscription.toJSON().keys?.auth,
   };
 
-  // Send subscription to backend with auth
-  const res = await fetchWithAuth(`${BASE_URL}/api/push/subscribe`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  console.log("Push payload:", payload);
+  console.log("Auth headers:", getAuthHeaders());
 
-  if (!res.ok) {
-    const errText = await res.text().catch(() => null);
-    throw new Error(`❌ Failed to subscribe to push: ${errText || res.status}`);
+  try {
+    const res = await fetchWithAuth(`${BASE_URL}/api/push/subscribe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => null);
+      console.error("Push subscription failed:", errText || res.status);
+      throw new Error(`❌ Failed to subscribe to push: ${errText || res.status}`);
+    }
+
+    console.log("Push subscription successful!");
+    return subscription;
+  } catch (err) {
+    console.error("Error sending push subscription:", err);
+    throw err;
+  }
+}
+
+export async function unsubscribeUserFromPush() {
+  const token = getAccessToken();
+  if (!token) {
+    console.error("No access token found. Cannot unsubscribe.");
+    return null;
   }
 
-  return subscription;
+  try {
+    const res = await fetchWithAuth(`${BASE_URL}/api/push/unsubscribe`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => null);
+      console.error("Unsubscribe failed:", errText || res.status);
+      throw new Error(`❌ Failed to unsubscribe from push: ${errText || res.status}`);
+    }
+
+    console.log("Push unsubscription successful!");
+    return true;
+  } catch (err) {
+    console.error("Error unsubscribing from push:", err);
+    throw err;
+  }
 }
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -45,16 +89,3 @@ function urlBase64ToUint8Array(base64String: string) {
   const rawData = window.atob(base64);
   return new Uint8Array([...rawData].map((c) => c.charCodeAt(0)));
 }
-
-export async function unsubscribeUserFromPush() {
-    const res = await fetchWithAuth(`${BASE_URL}/api/push/unsubscribe`, {
-      method: "DELETE",
-    });
-  
-    if (!res.ok) {
-      const errText = await res.text().catch(() => null);
-      throw new Error(`❌ Failed to unsubscribe from push: ${errText || res.status}`);
-    }
-  
-    return true;
-  }
