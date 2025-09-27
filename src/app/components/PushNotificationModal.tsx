@@ -68,7 +68,7 @@ export default function PushNotificationModal({ isOpen, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full space-y-4">
+      <div className="bg-zinc-900 p-6 rounded shadow-lg max-w-sm w-full space-y-4">
         <h2 className="text-lg font-bold">Enable Notifications</h2>
         <p className="text-sm">
           Stay up to date! Enable notifications to get alerts when your friends post new tracks.
