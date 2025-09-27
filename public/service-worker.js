@@ -16,7 +16,7 @@ self.addEventListener("push", (event) => {
       body: data.body,
       icon: "/icons/android-chrome-192x192.png",
       badge: "/icons/android-chrome-192x192.png",
-      data: data.url,
+      data: { url: data.url },
     };
   
     event.waitUntil(self.registration.showNotification(data.title, options));
