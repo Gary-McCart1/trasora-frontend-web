@@ -8,7 +8,6 @@ import FloatingParticles from "./FloatingParticles";
 import { useAuth } from "../context/AuthContext";
 import { useApplePlayer } from "../context/ApplePlayerContext";
 import StoriesBar from "./StoriesBar";
-import TestNotification from "./TestNotification";
 
 interface MainFeedProps {
   posts: PostDto[];
@@ -242,7 +241,6 @@ export default function MainFeed({
 
   return (
     <div className="relative w-full min-h-screen">
-      <TestNotification />
       {/* Init Modal */}
       {showInitModal && (
         <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">

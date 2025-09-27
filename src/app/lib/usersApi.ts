@@ -286,3 +286,21 @@ export async function getReferralLeaderboard(): Promise<ReferralDto[]> {
   if (!res.ok) throw new Error("Failed to fetch referral leaderboard");
   return res.json();
 }
+
+
+export interface PushSubscriptionDto {
+  endpoint: string;
+  keysP256dh: string;
+  keysAuth: string;
+}
+
+export async function getUserPushSubscription(
+  username: string
+): Promise<PushSubscriptionDto | null> {
+  const res = await fetchWithAuth(`${BASE_URL}/api/push/subscription/${username}`);
+  if (!res.ok) {
+    if (res.status === 404) return null; // no subscription yet
+    throw new Error("Failed to fetch push subscription");
+  }
+  return res.json();
+}

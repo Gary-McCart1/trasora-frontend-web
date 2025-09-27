@@ -8,15 +8,18 @@ import EmptyFeed from "./components/EmptyFeed";
 import PostSkeleton from "./components/PostSkeleton";
 import MainFeed from "./components/MainFeed";
 import { getFeed } from "./lib/postsApi";
+import PushNotificationModal from "./components/PushNotificationModal";
 
 export default function Home() {
-  const { user, loading: authLoading } = useAuth(); // assuming useAuth has a loading flag
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState<PostDto[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // modal state
+  const [isPushModalOpen, setPushModalOpen] = useState(false);
+
   useEffect(() => {
-    // Wait until auth is loaded
     if (authLoading) return;
 
     if (!user?.username) {
@@ -36,6 +39,19 @@ export default function Home() {
     };
 
     fetchPosts();
+
+    // Check if this user has already seen the push modal
+    const modalKey = `hasSeenPushModal_${user.username}`;
+    const hasSeenPushModal = localStorage.getItem(modalKey);
+
+    if (!hasSeenPushModal) {
+      const timer = setTimeout(() => {
+        setPushModalOpen(true);
+        localStorage.setItem(modalKey, "true"); // mark as seen for this user
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
   }, [user, authLoading, router]);
 
   if (loading || authLoading) {
@@ -47,11 +63,26 @@ export default function Home() {
       </div>
     );
   }
-  
 
   if (posts.length === 0) {
-    return <EmptyFeed />;
+    return (
+      <>
+        <EmptyFeed />
+        <PushNotificationModal
+          isOpen={isPushModalOpen}
+          onClose={() => setPushModalOpen(false)}
+        />
+      </>
+    );
   }
 
-  return <MainFeed posts={posts} initialIndex={0} />;
+  return (
+    <>
+      <MainFeed posts={posts} initialIndex={0} />
+      <PushNotificationModal
+        isOpen={isPushModalOpen}
+        onClose={() => setPushModalOpen(false)}
+      />
+    </>
+  );
 }
