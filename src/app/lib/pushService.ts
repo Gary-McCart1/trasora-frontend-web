@@ -45,3 +45,16 @@ function urlBase64ToUint8Array(base64String: string) {
   const rawData = window.atob(base64);
   return new Uint8Array([...rawData].map((c) => c.charCodeAt(0)));
 }
+
+export async function unsubscribeUserFromPush() {
+    const res = await fetchWithAuth(`${BASE_URL}/api/push/unsubscribe`, {
+      method: "DELETE",
+    });
+  
+    if (!res.ok) {
+      const errText = await res.text().catch(() => null);
+      throw new Error(`❌ Failed to unsubscribe from push: ${errText || res.status}`);
+    }
+  
+    return true;
+  }

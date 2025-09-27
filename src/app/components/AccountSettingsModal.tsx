@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiLogOut, FiTrash2, FiX } from "react-icons/fi";
-import { deleteUser } from "../lib/usersApi"; // import your existing function
+import { FiLogOut, FiTrash2, FiX, FiBell } from "react-icons/fi";
+import { deleteUser } from "../lib/usersApi"; 
+import { getUserPushSubscription} from "../lib/usersApi";
+import {subscribeUserToPush, unsubscribeUserFromPush } from "../lib/pushService";
+
+import { useAuth } from "../context/AuthContext";
 
 interface AccountSettingsModalProps {
   onClose: () => void;
@@ -17,10 +21,47 @@ export default function AccountSettingsModal({
 }: AccountSettingsModalProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [loadingPush, setLoadingPush] = useState(true);
   const router = useRouter();
   const { username } = useParams() as { username: string };
+  const { user } = useAuth();
 
-  // Actual delete function — calls backend API
+  // Fetch initial push subscription status
+  useEffect(() => {
+    if (!user?.username) return;
+    (async () => {
+      try {
+        const sub = await getUserPushSubscription(user.username);
+        setPushEnabled(!!sub?.endpoint);
+      } catch (err) {
+        console.error("Failed to fetch push subscription:", err);
+      } finally {
+        setLoadingPush(false);
+      }
+    })();
+  }, [user]);
+
+  const togglePush = async () => {
+    if (!user?.username) return;
+    setLoadingPush(true);
+
+    try {
+      if (pushEnabled) {
+        await unsubscribeUserFromPush();
+        setPushEnabled(false);
+      } else {
+        await subscribeUserToPush();
+        setPushEnabled(true);
+      }
+    } catch (err) {
+      console.error("Failed to toggle push:", err);
+      alert("An error occurred while updating notification settings.");
+    } finally {
+      setLoadingPush(false);
+    }
+  };
+
   async function handleDeleteAccount() {
     try {
       await deleteUser(username);
@@ -33,7 +74,6 @@ export default function AccountSettingsModal({
       console.error(error);
     }
   }
-  
 
   return (
     <AnimatePresence>
@@ -50,12 +90,7 @@ export default function AccountSettingsModal({
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          transition={{
-            duration: 0.2,
-            type: "spring",
-            damping: 25,
-            stiffness: 300,
-          }}
+          transition={{ duration: 0.2, type: "spring", damping: 25, stiffness: 300 }}
         >
           {/* Close Button */}
           <button
@@ -66,9 +101,21 @@ export default function AccountSettingsModal({
             <FiX size={22} />
           </button>
 
-          <h2 className="text-3xl font-semibold mb-6 text-center">
-            Account Settings
-          </h2>
+          <h2 className="text-3xl font-semibold mb-6 text-center">Account Settings</h2>
+
+          {/* Push Notifications */}
+          <button
+            onClick={togglePush}
+            disabled={loadingPush}
+            className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl mb-4 text-lg font-medium shadow-md transition ${
+              pushEnabled
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-purple-600 hover:bg-purple-700 text-white"
+            }`}
+          >
+            <FiBell />
+            {pushEnabled ? "Disable Notifications" : "Enable Notifications"}
+          </button>
 
           {/* Logout */}
           <button
@@ -91,8 +138,7 @@ export default function AccountSettingsModal({
           ) : (
             <>
               <p className="mt-6 text-sm text-zinc-300 text-center">
-                Type <span className="text-red-400 font-bold">delete</span> to
-                confirm.
+                Type <span className="text-red-400 font-bold">delete</span> to confirm.
               </p>
               <input
                 type="text"
