@@ -31,16 +31,19 @@ export default function AccountSettingsModal({
   useEffect(() => {
     if (!user?.username) return;
     (async () => {
+      setLoadingPush(true);
       try {
         const sub = await getUserPushSubscription(user.username);
-        setPushEnabled(!!sub?.endpoint);
+        setPushEnabled(sub.subscribed);
       } catch (err) {
         console.error("Failed to fetch push subscription:", err);
+        alert("Could not fetch push notifications status.");
       } finally {
         setLoadingPush(false);
       }
     })();
   }, [user]);
+  
 
   const togglePush = async () => {
     if (!user?.username) return;

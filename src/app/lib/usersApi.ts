@@ -296,37 +296,24 @@ export interface PushSubscriptionDto {
 
 export async function getUserPushSubscription(
   username: string
-): Promise<PushSubscriptionDto | null> {
-  const token = getAccessToken();
-  if (!token) {
-    console.error("No access token found. User must be logged in to fetch push subscription.");
-    return null;
-  }
-
-  const url = `${BASE_URL}/api/push/subscription/${username}`;
-  console.log("Fetching push subscription for user:", username);
-  console.log("Request headers:", getAuthHeaders());
-
+): Promise<{ subscribed: boolean; endpoint?: string }> {
   try {
-    const res = await fetchWithAuth(url);
-
+    const res = await fetchWithAuth(`${BASE_URL}/api/push/subscription/${username}`);
     if (!res.ok) {
-      const errText = await res.text().catch(() => null);
-
-      if (res.status === 404) {
-        console.log("No push subscription found for user.");
-        return null; // no subscription yet
-      }
-
-      console.error("Failed to fetch push subscription:", errText || res.status);
-      throw new Error(`❌ Failed to fetch push subscription: ${errText || res.status}`);
+      if (res.status === 404) return { subscribed: false };
+      throw new Error(`Failed to fetch push subscription: ${res.status}`);
     }
-
-    const subscription = await res.json();
-    console.log("Push subscription fetched successfully:", subscription);
-    return subscription;
-  } catch (err) {
-    console.error("Error fetching push subscription:", err);
-    throw err;
+    const data = await res.json();
+    return { subscribed: !!data?.endpoint, endpoint: data?.endpoint };
+  } catch (err: unknown) {
+    let errorMessage = "Unknown error";
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else if (typeof err === "string") {
+      errorMessage = err;
+    }
+    console.error("Error fetching push subscription:", errorMessage);
+    return { subscribed: false };
   }
 }
+
