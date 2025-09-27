@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import { Trunk, Branch } from "../types/User";
-import { HiOutlineCollection } from "react-icons/hi";
+import TrunkItem from "./TrunkItem"; // <-- new file
 import { getBranchesForTrunk } from "../lib/trunksApi";
 
 interface AvailableTrunksListProps {
@@ -45,8 +44,6 @@ export default function AvailableTrunksList({
       try {
         const data = await getBranchesForTrunk(trunkId);
         setTrunkBranches((prev) => ({ ...prev, [trunkId]: data }));
-        
-        // Enable clicks after a short delay to ensure layout is stable
         setTimeout(() => {
           setClickDisabled((prev) => ({ ...prev, [trunkId]: false }));
         }, 100);
@@ -82,169 +79,24 @@ export default function AvailableTrunksList({
     }));
   };
 
-  const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent, trunkId: number) => {
-    if (clickDisabled[trunkId]) return;
-    
-    const touch = e.touches[0];
-    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent, trunkId: number) => {
-    if (clickDisabled[trunkId] || !touchStartPos) return;
-    
-    const touch = e.changedTouches[0];
-    const deltaX = Math.abs(touch.clientX - touchStartPos.x);
-    const deltaY = Math.abs(touch.clientY - touchStartPos.y);
-    
-    // Only trigger if the touch didn't move much (not a scroll)
-    if (deltaX < 10 && deltaY < 10) {
-      e.preventDefault();
-      e.stopPropagation();
-      onSelectTrunk(selectedSong, trunkId);
-    }
-    
-    setTouchStartPos(null);
-  };
-
-  const handleClick = (e: React.MouseEvent, trunkId: number) => {
-    // Only handle mouse clicks on desktop (not touch events converted to clicks)
-    if (clickDisabled[trunkId]) return;
-    
-    // Check if this is likely a converted touch event
-    if (e.detail === 0) return; // This is often a touch event converted to click
-    
-    onSelectTrunk(selectedSong, trunkId);
-  };
-
-  const TrunkItem = ({ trunk }: { trunk: Trunk }) => {
-    const [hovered, setHovered] = useState(false);
-    const branches = trunkBranches[trunk.id] || [];
-    const isClickDisabled = clickDisabled[trunk.id];
-
-    // Check if all visible images are loaded
-    const visibleBranches = branches.slice(0, 3);
-    const allImagesLoaded = visibleBranches.length === 0 || 
-      visibleBranches.every(branch => loadedImages[trunk.id]?.[branch.id]);
-
-    return (
-      <li
-        key={trunk.id}
-        className={`flex items-center justify-between p-2 bg-zinc-800 rounded transition-colors ${
-          isClickDisabled 
-            ? 'opacity-70 cursor-wait' 
-            : 'hover:bg-purple-700 cursor-pointer'
-        }`}
-        onClick={(e) => handleClick(e, trunk.id)}
-        onTouchStart={(e) => handleTouchStart(e, trunk.id)}
-        onTouchEnd={(e) => handleTouchEnd(e, trunk.id)}
-        onMouseEnter={() => !isClickDisabled && setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          // Prevent layout shift by setting a fixed height
-          minHeight: `${coverSize + 16}px`,
-          // Improve touch target size on mobile
-          touchAction: 'manipulation',
-          WebkitTapHighlightColor: 'transparent',
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="relative flex-shrink-0"
-            style={{
-              width: coverSize + offset * 2 + 10,
-              height: coverSize,
-            }}
-          >
-            {branches.length > 0 ? (
-              <>
-                {/* Render placeholder backgrounds first to prevent layout shift */}
-                {visibleBranches.map((branch, index) => (
-                  <div
-                    key={`placeholder-${branch.id}`}
-                    className="absolute bg-zinc-700 rounded-md animate-pulse"
-                    style={{
-                      left: `${
-                        hovered && windowWidth >= 640
-                          ? index * hoverOffset
-                          : index * offset
-                      }px`,
-                      top: 0,
-                      width: coverSize,
-                      height: coverSize,
-                      zIndex: branches.length - index,
-                    }}
-                  />
-                ))}
-                
-                {/* Render actual images on top */}
-                {visibleBranches.map((branch, index) => {
-                  const isLoaded = loadedImages[trunk.id]?.[branch.id] || false;
-                  
-                  return (
-                    <div
-                      key={`image-${branch.id}`}
-                      className="absolute"
-                      style={{
-                        left: `${
-                          hovered && windowWidth >= 640
-                            ? index * hoverOffset
-                            : index * offset
-                        }px`,
-                        top: 0,
-                        width: coverSize,
-                        height: coverSize,
-                        zIndex: (branches.length - index) + 10,
-                      }}
-                    >
-                      <Image
-                        src={branch.albumArtUrl}
-                        alt={branch.title}
-                        width={coverSize}
-                        height={coverSize}
-                        unoptimized
-                        className={`rounded-md shadow-md border border-zinc-700 object-cover transition-opacity duration-300 ${
-                          isLoaded ? "opacity-100" : "opacity-0"
-                        }`}
-                        onLoad={() => handleImageLoad(trunk.id, branch.id)}
-                        onError={() => {
-                          // Handle failed image loads
-                          setLoadedImages((prev) => ({
-                            ...prev,
-                            [trunk.id]: { ...(prev[trunk.id] || {}), [branch.id]: true },
-                          }));
-                        }}
-                      />
-                    </div>
-                  );
-                })}
-              </>
-            ) : (
-              <div className="text-purple-700 flex items-center justify-center w-full h-full bg-zinc-700 rounded-md">
-                <HiOutlineCollection size={coverSize * 0.6} />
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-white font-medium truncate">{trunk.name}</span>
-            <span className="text-zinc-400 text-sm truncate">Owner: {trunk.username}</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-zinc-400 text-sm">{branches.length} songs</span>
-          {isClickDisabled && (
-            <div className="w-4 h-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
-          )}
-        </div>
-      </li>
-    );
-  };
-
   return (
     <ul className="space-y-2">
       {trunks.map((trunk) => (
-        <TrunkItem key={trunk.id} trunk={trunk} />
+        <TrunkItem
+          key={trunk.id}
+          trunk={trunk}
+          branches={trunkBranches[trunk.id] || []}
+          selectedSong={selectedSong}
+          loadedImages={loadedImages}
+          clickDisabled={clickDisabled}
+          windowWidth={windowWidth}
+          coverSize={coverSize}
+          offset={offset}
+          hoverOffset={hoverOffset}
+          onSelectTrunk={onSelectTrunk}
+          handleImageLoad={handleImageLoad}
+          setLoadedImages={setLoadedImages}
+        />
       ))}
     </ul>
   );
