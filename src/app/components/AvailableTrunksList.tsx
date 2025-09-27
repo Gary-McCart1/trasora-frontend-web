@@ -30,21 +30,7 @@ export default function AvailableTrunksList({
   const [trunkBranches, setTrunkBranches] = useState<Record<number, Branch[]>>(
     {}
   );
-
-  useEffect(() => {
-    trunks.forEach((trunk) => {
-      const branches = trunkBranches[trunk.id] || [];
-      branches.forEach((branch) => {
-        if (!branch.albumArtUrl) return;
-  
-        // Use the native browser Image constructor
-        const img = new window.Image();
-        img.src = branch.albumArtUrl;
-      });
-    });
-  }, [trunkBranches, trunks]);
-  
-  
+  const [loadedImages, setLoadedImages] = useState<Record<number, Record<number, boolean>>>({});
 
   useEffect(() => {
     setMounted(true);
@@ -55,25 +41,21 @@ export default function AvailableTrunksList({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Fetch branches using the Next.js route handler
-  
-useEffect(() => {
-  async function fetchBranches(trunkId: number) {
-    try {
-      const data = await getBranchesForTrunk(trunkId);
-      setTrunkBranches((prev) => ({ ...prev, [trunkId]: data }));
-    } catch (err) {
-      console.error(err);
-      setTrunkBranches((prev) => ({ ...prev, [trunkId]: [] }));
+  useEffect(() => {
+    async function fetchBranches(trunkId: number) {
+      try {
+        const data = await getBranchesForTrunk(trunkId);
+        setTrunkBranches((prev) => ({ ...prev, [trunkId]: data }));
+      } catch (err) {
+        console.error(err);
+        setTrunkBranches((prev) => ({ ...prev, [trunkId]: [] }));
+      }
     }
-  }
 
-  trunks.forEach((trunk) => {
-    if (!trunkBranches[trunk.id]) {
-      fetchBranches(trunk.id);
-    }
-  });
-}, [trunks, trunkBranches]);
+    trunks.forEach((trunk) => {
+      if (!trunkBranches[trunk.id]) fetchBranches(trunk.id);
+    });
+  }, [trunks, trunkBranches]);
 
   if (!mounted) return null;
 
@@ -84,6 +66,13 @@ useEffect(() => {
   const coverSize = windowWidth < 640 ? 30 : windowWidth < 1024 ? 35 : 40;
   const offset = windowWidth < 640 ? 8 : windowWidth < 1024 ? 10 : 12;
   const hoverOffset = windowWidth < 640 ? 12 : windowWidth < 1024 ? 16 : 20;
+
+  const handleImageLoad = (trunkId: number, branchId: number) => {
+    setLoadedImages((prev) => ({
+      ...prev,
+      [trunkId]: { ...(prev[trunkId] || {}), [branchId]: true },
+    }));
+  };
 
   const TrunkItem = ({ trunk }: { trunk: Trunk }) => {
     const [hovered, setHovered] = useState(false);
@@ -106,26 +95,42 @@ useEffect(() => {
             }}
           >
             {branches.length > 0 ? (
-              branches.slice(0, 3).map((branch, index) => (
-                <Image
-                  key={branch.id}
-                  src={branch.albumArtUrl}
-                  alt={branch.title}
-                  width={coverSize}
-                  height={coverSize}
-                  unoptimized
-                  className="absolute rounded-md shadow-md border border-zinc-700 object-cover transition-all duration-300"
-                  style={{
-                    left: `${
-                      hovered && windowWidth >= 640
-                        ? index * hoverOffset
-                        : index * offset
-                    }px`,
-                    top: 0,
-                    zIndex: branches.length - index,
-                  }}
-                />
-              ))
+              branches.slice(0, 3).map((branch, index) => {
+                const isLoaded = loadedImages[trunk.id]?.[branch.id] || false;
+
+                return (
+                  <div
+                    key={branch.id}
+                    style={{
+                      left: `${
+                        hovered && windowWidth >= 640
+                          ? index * hoverOffset
+                          : index * offset
+                      }px`,
+                      top: 0,
+                      width: coverSize,
+                      height: coverSize,
+                      position: "absolute",
+                      zIndex: branches.length - index,
+                    }}
+                  >
+                    {!isLoaded && (
+                      <div className="bg-zinc-700 rounded-md w-full h-full animate-pulse" />
+                    )}
+                    <Image
+                      src={branch.albumArtUrl}
+                      alt={branch.title}
+                      width={coverSize}
+                      height={coverSize}
+                      unoptimized
+                      className={`absolute rounded-md shadow-md border border-zinc-700 object-cover transition-all duration-300 ${
+                        isLoaded ? "opacity-100" : "opacity-0"
+                      }`}
+                      onLoad={() => handleImageLoad(trunk.id, branch.id)}
+                    />
+                  </div>
+                );
+              })
             ) : (
               <div className="text-purple-700 flex items-center justify-center w-full h-full bg-zinc-700 rounded-md">
                 <HiOutlineCollection size={coverSize * 0.6} />
@@ -134,9 +139,7 @@ useEffect(() => {
           </div>
           <div className="flex flex-col">
             <span className="text-white font-medium">{trunk.name}</span>
-            <span className="text-zinc-400 text-sm">
-              Owner: {trunk.username}
-            </span>
+            <span className="text-zinc-400 text-sm">Owner: {trunk.username}</span>
           </div>
         </div>
         <span className="text-zinc-400 text-sm">{branches.length} songs</span>

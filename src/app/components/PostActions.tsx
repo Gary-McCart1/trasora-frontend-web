@@ -262,7 +262,12 @@ export default function PostActions({
             className="w-11 h-11 rounded-full object-cover border border-purple-500"
           />
           <div className="flex flex-col">
-            <Link href={`/profile/${authorUsername}`} className="font-semibold text-base hover:text-purple-400">{authorUsername}</Link>
+            <Link
+              href={`/profile/${authorUsername}`}
+              className="font-semibold text-base hover:text-purple-400"
+            >
+              {authorUsername}
+            </Link>
             <span className="text-xs text-zinc-500">
               {createdAt
                 ? (() => {
@@ -392,8 +397,11 @@ export default function PostActions({
               <h2 className="text-white text-lg font-semibold mb-4">
                 Add to Trunk
               </h2>
+
               {loadingTrunks ? (
                 <p className="text-zinc-400">Loading...</p>
+              ) : availableTrunks.length === 0 ? (
+                <p className="text-zinc-400">No trunks available</p>
               ) : (
                 <AvailableTrunksList
                   selectedSong={selectedSong}
@@ -401,6 +409,7 @@ export default function PostActions({
                   onSelectTrunk={handleSelectTrunk}
                 />
               )}
+
               <button
                 onClick={() => setBranchModalOpen(false)}
                 className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
