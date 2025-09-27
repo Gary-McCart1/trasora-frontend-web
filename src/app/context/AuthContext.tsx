@@ -18,7 +18,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname()
+  const pathname = usePathname();
+
+  // Paths that do not require auth
+  const publicPaths = [
+    "/about",
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
+  ];
 
   // Fetch user on mount
   useEffect(() => {
@@ -27,18 +37,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const currentUser = await fetchCurrentUser();
         setUser(currentUser);
       } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error("Auth error:", error);
         setUser(null);
-  
-        const publicPaths = [
-          "/about",
-          "/login",
-          "/signup",
-          "/forgot-password",
-          "/reset-password",
-          "/verify-email",
-        ];
-  
+
         if (!publicPaths.some((path) => pathname?.startsWith(path))) {
           router.push("/login");
         }
@@ -46,11 +47,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
       }
     };
-  
+
     fetchUser();
   }, [router, pathname]);
 
-  // Helper to refresh user state manually
+  // Silent refresh on interval (every 10 minutes)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const currentUser = await fetchCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.error("Silent refresh failed:", error);
+        // Don’t log out immediately, let fetchWithAuth handle retry
+      }
+    }, 10 * 60 * 1000); // every 10 minutes
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Manual refresh helper
   const refreshUser = async () => {
     setLoading(true);
     try {
@@ -59,7 +75,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error("Error refreshing user:", error);
       setUser(null);
-      router.push("/login");
+
+      if (!publicPaths.some((path) => pathname?.startsWith(path))) {
+        router.push("/login");
+      }
     } finally {
       setLoading(false);
     }

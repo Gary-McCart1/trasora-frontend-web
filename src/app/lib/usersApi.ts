@@ -29,53 +29,98 @@ export function getAuthHeaders(): Record<string, string> {
 }
 
 // -------------------- REFRESH LOGIC --------------------
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = getRefreshToken();
-  if (!refreshToken) return null;
-
-  const res = await fetch(`${BASE_URL}/api/auth/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
-  });
-
-  if (!res.ok) {
-    clearTokens();
+  if (!refreshToken) {
     return null;
   }
 
-  const data = await res.json();
-  const newAccessToken = data.accessToken;
-  setTokens(newAccessToken);
-  return newAccessToken;
+  try {
+    const res = await fetch(`${BASE_URL}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!res.ok) {
+      // Refresh token invalid or expired
+      clearTokens();
+      return null;
+    }
+
+    const data = await res.json();
+
+    const newAccessToken = data.accessToken;
+    const newRefreshToken = data.refreshToken ?? refreshToken; // fallback if server doesn’t rotate
+
+    if (!newAccessToken) {
+      clearTokens();
+      return null;
+    }
+
+    setTokens(newAccessToken, newRefreshToken);
+    return newAccessToken;
+  } catch (err) {
+    console.error("Error refreshing token:", err);
+    clearTokens();
+    return null;
+  }
 }
+
+
 
 // -------------------- FETCH WRAPPER --------------------
 export async function fetchWithAuth(
-  url: string,
-  options: RequestInit = {}
+  input: RequestInfo,
+  init?: RequestInit
 ): Promise<Response> {
-  const headers = {
-    ...options.headers,
-    ...getAuthHeaders(),
+  let token = getAccessToken();
+
+  if (token) {
+    const expiry = getTokenExpiry(token);
+    const now = Date.now();
+
+    if (expiry <= now) {
+      // Token is already expired → try refresh
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        token = newToken;
+      } else {
+        clearTokens();
+        throw new Error("Session expired. Please log in again.");
+      }
+    } else if (expiry - now < 5 * 60 * 1000) {
+      // Token expiring soon → proactively refresh
+      const newToken = await refreshAccessToken();
+      if (newToken) token = newToken;
+    }
+  }
+
+  const headers: Record<string, string> = {
+    ...(init?.headers as Record<string, string>),
   };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  let res = await fetch(url, { ...options, headers });
+  // First attempt
+  let res = await fetch(input, { ...init, headers });
 
+  // If unauthorized → try refresh once
   if (res.status === 401) {
-    // try refresh
     const newToken = await refreshAccessToken();
     if (newToken) {
-      const retryHeaders = {
-        ...options.headers,
-        Authorization: `Bearer ${newToken}`,
-      };
-      res = await fetch(url, { ...options, headers: retryHeaders });
+      headers["Authorization"] = `Bearer ${newToken}`;
+      res = await fetch(input, { ...init, headers });
+    } else {
+      clearTokens();
+      throw new Error("Session expired. Please log in again.");
     }
   }
 
   return res;
 }
+
+
+
 
 // -------------------- AUTH --------------------
 
@@ -314,6 +359,15 @@ export async function getUserPushSubscription(
     }
     console.error("Error fetching push subscription:", errorMessage);
     return { subscribed: false };
+  }
+}
+
+function getTokenExpiry(token: string): number {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.exp * 1000; // exp is in seconds → convert to ms
+  } catch {
+    return 0;
   }
 }
 

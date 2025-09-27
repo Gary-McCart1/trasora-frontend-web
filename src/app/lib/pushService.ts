@@ -1,4 +1,4 @@
-import { fetchWithAuth, getAuthHeaders, getAccessToken } from "./usersApi";
+import { fetchWithAuth} from "./usersApi";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
