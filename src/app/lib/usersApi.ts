@@ -51,7 +51,7 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 // -------------------- FETCH WRAPPER --------------------
-async function fetchWithAuth(
+export async function fetchWithAuth(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
