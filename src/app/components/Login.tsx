@@ -5,22 +5,20 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { loginUser } from "../lib/usersApi";
-import { registerPush } from "../lib/push"; // <-- import your push registration
+import { registerPush } from "../lib/push";
 
 export default function Login() {
   const { setUser } = useAuth();
-  const [form, setForm] = useState({
-    login: "",
-    password: "",
-  });
-
+  const [form, setForm] = useState({ login: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-  const router = useRouter();
 
   const togglePasswordVisibility = () => {
     setShowPassword((show) => !show);
@@ -28,17 +26,17 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
+      // 1️⃣ Log in the user
       const userData = await loginUser(form.login, form.password);
-
       setUser(userData);
 
-      // Fire-and-forget push registration
-      registerPush().catch((err) =>
-        console.error("Push registration error:", err)
-      );
+      // 2️⃣ Wait for push registration to complete
+      await registerPush();
 
+      // 3️⃣ Success
       alert("Login was successful");
       setForm({ login: "", password: "" });
       router.push("/");
@@ -55,6 +53,8 @@ export default function Login() {
         console.error("Login failed:", error);
         alert("Login failed: Your username or password was incorrect.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,9 +104,10 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 text-sm rounded-md transition"
+          disabled={loading}
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 text-sm rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign in
+          {loading ? "Signing in..." : "Sign in"}
         </button>
 
         <p className="text-xs text-center text-zinc-500">

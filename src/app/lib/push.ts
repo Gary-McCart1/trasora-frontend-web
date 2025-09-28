@@ -1,8 +1,25 @@
 // lib/push.ts
 import { PushNotifications } from '@capacitor/push-notifications';
-import { fetchWithAuth } from './usersApi';
+import { fetchWithAuth, getAccessToken } from './usersApi';
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
+
+// Utility to retry a function N times with delay
+async function retry<T>(
+  fn: () => Promise<T>,
+  retries: number = 3,
+  delayMs: number = 500
+): Promise<T> {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === retries - 1) throw err;
+      await new Promise((res) => setTimeout(res, delayMs));
+    }
+  }
+  throw new Error('Retry failed unexpectedly');
+}
 
 export const registerPush = async () => {
   try {
@@ -16,26 +33,27 @@ export const registerPush = async () => {
     // Register with APNs/FCM
     await PushNotifications.register();
 
-    // Listen for device token
     const sendTokenToBackend = async (token: string) => {
-      try {
+      // Wait until access token exists before sending
+      await retry(async () => {
+        const accessToken = getAccessToken();
+        if (!accessToken) throw new Error('Access token not ready');
+
         const res = await fetchWithAuth(`${BASE_URL}/api/push/subscribe/apn`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ deviceToken: token })
+          body: JSON.stringify({ deviceToken: token }),
         });
 
         if (!res.ok) {
-          console.error('Failed to save device token:', res.statusText);
-        } else {
-          console.log('APN token saved successfully');
+          throw new Error(`Failed to save device token: ${res.statusText}`);
         }
-      } catch (err) {
-        console.error('Error sending device token to backend:', err);
-      }
+
+        console.log('✅ APN token saved successfully');
+      }, 5, 500); // retry up to 5 times, 500ms apart
     };
 
-    // This listener fires when the token is ready
+    // Listener fires when token is ready
     PushNotifications.addListener('registration', async (token) => {
       console.log('Device token:', token.value);
       await sendTokenToBackend(token.value);
@@ -55,13 +73,6 @@ export const registerPush = async () => {
     PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
       console.log('Push action performed:', notification);
     });
-
-    // Try to get token immediately (some platforms support it)
-    const tokenResult = await PushNotifications.getDeliveredNotifications(); 
-    if (tokenResult) {
-      // fallback: sometimes token may already exist
-      console.log('Existing delivered notifications:', tokenResult);
-    }
 
   } catch (err) {
     console.error('Push registration failed:', err);
