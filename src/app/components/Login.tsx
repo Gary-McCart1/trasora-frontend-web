@@ -27,32 +27,31 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
-      // 1️⃣ Log in the user
       const userData = await loginUser(form.login, form.password);
       setUser(userData);
-
-      // 2️⃣ Wait for push registration to complete
-      await registerPush();
-
-      // 3️⃣ Success
+  
+      // iOS: call AppDelegate to register for push after login
+      if (window.Capacitor?.isNativePlatform() && window.AppDelegate) {
+        window.AppDelegate.registerForPushNotifications({});
+        window.AppDelegate.sendPendingTokenIfNeeded();
+      } else {
+        await registerPush();
+      }
+      
+  
+      // Web push handled by existing registerPush()
+      if (!window.Capacitor?.isNativePlatform()) {
+        await registerPush();
+      }
+  
       alert("Login was successful");
       setForm({ login: "", password: "" });
       router.push("/");
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Login failed:", error.message);
-
-        if (error.message.includes("Please verify your email")) {
-          alert("Please verify your email!");
-        } else {
-          alert("Login failed: Your username or password was incorrect.");
-        }
-      } else {
-        console.error("Login failed:", error);
-        alert("Login failed: Your username or password was incorrect.");
-      }
+      console.error("Login failed:", error);
+      alert("Login failed: Your username or password was incorrect.");
     } finally {
       setLoading(false);
     }

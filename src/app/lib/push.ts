@@ -4,6 +4,9 @@ import { fetchWithAuth, getAccessToken } from './usersApi';
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
+// Store a pending APN token in case user is not logged in yet
+let pendingToken: string | null = null;
+
 // Utility to retry a function N times with delay
 async function retry<T>(
   fn: () => Promise<T>,
@@ -21,6 +24,7 @@ async function retry<T>(
   throw new Error('Retry failed unexpectedly');
 }
 
+// Main registration function
 export const registerPush = async () => {
   try {
     // Request permission
@@ -33,48 +37,64 @@ export const registerPush = async () => {
     // Register with APNs/FCM
     await PushNotifications.register();
 
-    const sendTokenToBackend = async (token: string) => {
-      // Wait until access token exists before sending
-      await retry(async () => {
-        const accessToken = getAccessToken();
-        if (!accessToken) throw new Error('Access token not ready');
-
-        const res = await fetchWithAuth(`${BASE_URL}/api/push/subscribe/apn`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ deviceToken: token }),
-        });
-
-        if (!res.ok) {
-          throw new Error(`Failed to save device token: ${res.statusText}`);
-        }
-
-        console.log('✅ APN token saved successfully');
-      }, 5, 500); // retry up to 5 times, 500ms apart
-    };
-
     // Listener fires when token is ready
     PushNotifications.addListener('registration', async (token) => {
       console.log('Device token:', token.value);
       await sendTokenToBackend(token.value);
     });
 
-    // Error listener
+    // Registration error listener
     PushNotifications.addListener('registrationError', (error) => {
       console.error('Push registration error:', error);
     });
 
-    // Push received
+    // Push received listener
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
       console.log('Push received:', notification);
     });
 
-    // Action performed
+    // Push action performed listener
     PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
       console.log('Push action performed:', notification);
     });
 
   } catch (err) {
     console.error('Push registration failed:', err);
+  }
+};
+
+// Send APN token to backend
+export const sendTokenToBackend = async (token: string) => {
+  const accessToken = getAccessToken();
+
+  if (!accessToken) {
+    console.log('Access token not ready, storing token to send later');
+    pendingToken = token;
+    return;
+  }
+
+  await retry(async () => {
+    const res = await fetch(`${BASE_URL}/api/push/subscribe/apn`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({ deviceToken: token })
+    });
+
+    if (!res.ok) throw new Error(`Failed to save device token: ${res.statusText}`);
+    console.log('✅ APN token saved successfully');
+
+    // Clear pending token if it was stored
+    if (pendingToken === token) pendingToken = null;
+  }, 5, 500);
+};
+
+// Call this after login to send any pending token
+export const sendPendingTokenIfNeeded = async () => {
+  if (pendingToken) {
+    console.log('Sending pending APN token now...');
+    await sendTokenToBackend(pendingToken);
   }
 };
