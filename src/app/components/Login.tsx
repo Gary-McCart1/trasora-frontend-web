@@ -27,25 +27,20 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
       const userData = await loginUser(form.login, form.password);
       setUser(userData);
-  
+
       // iOS: call AppDelegate to register for push after login
       if (window.Capacitor?.isNativePlatform() && window.AppDelegate) {
-        window.AppDelegate.registerForPushNotifications({});
+        window.AppDelegate.registerForPushNotifications();
         window.AppDelegate.sendPendingTokenIfNeeded();
       } else {
+        // Web push handled by Capacitor / browser
         await registerPush();
       }
-      
-  
-      // Web push handled by existing registerPush()
-      if (!window.Capacitor?.isNativePlatform()) {
-        await registerPush();
-      }
-  
+
       alert("Login was successful");
       setForm({ login: "", password: "" });
       router.push("/");
@@ -59,7 +54,6 @@ export default function Login() {
 
   return (
     <section className="relative bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-950 min-h-[60vh] flex items-center justify-center text-white px-4">
-      {/* Purple glow overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-900/40 via-transparent to-purple-900/40 pointer-events-none blur-3xl z-0"></div>
 
       <form
