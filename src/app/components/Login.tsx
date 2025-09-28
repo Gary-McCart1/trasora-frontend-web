@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
-import { loginUser, resendVerificationEmail } from "../lib/usersApi";
+import { loginUser } from "../lib/usersApi";
+import { registerPush } from "../lib/push"; // <-- import your push registration
 
 export default function Login() {
   const { setUser } = useAuth();
@@ -32,6 +33,12 @@ export default function Login() {
       const userData = await loginUser(form.login, form.password);
 
       setUser(userData);
+
+      // Fire-and-forget push registration
+      registerPush().catch((err) =>
+        console.error("Push registration error:", err)
+      );
+
       alert("Login was successful");
       setForm({ login: "", password: "" });
       router.push("/");
@@ -68,8 +75,8 @@ export default function Login() {
           placeholder="Username or email"
           value={form.login}
           onChange={handleChange}
-          autoCapitalize="none" 
-          autoCorrect="off" 
+          autoCapitalize="none"
+          autoCorrect="off"
           className="w-full bg-zinc-800 text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500 text-base"
           required
         />
@@ -91,11 +98,7 @@ export default function Login() {
             tabIndex={-1}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? (
-              <HiOutlineEyeOff size={20} />
-            ) : (
-              <HiOutlineEye size={20} />
-            )}
+            {showPassword ? <HiOutlineEyeOff size={20} /> : <HiOutlineEye size={20} />}
           </button>
         </div>
 
@@ -108,10 +111,7 @@ export default function Login() {
 
         <p className="text-xs text-center text-zinc-500">
           Forgot your password?{" "}
-          <a
-            href="/forgot-password"
-            className="text-purple-400 hover:underline"
-          >
+          <a href="/forgot-password" className="text-purple-400 hover:underline">
             Reset it here
           </a>
         </p>
