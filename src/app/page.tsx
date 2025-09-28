@@ -9,6 +9,7 @@ import PostSkeleton from "./components/PostSkeleton";
 import MainFeed from "./components/MainFeed";
 import { getFeed } from "./lib/postsApi";
 import PushNotificationModal from "./components/PushNotificationModal";
+import { registerPush } from "./lib/push";
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -40,7 +41,7 @@ export default function Home() {
 
     fetchPosts();
 
-    // Check if this user has already seen the push modal
+    // ---------------- Push Modal ----------------
     const modalKey = `hasSeenPushModal_${user.username}`;
     const hasSeenPushModal = localStorage.getItem(modalKey);
 
@@ -51,6 +52,19 @@ export default function Home() {
       }, 2000);
 
       return () => clearTimeout(timer);
+    }
+
+    // ---------------- Register Push (once per device per user) ----------------
+    const pushKey = `hasRegisteredPush_${user.username}`;
+    const hasRegisteredPush = localStorage.getItem(pushKey);
+
+    if (!hasRegisteredPush) {
+      registerPush()
+        .then(() => {
+          console.log("Push registration successful");
+          localStorage.setItem(pushKey, "true"); // mark as registered
+        })
+        .catch(err => console.error("Push registration failed:", err));
     }
   }, [user, authLoading, router]);
 
