@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { User } from "../types/User";
 import { getCurrentUser as fetchCurrentUser } from "../lib/usersApi";
+import { registerPush } from "../lib/push"; // ✅ import
 
 interface AuthContextType {
   user: User | null;
@@ -20,7 +21,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Paths that do not require auth
   const publicPaths = [
     "/about",
     "/login",
@@ -29,6 +29,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     "/reset-password",
     "/verify-email",
   ];
+
+  // 🚀 Register for push once on app start
+  useEffect(() => {
+    registerPush().catch((err) => {
+      console.error("Failed to register push:", err);
+    });
+  }, []);
 
   // Fetch user on mount
   useEffect(() => {
@@ -51,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     fetchUser();
   }, [router, pathname]);
 
-  // Silent refresh on interval (every 10 minutes)
+  // Silent refresh every 10 min
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -59,14 +66,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(currentUser);
       } catch (error) {
         console.error("Silent refresh failed:", error);
-        // Don’t log out immediately, let fetchWithAuth handle retry
       }
-    }, 10 * 60 * 1000); // every 10 minutes
+    }, 10 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Manual refresh helper
   const refreshUser = async () => {
     setLoading(true);
     try {

@@ -1,13 +1,22 @@
 // lib/push.ts
-import { PushNotifications } from '@capacitor/push-notifications';
-import { fetchWithAuth, getAccessToken } from './usersApi';
+// lib/push.ts
+import {
+    PushNotifications,
+    PushNotificationSchema,
+    ActionPerformed,
+    RegistrationError,
+    Token,
+  } from '@capacitor/push-notifications';
+  
+import { getAccessToken } from './usersApi';
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
-// Store a pending APN token in case user is not logged in yet
+// 🔹 Global state
 let pendingToken: string | null = null;
+let listenersAttached = false;
 
-// Utility to retry a function N times with delay
+// Retry helper
 async function retry<T>(
   fn: () => Promise<T>,
   retries: number = 3,
@@ -24,52 +33,57 @@ async function retry<T>(
   throw new Error('Retry failed unexpectedly');
 }
 
-// Main registration function
+// 🔹 Called at app startup (AuthProvider)
 export const registerPush = async () => {
   try {
-    // Request permission
     const permResult = await PushNotifications.requestPermissions();
     if (permResult.receive !== 'granted') {
       console.log("Push permissions not granted");
       return;
     }
 
-    // Register with APNs/FCM
     await PushNotifications.register();
 
-    // Listener fires when token is ready
-    PushNotifications.addListener('registration', async (token) => {
-      console.log('Device token:', token.value);
-      await sendTokenToBackend(token.value);
-    });
+    // ✅ Attach listeners only once
+    if (!listenersAttached) {
+      listenersAttached = true;
 
-    // Registration error listener
-    PushNotifications.addListener('registrationError', (error) => {
-      console.error('Push registration error:', error);
-    });
+      PushNotifications.addListener('registration', async (token: Token) => {
+        console.log('📱 Device token received:', token.value);
+        // Store it until we know user is logged in
+        pendingToken = token.value;
+      });
 
-    // Push received listener
-    PushNotifications.addListener('pushNotificationReceived', (notification) => {
-      console.log('Push received:', notification);
-    });
-
-    // Push action performed listener
-    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-      console.log('Push action performed:', notification);
-    });
+      PushNotifications.addListener('registrationError', (error: RegistrationError) => {
+        console.error('❌ Push registration error:', error);
+      });
+      
+      PushNotifications.addListener(
+        'pushNotificationReceived',
+        (notification: PushNotificationSchema) => {
+          console.log('📩 Push received:', notification);
+        }
+      );
+      
+      PushNotifications.addListener(
+        'pushNotificationActionPerformed',
+        (notification: ActionPerformed) => {
+          console.log('👉 Push action performed:', notification);
+        }
+      );
+      
+    }
 
   } catch (err) {
     console.error('Push registration failed:', err);
   }
 };
 
-// Send APN token to backend
+// 🔹 Send APN token to backend (only if logged in)
 export const sendTokenToBackend = async (token: string) => {
   const accessToken = getAccessToken();
-
   if (!accessToken) {
-    console.log('Access token not ready, storing token to send later');
-    pendingToken = token;
+    console.log('⚠️ No access token, not sending device token yet');
     return;
   }
 
@@ -84,17 +98,15 @@ export const sendTokenToBackend = async (token: string) => {
     });
 
     if (!res.ok) throw new Error(`Failed to save device token: ${res.statusText}`);
-    console.log('✅ APN token saved successfully');
-
-    // Clear pending token if it was stored
-    if (pendingToken === token) pendingToken = null;
+    console.log('✅ Device token saved to backend');
   }, 5, 500);
 };
 
-// Call this after login to send any pending token
+// 🔹 Call this right after login
 export const sendPendingTokenIfNeeded = async () => {
   if (pendingToken) {
-    console.log('Sending pending APN token now...');
+    console.log('📤 Sending pending APN token now...');
     await sendTokenToBackend(pendingToken);
+    pendingToken = null; // clear it once sent
   }
 };

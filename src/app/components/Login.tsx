@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { loginUser } from "../lib/usersApi";
-import { registerPush } from "../lib/push";
+import { sendPendingTokenIfNeeded, registerPush } from "../lib/push"; // ✅ import here
 
 export default function Login() {
   const { setUser } = useAuth();
@@ -32,14 +32,8 @@ export default function Login() {
       const userData = await loginUser(form.login, form.password);
       setUser(userData);
 
-      // iOS: call AppDelegate to register for push after login
-      if (window.Capacitor?.isNativePlatform() && window.AppDelegate) {
-        window.AppDelegate.registerForPushNotifications();
-        window.AppDelegate.sendPendingTokenIfNeeded();
-      } else {
-        // Web push handled by Capacitor / browser
-        await registerPush();
-      }
+      // ✅ Now that we’re logged in, send the pending push token
+      await sendPendingTokenIfNeeded();
 
       alert("Login was successful");
       setForm({ login: "", password: "" });
