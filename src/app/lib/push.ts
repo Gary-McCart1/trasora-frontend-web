@@ -84,6 +84,7 @@ export const sendTokenToBackend = async (token: string) => {
   const accessToken = getAccessToken();
   if (!accessToken) {
     console.log('⚠️ No access token, not sending device token yet');
+    alert('⚠️ No access token, not sending device token yet')
     return;
   }
 
