@@ -22,7 +22,7 @@ const Footer = () => {
 
   return (
     <footer
-      className="bg-zinc-950 text-zinc-400 py-8 mt-20"
+      className="bg-zinc-950 text-zinc-400 md:py-8 mt-20 py-[5rem]"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6">
