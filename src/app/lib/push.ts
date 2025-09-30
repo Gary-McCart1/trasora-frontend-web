@@ -106,7 +106,6 @@ export const sendTokenToBackend = async (token: string) => {
 // 🔹 Call this right after login
 export const sendPendingTokenIfNeeded = async () => {
   if (pendingToken) {
-    alert(`Sending APN token: ${pendingToken}`);
     console.log('📤 Sending pending APN token now...');
     await sendTokenToBackend(pendingToken);
     pendingToken = null; // clear it once sent
