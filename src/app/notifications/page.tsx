@@ -50,31 +50,24 @@ export default function NotificationsList() {
   }, [notifications, userProfiles]);
 
   // Mark non-follow-request notifications as read on page leave or tab hide
-  useEffect(() => {
-    const handleLeave = async () => {
+  // Mark non-follow-request notifications as read on page leave/unmount
+useEffect(() => {
+  return () => {
+    // Cleanup runs when user leaves the page
+    const markRead = async () => {
       try {
         await markAllExceptFollowRequestsAsRead();
-        // Update local state to remove or mark read notifications
-        setNotifications((prev) =>
-          prev.map((n) =>
-            n.type.toLowerCase() === "follow_request" ? n : { ...n, read: true }
-          )
-        );
+        // ❌ don't call setNotifications here — let the backend update
+        // ✅ next time the page loads, fetchUnreadNotifications will reflect the change
       } catch (err) {
         console.error("Failed to mark notifications as read", err);
       }
     };
 
-    window.addEventListener("beforeunload", handleLeave);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") handleLeave();
-    });
+    markRead();
+  };
+}, []);
 
-    return () => {
-      window.removeEventListener("beforeunload", handleLeave);
-      document.removeEventListener("visibilitychange", handleLeave);
-    };
-  }, []);
 
   // Handle follow accept/reject actions
   const handleFollowAction = async (
