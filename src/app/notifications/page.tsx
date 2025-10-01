@@ -33,7 +33,9 @@ export default function NotificationsList() {
 
   // Fetch profile pictures for all unique senders
   useEffect(() => {
-    const usernames = Array.from(new Set(notifications.map((n) => n.senderUsername)));
+    const usernames = Array.from(
+      new Set(notifications.map((n) => n.senderUsername))
+    );
     usernames.forEach(async (username) => {
       if (!userProfiles[username]) {
         try {
@@ -51,23 +53,22 @@ export default function NotificationsList() {
 
   // Mark non-follow-request notifications as read on page leave or tab hide
   // Mark non-follow-request notifications as read on page leave/unmount
-useEffect(() => {
-  return () => {
-    // Cleanup runs when user leaves the page
-    const markRead = async () => {
-      try {
-        await markAllExceptFollowRequestsAsRead();
-        // ❌ don't call setNotifications here — let the backend update
-        // ✅ next time the page loads, fetchUnreadNotifications will reflect the change
-      } catch (err) {
-        console.error("Failed to mark notifications as read", err);
-      }
+  useEffect(() => {
+    return () => {
+      // Cleanup runs when user leaves the page
+      const markRead = async () => {
+        try {
+          await markAllExceptFollowRequestsAsRead();
+          // ❌ don't call setNotifications here — let the backend update
+          // ✅ next time the page loads, fetchUnreadNotifications will reflect the change
+        } catch (err) {
+          console.error("Failed to mark notifications as read", err);
+        }
+      };
+
+      markRead();
     };
-
-    markRead();
-  };
-}, []);
-
+  }, []);
 
   // Handle follow accept/reject actions
   const handleFollowAction = async (
@@ -86,13 +87,22 @@ useEffect(() => {
 
   const getIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case "like": return <Heart className="w-4 h-4 text-pink-500" />;
-      case "comment": return <MessageCircle className="w-4 h-4 text-blue-400" />;
-      case "follow": return <UserPlus className="w-4 h-4 text-green-400" />;
-      case "follow_request": return <UserPlus className="w-4 h-4 text-yellow-400" />;
-      case "follow_accepted": return <UserCheck className="w-4 h-4 text-green-400" />;
-      case "branch_added": return <GitBranch className="w-4 h-4 text-emerald-400" />;
-      default: return null;
+      case "like":
+        return <Heart className="w-4 h-4 text-pink-500" />;
+      case "comment":
+        return <MessageCircle className="w-4 h-4 text-blue-400" />;
+      case "follow":
+        return <UserPlus className="w-4 h-4 text-green-400" />;
+      case "follow_request":
+        return <UserPlus className="w-4 h-4 text-yellow-400" />;
+      case "follow_accepted":
+        return <UserCheck className="w-4 h-4 text-green-400" />;
+      case "branch_added":
+        return <GitBranch className="w-4 h-4 text-emerald-400" />;
+      case "friend_posted":
+        return <Bell className="w-4 h-4 text-purple-400" />; // new
+      default:
+        return null;
     }
   };
 
@@ -108,7 +118,11 @@ useEffect(() => {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     if (days < 7) return `${days}d ago`;
-    return then.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    return then.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const getDateGroup = (dateStr: string) => {
@@ -140,7 +154,7 @@ useEffect(() => {
         <h2 className="text-2xl font-bold">Your Notifications</h2>
       </div>
 
-      {notifications.filter(n => !n.read).length === 0 ? (
+      {notifications.filter((n) => !n.read).length === 0 ? (
         <p className="text-gray-400 text-center mt-8 text-sm">
           No unread notifications
         </p>
@@ -148,13 +162,17 @@ useEffect(() => {
         <div className="space-y-6 max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600">
           {Object.entries(groupedNotifications).map(([group, items]) => (
             <div key={group}>
-              <h3 className="text-sm font-semibold text-gray-400 mb-2">{group}</h3>
+              <h3 className="text-sm font-semibold text-gray-400 mb-2">
+                {group}
+              </h3>
               <ul className="space-y-3">
                 {items.map((n) => {
                   if (n.read) return null; // hide read notifications
                   const isBranch = n.type.toLowerCase() === "branch_added";
                   const profilePicUrl =
-                    getS3Url(userProfiles[n.senderUsername]) || n.albumArtUrl || "/default-avatar.png";
+                    getS3Url(userProfiles[n.senderUsername]) ||
+                    n.albumArtUrl ||
+                    "/default-avatar.png";
 
                   return (
                     <li
@@ -191,7 +209,6 @@ useEffect(() => {
                             >
                               {n.senderUsername}
                             </Link>
-
                             {n.type.toLowerCase() === "like" &&
                               " liked your post"}
                             {n.type.toLowerCase() === "comment" &&
@@ -202,11 +219,15 @@ useEffect(() => {
                               " wants to follow you"}
                             {n.type.toLowerCase() === "follow_accepted" &&
                               " accepted your follow request"}
-
+                            {n.type.toLowerCase() === "friend_posted" &&
+                              " posted a new post"}{" "}
+                            
                             {isBranch && (
                               <>
                                 {" added a branch to your "}
-                                <span className="font-semibold">{n.trunkName}</span>
+                                <span className="font-semibold">
+                                  {n.trunkName}
+                                </span>
                                 {" trunk "}
                                 <Link
                                   href={`/profile/${n.recipientUsername}`}
@@ -236,7 +257,11 @@ useEffect(() => {
                             <div className="mt-1 flex gap-2">
                               <button
                                 onClick={() =>
-                                  handleFollowAction(n.followId!, "accept", n.id)
+                                  handleFollowAction(
+                                    n.followId!,
+                                    "accept",
+                                    n.id
+                                  )
                                 }
                                 className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-full text-xs flex items-center gap-1"
                               >
@@ -244,7 +269,11 @@ useEffect(() => {
                               </button>
                               <button
                                 onClick={() =>
-                                  handleFollowAction(n.followId!, "reject", n.id)
+                                  handleFollowAction(
+                                    n.followId!,
+                                    "reject",
+                                    n.id
+                                  )
                                 }
                                 className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs flex items-center gap-1"
                               >
