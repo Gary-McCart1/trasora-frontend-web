@@ -156,10 +156,10 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
             })}
           </div>
         </div>
-
+        <div className="w-full border border-white-600 my-8"></div>
         {/* Suggested Follows */}
         {suggestedFollows.length > 0 && (
-          <div className="flex flex-col items-start ml-6">
+          <div className="flex flex-col items-start">
             <div className="text-white text-xs uppercase font-semibold mb-2">
               Suggested Friends
             </div>
