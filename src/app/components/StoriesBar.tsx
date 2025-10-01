@@ -24,10 +24,13 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
   const { stories, setStories } = useStories();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
-  const [selectedAuthorStories, setSelectedAuthorStories] = useState<StoryDto[]>([]);
+  const [selectedAuthorStories, setSelectedAuthorStories] = useState<
+    StoryDto[]
+  >([]);
   const [suggestedFollows, setSuggestedFollows] = useState<SuggestedUser[]>([]);
 
-  const isStoriesOpen = activeStoryIndex !== null && selectedAuthorStories.length > 0;
+  const isStoriesOpen =
+    activeStoryIndex !== null && selectedAuthorStories.length > 0;
 
   useEffect(() => {
     onStoriesOpenChange?.(isStoriesOpen);
@@ -88,16 +91,17 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
   // Ensure current user is first
   const allAuthors = [
     user.username,
-    ...Array.from(authorMap.keys()).filter((author) => author !== user.username),
+    ...Array.from(authorMap.keys()).filter(
+      (author) => author !== user.username
+    ),
   ];
 
   return (
     <div className="z-40">
       {/* Scrollable Stories + Suggested Follows */}
       <div className="flex gap-6 overflow-x-auto scrollbar-hide px-4 py-2">
-
         {/* Stories */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 flex-shrink-0">
           <div className="text-white text-xs uppercase font-semibold mb-1 ml-1">
             Stories
           </div>
@@ -136,8 +140,8 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
                     {isCurrentUser && (
                       <button
                         className="absolute bottom-0 right-0 w-6 h-6 flex items-center justify-center 
-                                   bg-purple-600 rounded-full border-2 border-black shadow-md
-                                   hover:bg-purple-700 transition-colors"
+                               bg-purple-600 rounded-full border-2 border-black shadow-md
+                               hover:bg-purple-700 transition-colors"
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsAddModalOpen(true);
@@ -156,16 +160,22 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
             })}
           </div>
         </div>
-        <div className="w-full border border-white-600 my-8"></div>
+
+        {/* Vertical Divider */}
+        <div className="w-px bg-white mx-4 flex-shrink-0 my-8"></div>
+
         {/* Suggested Follows */}
         {suggestedFollows.length > 0 && (
-          <div className="flex flex-col items-start">
+          <div className="flex flex-col items-start flex-shrink-0">
             <div className="text-white text-xs uppercase font-semibold mb-2">
               Suggested Friends
             </div>
             <div className="flex gap-4">
               {suggestedFollows.map((suggestedUser) => (
-                <Link href={`/profile/${suggestedUser.username}`} key={suggestedUser.id}>
+                <Link
+                  href={`/profile/${suggestedUser.username}`}
+                  key={suggestedUser.id}
+                >
                   <motion.div
                     whileTap={{ scale: 0.95 }}
                     className="flex flex-col items-center cursor-pointer"
