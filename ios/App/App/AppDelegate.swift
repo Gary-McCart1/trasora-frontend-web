@@ -16,11 +16,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     ) -> Bool {
         // Ensure Capacitor plugins are registered
         UNUserNotificationCenter.current().delegate = self
+        CAPBridge.registerPlugin("AppleNowPlayingPlugin", plugin: AppleNowPlayingPlugin.self)
         
         // ⚠️ Removed the call to registerForPushNotifications(application:)
         
         return true
     }
+
+    
 
     // MARK: - Push Notification Registration
     // ⚠️ REMOVED: The custom func registerForPushNotifications is deleted.
