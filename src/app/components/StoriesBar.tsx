@@ -11,12 +11,12 @@ import { StoryDto } from "../types/Story";
 import { deleteStory, fetchActiveStories } from "../lib/storiesApi";
 import AddStoryModal from "./AddStoryModal";
 import StoryViewerModal from "./StoryViewerModal";
-import { getSuggestedFollows } from "../lib/followApi"; // new import
-import { SuggestedUser, User } from "../types/User";
+import { getSuggestedFollows } from "../lib/followApi";
+import { SuggestedUser } from "../types/User";
 import Link from "next/link";
 
 interface StoriesBarProps {
-  onStoriesOpenChange?: (isOpen: boolean) => void; // Add callback prop
+  onStoriesOpenChange?: (isOpen: boolean) => void;
 }
 
 export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
@@ -24,15 +24,10 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
   const { stories, setStories } = useStories();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
-  const [selectedAuthorStories, setSelectedAuthorStories] = useState<
-    StoryDto[]
-  >([]);
-  const [suggestedFollows, setSuggestedFollows] = useState<SuggestedUser[]>([]); // suggested users
+  const [selectedAuthorStories, setSelectedAuthorStories] = useState<StoryDto[]>([]);
+  const [suggestedFollows, setSuggestedFollows] = useState<SuggestedUser[]>([]);
 
-  // Track when stories are open and notify parent
-  const isStoriesOpen =
-    activeStoryIndex !== null && selectedAuthorStories.length > 0;
-  console.log(suggestedFollows);
+  const isStoriesOpen = activeStoryIndex !== null && selectedAuthorStories.length > 0;
 
   useEffect(() => {
     onStoriesOpenChange?.(isStoriesOpen);
@@ -43,7 +38,6 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
     setSelectedAuthorStories([]);
   }, []);
 
-  // Fetch active stories
   useEffect(() => {
     if (!user) return;
     const loadStories = async () => {
@@ -57,7 +51,6 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
     loadStories();
   }, [user, setStories]);
 
-  // Fetch suggested follows
   useEffect(() => {
     if (!user) return;
     const loadSuggestedFollows = async () => {
@@ -95,89 +88,89 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
   // Ensure current user is first
   const allAuthors = [
     user.username,
-    ...Array.from(authorMap.keys()).filter(
-      (author) => author !== user.username
-    ),
+    ...Array.from(authorMap.keys()).filter((author) => author !== user.username),
   ];
 
   return (
     <div className="z-40">
-      {/* Stories */}
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide px-4 items-center">
-        {allAuthors.map((author) => {
-          const authorStories = authorMap.get(author) || [];
-          const isCurrentUser = author === user.username;
-          const hasStories = authorStories.length > 0;
+      {/* Scrollable Stories + Suggested Follows */}
+      <div className="flex gap-6 overflow-x-auto scrollbar-hide px-4 py-2">
 
-          return (
-            <motion.div
-              key={author}
-              whileTap={{ scale: hasStories ? 0.9 : 1 }}
-              className="flex flex-col items-center relative"
-              onClick={() => {
-                if (!hasStories) return;
-                setSelectedAuthorStories(authorStories);
-                setActiveStoryIndex(0);
-              }}
-              title={!hasStories && isCurrentUser ? "No stories yet" : ""}
-            >
-              <div className="p-[2px] rounded-full bg-gradient-to-tr from-purple-500 via-purple-400 to-pink-500 shadow-md relative">
-                <div className="w-16 h-16 rounded-full overflow-hidden relative">
-                  <Image
-                    src={
-                      hasStories
-                        ? getS3Url(authorStories[0].authorProfilePictureUrl)
-                        : getS3Url(user.profilePictureUrl || "")
-                    }
-                    alt={author}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+        {/* Stories */}
+        <div className="flex flex-col gap-1">
+          <div className="text-white text-xs uppercase font-semibold mb-1 ml-1">
+            Stories
+          </div>
+          <div className="flex gap-4">
+            {allAuthors.map((author) => {
+              const authorStories = authorMap.get(author) || [];
+              const isCurrentUser = author === user.username;
+              const hasStories = authorStories.length > 0;
 
-                {isCurrentUser && (
-                  <button
-                    className="absolute bottom-0 right-0 w-6 h-6 flex items-center justify-center 
-                               bg-purple-600 rounded-full border-2 border-black shadow-md
-                               hover:bg-purple-700 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsAddModalOpen(true);
-                    }}
-                  >
-                    <HiPlus className="text-white text-sm" />
-                  </button>
-                )}
-              </div>
+              return (
+                <motion.div
+                  key={author}
+                  whileTap={{ scale: hasStories ? 0.9 : 1 }}
+                  className="flex flex-col items-center relative"
+                  onClick={() => {
+                    if (!hasStories) return;
+                    setSelectedAuthorStories(authorStories);
+                    setActiveStoryIndex(0);
+                  }}
+                  title={!hasStories && isCurrentUser ? "No stories yet" : ""}
+                >
+                  <div className="p-[2px] rounded-full bg-gradient-to-tr from-purple-500 via-purple-400 to-pink-500 shadow-md relative">
+                    <div className="w-16 h-16 rounded-full overflow-hidden relative">
+                      <Image
+                        src={
+                          hasStories
+                            ? getS3Url(authorStories[0].authorProfilePictureUrl)
+                            : getS3Url(user.profilePictureUrl || "")
+                        }
+                        alt={author}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
 
-              <p className="text-xs mt-2 truncate w-16 text-center text-gray-200">
-                {isCurrentUser ? "My Story" : author}
-              </p>
-            </motion.div>
-          );
-        })}
+                    {isCurrentUser && (
+                      <button
+                        className="absolute bottom-0 right-0 w-6 h-6 flex items-center justify-center 
+                                   bg-purple-600 rounded-full border-2 border-black shadow-md
+                                   hover:bg-purple-700 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsAddModalOpen(true);
+                        }}
+                      >
+                        <HiPlus className="text-white text-sm" />
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="text-xs mt-2 truncate w-16 text-center text-gray-200">
+                    {isCurrentUser ? "My Story" : author}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Suggested Follows */}
         {suggestedFollows.length > 0 && (
-          <div className="flex flex-col items-start ml-[5rem] ">
+          <div className="flex flex-col items-start ml-6">
             <div className="text-white text-xs uppercase font-semibold mb-2">
-              Suggested Follows
+              Suggested Friends
             </div>
-            <div className="flex gap-4 overflow-x-auto scrollbar-hide p-2 border border-gray-600 rounded-lg shadow-sm">
+            <div className="flex gap-4">
               {suggestedFollows.map((suggestedUser) => (
                 <Link href={`/profile/${suggestedUser.username}`} key={suggestedUser.id}>
                   <motion.div
-                    key={suggestedUser.username}
                     whileTap={{ scale: 0.95 }}
                     className="flex flex-col items-center cursor-pointer"
-                    onClick={() =>
-                      console.log(
-                        "Clicked suggested user:",
-                        suggestedUser.username
-                      )
-                    }
                   >
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-500">
+                    <div className="w-16 h-16 rounded-full overflow-hidden">
                       <Image
                         src={
                           suggestedUser.profilePictureUrl
