@@ -81,3 +81,12 @@ html, body {
 .animate-gradient-x { background-size: 200% 200%; animation: gradient-x 6s ease infinite; }
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-slideDown { animation: slideDown 0.25s ease-out forwards; }
+
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
