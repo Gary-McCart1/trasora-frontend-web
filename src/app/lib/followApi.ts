@@ -32,3 +32,13 @@ export async function unfollowUser(username: string) {
   if (!res.ok) throw new Error("Failed to unfollow user");
   return res.json();
 }
+
+export async function getSuggestedFollows(username: string) {
+  const res = await fetch(`${BASE_URL}/api/follows/suggested/${username}`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch suggested follows");
+
+  return res.json(); // returns an array of AppUser objects
+}

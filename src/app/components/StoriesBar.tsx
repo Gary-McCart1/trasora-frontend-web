@@ -11,6 +11,8 @@ import { StoryDto } from "../types/Story";
 import { deleteStory, fetchActiveStories } from "../lib/storiesApi";
 import AddStoryModal from "./AddStoryModal";
 import StoryViewerModal from "./StoryViewerModal";
+import { getSuggestedFollows } from "../lib/followApi"; // new import
+import { User } from "../types/User";
 
 interface StoriesBarProps {
   onStoriesOpenChange?: (isOpen: boolean) => void; // Add callback prop
@@ -22,6 +24,7 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
   const [selectedAuthorStories, setSelectedAuthorStories] = useState<StoryDto[]>([]);
+  const [suggestedFollows, setSuggestedFollows] = useState<User[]>([]); // suggested users
 
   // Track when stories are open and notify parent
   const isStoriesOpen = activeStoryIndex !== null && selectedAuthorStories.length > 0;
@@ -33,7 +36,6 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
   const handleCloseModal = useCallback(() => {
     setActiveStoryIndex(null);
     setSelectedAuthorStories([]);
-    // onStoriesOpenChange will be called automatically via the useEffect above
   }, []);
 
   // Fetch active stories
@@ -50,37 +52,30 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
     loadStories();
   }, [user, setStories]);
 
+  // Fetch suggested follows
+  useEffect(() => {
+    if (!user) return;
+    const loadSuggestedFollows = async () => {
+      try {
+        const suggestions = await getSuggestedFollows(user.username);
+        setSuggestedFollows(suggestions);
+      } catch (err) {
+        console.error("Failed to load suggested follows:", err);
+      }
+    };
+    loadSuggestedFollows();
+  }, [user]);
+
   if (!user) return null;
 
   const handleDelete = async (storyId: number) => {
-    console.log("Deleting storyId:", storyId);
-
     try {
       await deleteStory(storyId);
-
       alert("Story has been successfully deleted.");
-
-      // Update local state
       setStories((prev) => prev.filter((s) => s.id !== storyId));
       setSelectedAuthorStories((prev) => prev.filter((s) => s.id !== storyId));
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message.includes("404")) {
-          console.warn(
-            `Story ${storyId} not found. It may have already been deleted.`
-          );
-          setStories((prev) => prev.filter((s) => s.id !== storyId));
-          setSelectedAuthorStories((prev) =>
-            prev.filter((s) => s.id !== storyId)
-          );
-        } else if (err.message.includes("403")) {
-          console.error(`You do not have permission to delete story ${storyId}`);
-        } else {
-          console.error("Error deleting story:", err.message);
-        }
-      } else {
-        console.error("Unknown error deleting story:", err);
-      }
+      console.error("Error deleting story:", err);
     }
   };
 
@@ -94,14 +89,13 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
 
   // Ensure current user is first
   const allAuthors = [
-    user.username, // always first
-    ...Array.from(authorMap.keys()).filter(
-      (author) => author !== user.username
-    ),
+    user.username,
+    ...Array.from(authorMap.keys()).filter((author) => author !== user.username),
   ];
 
   return (
     <div className="z-40">
+      {/* Stories */}
       <div className="flex gap-4 overflow-x-auto scrollbar-hide px-4 items-center">
         {allAuthors.map((author) => {
           const authorStories = authorMap.get(author) || [];
@@ -155,6 +149,36 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
             </motion.div>
           );
         })}
+
+        {/* Suggested Follows */}
+        {suggestedFollows.length > 0 && (
+          <>
+            <div className="ml-2 text-gray-300 text-xs uppercase font-semibold mt-1">
+              Suggested
+            </div>
+            {suggestedFollows.map((suggestedUser) => (
+              <motion.div
+                key={suggestedUser.username}
+                whileTap={{ scale: 0.95 }}
+                className="flex flex-col items-center cursor-pointer"
+                onClick={() => console.log("Clicked suggested user:", suggestedUser.username)}
+              >
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-500">
+                  <Image
+                    src={getS3Url(suggestedUser.profilePictureUrl || "/default-avatar.png")}
+                    alt={suggestedUser.username}
+                    width={64}
+                    height={64}
+                    className="object-cover"
+                  />
+                </div>
+                <p className="text-xs mt-2 truncate w-16 text-center text-gray-200">
+                  {suggestedUser.username}
+                </p>
+              </motion.div>
+            ))}
+          </>
+        )}
       </div>
 
       {isAddModalOpen && (
@@ -170,7 +194,7 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
           startIndex={activeStoryIndex}
           onClose={handleCloseModal}
           onDelete={handleDelete}
-          stories={selectedAuthorStories} // pass only this user's stories
+          stories={selectedAuthorStories}
         />
       )}
     </div>
