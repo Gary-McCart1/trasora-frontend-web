@@ -132,7 +132,7 @@ const StoryCard: FC<StoryCardProps> = ({ story, onDelete, duration = 60000, isSt
   };
 
   return (
-    <div className="relative w-[360px] h-[640px] mx-auto rounded-xl overflow-hidden shadow-lg bg-black flex flex-col items-center justify-center">
+    <div className="relative w-[360px] h-[640px] mx-auto rounded-xl overflow-hidden shadow-lg bg-zinc-900 flex flex-col items-center justify-center">
       {/* Story media */}
       {isVideo ? (
         <video
@@ -151,7 +151,7 @@ const StoryCard: FC<StoryCardProps> = ({ story, onDelete, duration = 60000, isSt
         </div>
       ) : story.albumArtUrl ? (
         <div className="flex items-center justify-center flex-1" onClick={togglePlayPause}>
-          <img src={story.albumArtUrl} alt="Album Art" className="object-contain w-full h-full"  />
+          <Image src={story.albumArtUrl} alt="Album Art" className="object-cover"  />
         </div>
       ) : null}
 
