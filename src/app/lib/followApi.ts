@@ -1,3 +1,4 @@
+import { SuggestedUser } from "../types/User";
 import { getAuthHeaders } from "./usersApi";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
@@ -33,12 +34,22 @@ export async function unfollowUser(username: string) {
   return res.json();
 }
 
-export async function getSuggestedFollows(username: string) {
-  const res = await fetch(`${BASE_URL}/api/follows/suggested/${username}`, {
+export async function getSuggestedFollows(username: string): Promise<SuggestedUser[]> {
+  const res = await fetch(`${BASE_URL}/api/follow/suggested/${username}`, {
     headers: getAuthHeaders(),
   });
 
-  if (!res.ok) throw new Error("Failed to fetch suggested follows");
+  const text = await res.text();
+  if (!res.ok) {
+    console.error("Failed suggested follows response:", text);
+    throw new Error("Failed to fetch suggested follows");
+  }
 
-  return res.json(); // returns an array of AppUser objects
+  try {
+    const data: SuggestedUser[] = JSON.parse(text);
+    return data;
+  } catch (err) {
+    console.error("Invalid JSON from suggested follows endpoint:", text);
+    throw new Error("Invalid JSON from suggested follows endpoint");
+  }
 }

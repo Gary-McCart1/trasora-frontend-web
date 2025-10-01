@@ -48,3 +48,12 @@ export interface User {
   spotifyPremium: boolean;
   referredBy: string | null;
 }
+
+// types/User.ts
+export interface SuggestedUser {
+  id: number;
+  username: string;
+  fullName: string;
+  profilePictureUrl: string | null;
+  accentColor: string | null;
+}
