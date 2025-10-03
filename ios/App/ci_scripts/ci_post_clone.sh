@@ -3,34 +3,29 @@
 # Fail the script if any command fails
 set -e
 
-echo "--- Starting ci_post_clone.sh for Capacitor (Final Corrected Attempt) ---"
+echo "--- Starting ci_post_clone.sh for Capacitor (Node.js/npm Setup) ---"
 
 # Step 1: Navigate to the root of the repository (CI_WORKSPACE)
-# Go up 3 levels: ci_scripts -> App -> ios -> CI_WORKSPACE (root)
-# NOTE: Removed one '..' compared to the previous script, as 'ios' is likely a child of the root.
-cd "$(dirname "$0")"/../..
-# Let's verify this pathing is correct by using the log output.
-# If 'ios' is the second level, we only need to go up two.
-
-# Let's use the safer root navigation from the error log:
-# Script starts in: /Volumes/workspace/repository/ios/App/ci_scripts
-# To reach root: /Volumes/workspace/repository
-
+# This is the most reliable way to start at the Git root.
 cd "${CI_WORKSPACE}"
 
-# Confirm the working directory is the repository root
-echo "Current directory for web dependencies: $(pwd)"
+echo "Current directory: $(pwd)"
 
-# Step 2: Install Web/Capacitor dependencies
-# Assuming your package.json is at the repository root (based on the previous error)
-echo "Installing web dependencies..."
+# Step 2: Install Node.js (and npm) using Homebrew
+echo "Installing Node.js via Homebrew..."
+# Homebrew is installed and functional on Xcode Cloud
+brew install node
 
-# USE THE COMMAND YOU NORMALLY USE TO INSTALL WEB DEPENDENCIES
-# Choose EITHER 'npm' OR 'yarn'
-# npm install
-/usr/bin/npm install # Using absolute path for robustness
+# CRITICAL: Update the PATH to include the newly installed Homebrew executables
+# This ensures 'npm' is found.
+export PATH="/opt/homebrew/bin:$PATH"
 
-# Step 3: Navigate to the Podfile directory for pod install
+# Step 3: Install Web/Capacitor dependencies
+# Assuming your package.json is at the repository root
+echo "Installing web dependencies using npm..."
+npm install # Now npm should be in the PATH
+
+# Step 4: Navigate to the Podfile directory
 # The path to the Podfile is: ios/App/Podfile
 echo "Navigating to Podfile directory..."
 cd ios/App/
@@ -38,9 +33,9 @@ cd ios/App/
 # Confirm the current directory is the Podfile location
 echo "Current directory for CocoaPods: $(pwd)"
 
-# Step 4: Run CocoaPods install
-# The Podfile can now correctly find '../../node_modules' because the modules exist
+# Step 5: Run CocoaPods install
+# Podfile can now find '../../node_modules' because they exist.
 echo "Running pod install..."
 /usr/bin/pod install --repo-update
 
-echo "--- Build dependencies ready. ---"
+echo "--- Build dependencies ready. Success is near! ---"
