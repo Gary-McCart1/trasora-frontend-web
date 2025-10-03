@@ -25,6 +25,14 @@ export PATH="/opt/homebrew/bin:$PATH"
 echo "Installing web dependencies (npm install at root)..."
 npm install
 
+# Step 3a: Build the web app (so Capacitor has www/ assets)
+echo "Building web app..."
+npm run build
+
+# Step 3b: Copy web assets into iOS project
+echo "Syncing Capacitor iOS project..."
+npx cap sync ios
+
 # Step 4: Navigate to the Podfile directory for pod install
 cd ios/App/
 echo "Current directory for CocoaPods: $(pwd)"
