@@ -17,30 +17,32 @@ export default function ReferralLeaderboardPage() {
   console.log(leaderboard)
 
   // Countdown logic
-  useEffect(() => {
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 7); // One week from now
+  // Countdown logic
+useEffect(() => {
+  // 🎯 End date: October 25, 2025 at midnight local time
+  const endDate = new Date("2025-10-25T00:00:00");
 
-    const interval = setInterval(() => {
-      const now = new Date();
-      const diff = endDate.getTime() - now.getTime();
+  const interval = setInterval(() => {
+    const now = new Date();
+    const diff = endDate.getTime() - now.getTime();
 
-      if (diff <= 0) {
-        setTimeLeft("The contest has ended!");
-        clearInterval(interval);
-        return;
-      }
+    if (diff <= 0) {
+      setTimeLeft("The contest has ended!");
+      clearInterval(interval);
+      return;
+    }
 
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / (1000 * 60)) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
 
-      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
-    }, 1000);
+    setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+  }, 1000);
 
-    return () => clearInterval(interval);
-  }, []);
+  return () => clearInterval(interval);
+}, []);
+
 
   // Fetch leaderboard and profile pictures
   useEffect(() => {
