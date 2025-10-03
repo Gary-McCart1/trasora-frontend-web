@@ -85,13 +85,7 @@ const Footer = () => {
           >
             Leaderboard
           </Link>
-          <Link
-            href="/support"
-            className="hover:text-purple-400 transition"
-            aria-label="Support"
-          >
-            Support
-          </Link>
+          
         </nav>
       </div>
     </footer>
