@@ -3,39 +3,50 @@
 # Fail the script if any command fails
 set -e
 
-echo "--- Starting ci_post_clone.sh for Capacitor (Node.js/npm Setup) ---"
+echo "--- STARTING PATH DEBUG (Read Log for Directory Contents) ---"
 
 # Step 1: Navigate to the root of the repository (CI_WORKSPACE)
-# This is the most reliable way to start at the Git root.
 cd "${CI_WORKSPACE}"
 
-echo "Current directory: $(pwd)"
+echo ">>> DEBUG 1: Current directory is CI_WORKSPACE (Git Root) <<<"
+echo "Current path: $(pwd)"
+echo "Contents of Git Root:"
+ls -F
+echo "-------------------------------------------------------------"
 
-# Step 2: Install Node.js (and npm) using Homebrew
+# Step 2: Install Node.js
 echo "Installing Node.js via Homebrew..."
-# Homebrew is installed and functional on Xcode Cloud
 brew install node
-
-# CRITICAL: Update the PATH to include the newly installed Homebrew executables
-# This ensures 'npm' is found.
 export PATH="/opt/homebrew/bin:$PATH"
 
-# Step 3: Install Web/Capacitor dependencies
-# Assuming your package.json is at the repository root
-echo "Installing web dependencies using npm..."
-npm install # Now npm should be in the PATH
+# Step 3: Navigate to the directory containing package.json (e.g., frontend-web/)
+echo "Navigating to package.json directory..."
+# TRY THE ASSUMED PATH AGAIN (based on the previous error's location)
+cd frontend-web/
 
-# Step 4: Navigate to the Podfile directory
-# The path to the Podfile is: ios/App/Podfile
+echo ">>> DEBUG 2: Current directory is frontend-web/ <<<"
+echo "Current path: $(pwd)"
+echo "Contents of frontend-web/:"
+ls -F
+echo "-------------------------------------------------------------"
+
+# Step 4: Install Web dependencies (This is likely where package.json is)
+echo "Installing web dependencies using npm..."
+npm install
+
+# Step 5: Navigate to the Podfile directory for pod install
+# This path is relative to the current directory (frontend-web/)
 echo "Navigating to Podfile directory..."
 cd ios/App/
 
-# Confirm the current directory is the Podfile location
-echo "Current directory for CocoaPods: $(pwd)"
+echo ">>> DEBUG 3: Current directory is ios/App/ (Podfile location) <<<"
+echo "Current path: $(pwd)"
+echo "Contents of ios/App/ (Should contain Podfile and ci_scripts/):"
+ls -F
+echo "-------------------------------------------------------------"
 
-# Step 5: Run CocoaPods install
-# Podfile can now find '../../node_modules' because they exist.
+# Step 6: Run CocoaPods install
 echo "Running pod install..."
 /usr/bin/pod install --repo-update
 
-echo "--- Build dependencies ready. Success is near! ---"
+echo "--- DEBUG COMPLETE. Check Logs Carefully. ---"
