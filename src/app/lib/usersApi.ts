@@ -371,3 +371,33 @@ function getTokenExpiry(token: string): number {
   }
 }
 
+// -------------------- BLOCK --------------------
+export async function blockUser(username: string): Promise<void> {
+  const res = await fetchWithAuth(`${BASE_URL}/api/block/${username}`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Failed to block user: ${errorText}`);
+  }
+}
+
+export async function unblockUser(username: string): Promise<void> {
+  const res = await fetchWithAuth(`${BASE_URL}/api/block/${username}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Failed to unblock user: ${errorText}`);
+  }
+}
+
+export async function getBlockStatus(username: string): Promise<boolean> {
+  const res = await fetchWithAuth(`${BASE_URL}/api/block/${username}/status`);
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Failed to get block status: ${errorText}`);
+  }
+  const data = await res.json();
+  return data.blocked;
+}

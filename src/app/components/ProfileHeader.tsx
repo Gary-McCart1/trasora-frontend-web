@@ -11,6 +11,7 @@ import { generateGradient } from "../utils/generateGradient";
 import getS3Url from "../utils/S3Url";
 import { useState, useEffect } from "react";
 import { FaMedal } from "react-icons/fa";
+import { blockUser, unblockUser, getBlockStatus } from "../lib/usersApi";
 
 interface ProfileHeaderProps {
   profileUser: User;
@@ -38,13 +39,62 @@ export default function ProfileHeader({
   );
   const [followingCount] = useState(profileUser.followingCount ?? 0);
   const [localFollowStatus, setLocalFollowStatus] = useState(followStatus);
+  const [isBlocked, setIsBlocked] = useState<boolean | null>(null);
 
   const accentColor = profileUser.accentColor || "#7C3AED";
   const gradient = generateGradient(accentColor);
 
+  // Sync follow status
   useEffect(() => {
     setLocalFollowStatus(followStatus);
   }, [followStatus]);
+
+  // Fetch current block status for this profile
+  useEffect(() => {
+    if (!isOwnProfile) {
+      async function fetchBlock() {
+        try {
+          const blocked = await getBlockStatus(profileUser.username);
+          setIsBlocked(blocked);
+        } catch (err) {
+          console.error("Failed to fetch block status:", err);
+        }
+      }
+      fetchBlock();
+    }
+  }, [profileUser.username, isOwnProfile]);
+
+  // Follow / unfollow
+  const followButtonHandler = async () => {
+    try {
+      if (localFollowStatus === "following" || localFollowStatus === "requested") {
+        const status = await onUnfollow();
+        setLocalFollowStatus(status);
+        setFollowersCount((prev) => Math.max(prev - 1, 0));
+      } else if (localFollowStatus === "not-following") {
+        const status = await onFollow();
+        setLocalFollowStatus(status);
+        if (status === "following") setFollowersCount((prev) => prev + 1);
+      }
+    } catch (err) {
+      console.error("Follow action failed:", err);
+    }
+  };
+
+  // Toggle block/unblock
+  const toggleBlockHandler = async () => {
+    try {
+      if (isBlocked) {
+        await unblockUser(profileUser.username);
+        setIsBlocked(false);
+      } else {
+        await blockUser(profileUser.username);
+        setIsBlocked(true);
+      }
+    } catch (err) {
+      console.error("Failed to toggle block:", err);
+    }
+  };
 
   const followButtonText = () => {
     switch (localFollowStatus) {
@@ -70,26 +120,7 @@ export default function ProfileHeader({
     }
   };
 
-  const followButtonHandler = async () => {
-    try {
-      if (
-        localFollowStatus === "following" ||
-        localFollowStatus === "requested"
-      ) {
-        const status = await onUnfollow();
-        setLocalFollowStatus(status);
-        setFollowersCount((prev) => Math.max(prev - 1, 0));
-      } else if (localFollowStatus === "not-following") {
-        const status = await onFollow();
-        setLocalFollowStatus(status);
-        if (status === "following") setFollowersCount((prev) => prev + 1);
-      }
-    } catch (err) {
-      console.error("Follow action failed:", err);
-    }
-  };
-
-  // Determine medal color and label
+  // Determine medal
   const getMedal = () => {
     if (!profileUser.branchCount || profileUser.branchCount < 10) return null;
 
@@ -108,7 +139,9 @@ export default function ProfileHeader({
     }
 
     return (
-      <div className={`flex items-center space-x-2 ${medalColor} text-white px-3 py-1 rounded-full shadow-md`}>
+      <div
+        className={`flex items-center space-x-2 ${medalColor} text-white px-3 py-1 rounded-full shadow-md`}
+      >
         <FaMedal />
         <span className="text-xs md:text-sm font-semibold">{label}</span>
       </div>
@@ -120,7 +153,7 @@ export default function ProfileHeader({
       className="relative rounded-3xl shadow-2xl border border-zinc-800 p-6 md:p-12 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 z-5"
       style={{ backgroundImage: gradient }}
     >
-      {/* Lock/Unlock Icon */}
+      {/* Lock/Unlock */}
       <div className="absolute top-4 left-4">
         {profileUser.profilePublic ? (
           <HiLockOpen className="text-white w-6 h-6" />
@@ -129,29 +162,34 @@ export default function ProfileHeader({
         )}
       </div>
 
-      {/* Edit Profile / Follow Button (desktop) */}
-      <div className="absolute top-6 right-6 hidden md:block z-10">
+      {/* Desktop Buttons */}
+      <div className="absolute top-6 right-6 hidden md:flex items-center gap-2 z-10">
         {isOwnProfile ? (
           <button
             onClick={() => onEditClick()}
-            className="px-6 py-2 rounded-full text-white font-semibold shadow-md transition bg-zinc-900  hover:bg-zinc-800 min-w-[140px] text-center"
+            className="px-6 py-2 rounded-full text-white font-semibold shadow-md transition bg-zinc-900 hover:bg-zinc-800 min-w-[140px] text-center"
           >
             Edit Profile
           </button>
         ) : (
-          <div className="group relative inline-block">
+          <>
             <button
               onClick={followButtonHandler}
               className={`px-6 py-2 rounded-full font-semibold transition min-w-[140px] text-center ${followButtonClasses()}`}
             >
               {followButtonText()}
             </button>
-            {localFollowStatus === "requested" && (
-              <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                Click to cancel request
-              </span>
-            )}
-          </div>
+            <button
+              onClick={toggleBlockHandler}
+              className={`px-4 py-2 rounded-full border-2 font-semibold text-white transition ${
+                isBlocked
+                  ? "border-red-500 bg-red-600 hover:bg-red-700"
+                  : "border-white hover:bg-white/10"
+              }`}
+            >
+              {isBlocked ? "Blocked" : "Block"}
+            </button>
+          </>
         )}
       </div>
 
@@ -169,11 +207,9 @@ export default function ProfileHeader({
             priority
           />
         </div>
-
-        {/* Spotify / Connect button under profile picture */}
       </div>
 
-      {/* User info & actions */}
+      {/* User Info */}
       <div className="flex-1 w-full max-w-xl flex flex-col items-center md:items-start gap-3 md:gap-2 relative">
         <div className="flex items-center space-x-2 w-full justify-center md:justify-start">
           <h1 className="text-white font-extrabold tracking-tight break-words max-w-full text-3xl md:text-4xl leading-tight">
@@ -189,15 +225,19 @@ export default function ProfileHeader({
           )}
         </div>
 
-        {/* Bio + Premium Medal */}
+        {/* Bio & Medal */}
         <div className="flex items-center space-x-10 justify-center md:justify-start flex-wrap md:flex-nowrap mb-3">
           <p className="text-base md:text-lg text-purple-100 max-w-full whitespace-pre-line">
-            {profileUser.bio ? <span className="text-purple-300"> {profileUser.bio}</span> :  <span className="italic text-purple-300">No bio yet</span>}
+            {profileUser.bio ? (
+              <span className="text-purple-300">{profileUser.bio}</span>
+            ) : (
+              <span className="italic text-purple-300">No bio yet</span>
+            )}
           </p>
           {getMedal()}
         </div>
 
-        {/* Edit / Follow buttons on mobile */}
+        {/* Mobile Buttons */}
         {isOwnProfile && (
           <button
             onClick={() => onEditClick()}
@@ -207,21 +247,24 @@ export default function ProfileHeader({
           </button>
         )}
         {!isOwnProfile && (
-          <div className="w-full flex justify-center md:justify-start md:hidden">
-            <div className="group relative inline-block w-full">
-              <button
-                onClick={followButtonHandler}
-                className={`px-6 py-2 rounded-full font-semibold transition w-full md:w-auto text-center ${followButtonClasses()}`}
-                style={{ minWidth: "140px" }}
-              >
-                {followButtonText()}
-              </button>
-              {localFollowStatus === "requested" && (
-                <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  Click to cancel request
-                </span>
-              )}
-            </div>
+          <div className="w-full flex flex-col items-center md:hidden space-y-2">
+            <button
+              onClick={followButtonHandler}
+              className={`px-6 py-2 rounded-full font-semibold transition w-full text-center ${followButtonClasses()}`}
+              style={{ minWidth: "140px" }}
+            >
+              {followButtonText()}
+            </button>
+            <button
+              onClick={toggleBlockHandler}
+              className={`px-6 py-2 rounded-full border-2 font-semibold text-white transition w-full ${
+                isBlocked
+                  ? "border-red-500 bg-red-600 hover:bg-red-700"
+                  : "border-white hover:bg-white/10"
+              }`}
+            >
+              {isBlocked ? "Blocked" : "Block"}
+            </button>
           </div>
         )}
 
