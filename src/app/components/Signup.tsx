@@ -28,24 +28,14 @@ export default function Signup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    try {
-      router.push(
-        `/terms-of-use?fullName=${encodeURIComponent(form.fullName)}&email=${encodeURIComponent(
-          form.email
-        )}&username=${encodeURIComponent(form.username)}&password=${encodeURIComponent(form.password)}`
-      );
-      
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Error during registration:", error.message);
-        alert(error.message || "Registration failed!");
-      } else {
-        console.error("Unknown error during registration:", error);
-        alert("Registration failed!");
-      }
-    }
+    console.log("Navigating to terms-of-use with params:", form);
+    router.push(
+      `/terms-of-use?fullName=${encodeURIComponent(form.fullName)}&email=${encodeURIComponent(
+        form.email
+      )}&username=${encodeURIComponent(form.username)}&password=${encodeURIComponent(form.password)}`
+    );
   };
+  
 
   return (
     <section className="relative bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-950 min-h-[60vh] flex items-center justify-center text-white px-4">
