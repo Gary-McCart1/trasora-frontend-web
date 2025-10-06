@@ -12,6 +12,7 @@ import getS3Url from "../utils/S3Url";
 import { useState, useEffect } from "react";
 import { FaMedal } from "react-icons/fa";
 import { blockUser, unblockUser, getBlockStatus } from "../lib/usersApi";
+import { HiUserAdd, HiUserRemove } from "react-icons/hi";
 
 interface ProfileHeaderProps {
   profileUser: User;
@@ -153,6 +154,8 @@ export default function ProfileHeader({
       className="relative rounded-3xl shadow-2xl border border-zinc-800 p-6 md:p-12 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 z-5"
       style={{ backgroundImage: gradient }}
     >
+     
+
       {/* Lock/Unlock */}
       <div className="absolute top-4 left-4">
         {profileUser.profilePublic ? (
@@ -175,19 +178,24 @@ export default function ProfileHeader({
           <>
             <button
               onClick={followButtonHandler}
-              className={`px-6 py-2 rounded-full font-semibold transition min-w-[140px] text-center ${followButtonClasses()}`}
+              disabled={isBlocked || isBlocked === null}
+              className={`px-6 py-2 rounded-full font-semibold transition min-w-[140px] text-center ${
+                isBlocked
+                  ? "bg-gray-700 text-gray-300 cursor-not-allowed"
+                  : followButtonClasses()
+              }`}
             >
-              {followButtonText()}
+              {isBlocked ? "Blocked" : followButtonText()}
             </button>
             <button
               onClick={toggleBlockHandler}
-              className={`px-4 py-2 rounded-full border-2 font-semibold text-white transition ${
+              className={`px-4 py-2 rounded-full border-2 font-semibold text-white transition flex items-center justify-center ${
                 isBlocked
                   ? "border-red-500 bg-red-600 hover:bg-red-700"
                   : "border-white hover:bg-white/10"
               }`}
             >
-              {isBlocked ? "Blocked" : "Block"}
+              {isBlocked ? <HiUserRemove className="w-5 h-5" /> : <HiUserAdd className="w-5 h-5" />}
             </button>
           </>
         )}
@@ -250,20 +258,21 @@ export default function ProfileHeader({
           <div className="w-full flex flex-col items-center md:hidden space-y-2">
             <button
               onClick={followButtonHandler}
-              className={`px-6 py-2 rounded-full font-semibold transition w-full text-center ${followButtonClasses()}`}
+              disabled={isBlocked || isBlocked === null}
+              className={`px-6 py-2 rounded-full font-semibold transition w-full text-center ${
+                isBlocked ? "bg-gray-700 text-gray-300 cursor-not-allowed" : followButtonClasses()
+              }`}
               style={{ minWidth: "140px" }}
             >
-              {followButtonText()}
+              {isBlocked ? "Blocked" : followButtonText()}
             </button>
             <button
               onClick={toggleBlockHandler}
               className={`px-6 py-2 rounded-full border-2 font-semibold text-white transition w-full ${
-                isBlocked
-                  ? "border-red-500 bg-red-600 hover:bg-red-700"
-                  : "border-white hover:bg-white/10"
+                isBlocked ? "border-red-500 bg-red-600 hover:bg-red-700" : "border-white hover:bg-white/10"
               }`}
             >
-              {isBlocked ? "Blocked" : "Block"}
+              {isBlocked ? "Unblock" : "Block"}
             </button>
           </div>
         )}
