@@ -23,7 +23,7 @@ export default function TermsOfUseClient() {
     try {
       await signupUser({ email, username, password });
       setInfoMessage(
-        "Account created! Please check your email to confirm your address before logging in."
+        "Account created! Please check your email to confirm your email address before logging in."
       );
     } catch (err) {
       if (err instanceof Error) {
@@ -57,7 +57,7 @@ export default function TermsOfUseClient() {
             these terms within 24 hours of receiving a report.
           </p>
           <p className="mt-4">
-            By clicking “I Agree,” you confirm you are at least 13 years old and
+            By clicking “I Agree,” you confirm you are at least 16 years old and
             have read and understood these Terms of Use.
           </p>
         </div>
