@@ -30,14 +30,12 @@ export default function Signup() {
     e.preventDefault();
 
     try {
-      await signupUser(form);
-      setInfoMessage(
-        "Registration successful! Please verify your email before logging in."
+      router.push(
+        `/terms-of-use?fullName=${encodeURIComponent(form.fullName)}&email=${encodeURIComponent(
+          form.email
+        )}&username=${encodeURIComponent(form.username)}&password=${encodeURIComponent(form.password)}`
       );
-      setForm({ fullName: "", email: "", username: "", password: "" });
-      setTimeout(() => {
-        router.push("/login");
-      }, 5000);
+      
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error during registration:", error.message);
