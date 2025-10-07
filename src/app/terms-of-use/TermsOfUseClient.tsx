@@ -43,13 +43,20 @@ export default function TermsOfUseClient() {
       <div className="absolute inset-0 bg-gradient-to-r from-purple-900/40 via-transparent to-purple-900/40 pointer-events-none blur-3xl z-0"></div>
 
       <div className="relative z-10 w-full max-w-sm space-y-4 border border-zinc-800 bg-zinc-900/90 p-6 rounded-xl shadow-lg backdrop-blur">
-        <h1 className="text-2xl font-semibold mb-4 text-center">Terms of Use</h1>
+        <h1 className="text-2xl font-semibold mb-4 text-center">
+          Terms of Use
+        </h1>
 
         <div className="overflow-y-auto max-h-[50vh] text-sm leading-relaxed text-zinc-300 mb-6">
           <p>
-            Welcome to Trasora. By using this app, you agree not to post, share,
-            or promote any content that is illegal, harassing, hateful, violent,
-            pornographic, or otherwise objectionable.
+            Welcome to Trasora. By using this app, you acknowledge and agree to
+            our strict, zero-tolerance policy for objectionable content,
+            illegal activities, and abusive users.
+          </p>
+          <p className="mt-4">
+            You agree not to post, share, or promote any content that is
+            illegal, harassing, hateful, violent, pornographic, or otherwise
+            objectionable. Abusive users will be ejected from the app.
           </p>
           <p className="mt-4">
             You are responsible for the content you share. We reserve the right
@@ -63,7 +70,9 @@ export default function TermsOfUseClient() {
         </div>
 
         {error && <p className="text-red-400 text-center mb-4">{error}</p>}
-        {infoMessage && <p className="text-green-400 text-center mb-4">{infoMessage}</p>}
+        {infoMessage && (
+          <p className="text-green-400 text-center mb-4">{infoMessage}</p>
+        )}
 
         <div className="flex justify-center gap-4">
           <button

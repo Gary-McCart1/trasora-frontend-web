@@ -132,6 +132,7 @@ export async function getCurrentUser(): Promise<User> {
 }
 
 // Login
+// Login
 export async function loginUser(login: string, password: string): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
@@ -140,7 +141,16 @@ export async function loginUser(login: string, password: string): Promise<User> 
   });
 
   if (!res.ok) {
+    // 🎯 ADDED LOGIC HERE 🎯
     const errText = await res.text().catch(() => null);
+    
+    // Check for the specific Banned or Unverified error messages (403 Forbidden)
+    if (res.status === 403 && errText) {
+        // We throw the specific message so the component can catch it
+        throw new Error(errText); 
+    }
+    
+    // Default error for 401 Unauthorized or other failures
     throw new Error(errText || `Login failed with status ${res.status}`);
   }
 

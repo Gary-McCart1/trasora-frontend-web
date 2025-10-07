@@ -12,6 +12,7 @@ export default function Login() {
   const [form, setForm] = useState({ login: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const router = useRouter();
 
@@ -27,20 +28,29 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
       const userData = await loginUser(form.login, form.password);
       setUser(userData);
-
+  
       // ✅ Now that we’re logged in, send the pending push token
       await sendPendingTokenIfNeeded();
-
+  
       alert("Login was successful");
       setForm({ login: "", password: "" });
       router.push("/");
-    } catch (error) {
-      console.error("Login failed:", error);
-      alert("Login failed: Your username or password was incorrect.");
+    } catch (err: unknown) {
+      console.error("Login failed:", err);
+  
+      // Safely get error message
+      const message =
+        err instanceof Error ? err.message : "An unknown error occurred";
+  
+      if (message === "Invalid username or password") {
+        alert("Invalid credentials. Please try again.");
+      } else {
+        alert(message);
+      }
     } finally {
       setLoading(false);
     }
