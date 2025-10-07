@@ -7,6 +7,7 @@ import {
   FaTrash,
   FaEdit,
   FaEllipsisV,
+  FaRegFlag,
 } from "react-icons/fa";
 import { LuGitBranchPlus } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,11 +20,13 @@ import {
   commentOnPost,
   deletePost,
   deleteComment,
+  flagComment,
+  flagPost,
+  incrementPostBranchCount,
 } from "../lib/postsApi";
 import { useRouter } from "next/navigation";
 import { Trunk } from "../types/User";
 import { addTrackToTrunk, getAvailableTrunks } from "../lib/trunksApi";
-import { incrementPostBranchCount } from "../lib/postsApi";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 
@@ -64,9 +67,9 @@ interface PostActionsProps {
   createdAt: string;
   branchCount: number;
   onEdit?: (postId: number) => void;
-  onDelete?: (postId: number) => void; // <-- added
-  onLike?: (postId: number) => void; // <-- added
-  onComment?: (postId: number, commentText: string) => void; // <-- added
+  onDelete?: (postId: number) => void;
+  onLike?: (postId: number) => void;
+  onComment?: (postId: number, commentText: string) => void;
   onSongAdded?: (branch: Branch) => void;
   selectedSong: RootSongInput;
 }
@@ -106,6 +109,12 @@ export default function PostActions({
   const [loadingTrunks, setLoadingTrunks] = useState(false);
   const [, setLoadingBranch] = useState(false);
   const [localBranchCount, setLocalBranchCount] = useState(branchCount);
+  const [flagModalOpen, setFlagModalOpen] = useState(false);
+  const [flagCommentModalOpen, setFlagCommentModalOpen] = useState(false);
+  const [flagReason, setFlagReason] = useState("");
+  const [flagLoading, setFlagLoading] = useState(false);
+  const [currentFlagCommentId, setCurrentFlagCommentId] = useState<number>();
+
 
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -129,6 +138,7 @@ export default function PostActions({
     if (showCommentBox && inputRef.current) inputRef.current.focus();
   }, [showCommentBox]);
 
+  // Like a post
   const handleLikeClick = async () => {
     if (loadingLike) return;
     setLoadingLike(true);
@@ -143,28 +153,22 @@ export default function PostActions({
     }
   };
 
+  // Comment on a post
   const handleCommentSubmit = async () => {
     if (loadingComment || !commentText.trim()) return;
     setLoadingComment(true);
-
     try {
-      // Create comment and get the full CommentDto from backend
       const newComment = await commentOnPost(
         String(postId),
         commentText.trim()
       );
-
-      // Add current user info so delete button shows immediately
       const newCommentWithUser = {
         ...newComment,
         authorUsername: user?.username || "",
         authorProfilePictureUrl: user?.profilePictureUrl || "",
       };
-
       setCommentText("");
       setShowCommentBox(false);
-
-      // Add the new comment to the UI immediately
       setComments((prev) => [newCommentWithUser, ...prev]);
       setCommentsCount((c) => c + 1);
     } catch (err) {
@@ -175,6 +179,7 @@ export default function PostActions({
     }
   };
 
+  // Delete post
   const handleDeleteClick = async () => {
     if (!isAuthor || loadingDelete) return;
     if (!confirm("Delete this post?")) return;
@@ -182,8 +187,6 @@ export default function PostActions({
     try {
       await deletePost(String(postId));
       alert("Post deleted.");
-
-      // Remove post from UI
       window.location.reload();
     } catch (err) {
       console.error(err);
@@ -193,6 +196,7 @@ export default function PostActions({
     }
   };
 
+  // Delete comment
   const handleDeleteComment = async (id: number) => {
     if (loadingCommentDelete) return;
     if (!confirm("Delete comment?")) return;
@@ -208,6 +212,7 @@ export default function PostActions({
     }
   };
 
+  // Branch functionality
   const handleBranchClick = async () => {
     setLoadingTrunks(true);
     try {
@@ -225,19 +230,11 @@ export default function PostActions({
   const handleSelectTrunk = async (song: RootSongInput, trunkId: number) => {
     if (!user) return;
     setLoadingBranch(true);
-
     try {
-      // Add track to trunk
       const newBranch = await addTrackToTrunk(trunkId, song, user.username);
-
-      // Update UI with new branch
       onSongAdded?.(newBranch);
       setBranchModalOpen(false);
-
-      // Optimistically increment local branch count
       setLocalBranchCount((prev) => prev + 1);
-
-      // Update server branch count for the post
       try {
         await incrementPostBranchCount(String(postId));
       } catch (err) {
@@ -248,6 +245,41 @@ export default function PostActions({
       alert("Failed to add song. Try again.");
     } finally {
       setLoadingBranch(false);
+    }
+  };
+
+  // Flag post
+  const handleFlagSubmit = async () => {
+    if (!flagReason.trim() || !user) return;
+    setFlagLoading(true);
+    try {
+      await flagPost(postId, user.id, flagReason.trim());
+      alert("Post flagged successfully.");
+      setFlagModalOpen(false);
+      setFlagReason("");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to flag post.");
+    } finally {
+      setFlagLoading(false);
+    }
+  };
+
+  // Flag comment
+  const handleFlagCommentSubmit = async () => {
+    if (!flagReason.trim() || !user) return;
+    setFlagLoading(true);
+    if(!currentFlagCommentId) return;
+    try {
+      await flagComment(currentFlagCommentId, user.id, flagReason.trim());
+      alert("Comment flagged successfully.");
+      setFlagCommentModalOpen(false);
+      setFlagReason("");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to flag comment.");
+    } finally {
+      setFlagLoading(false);
     }
   };
 
@@ -323,37 +355,48 @@ export default function PostActions({
       )}
 
       {/* Like + Comment + Branch Bar */}
-      <div className="flex items-center gap-6 px-5 py-3 border-t border-zinc-800">
-        <button
-          onClick={handleLikeClick}
-          className={`flex items-center gap-2 text-lg transition ${
-            likedByCurrentUser
-              ? "text-purple-500"
-              : "text-white hover:text-purple-500"
-          }`}
-          disabled={loadingLike}
-        >
-          <FaHeart />
-          <span>{likesCount}</span>
-        </button>
+      <div className="flex justify-between border-t border-zinc-800">
+        <div className="flex items-center gap-6 px-5 py-3">
+          <button
+            onClick={handleLikeClick}
+            className={`flex items-center gap-2 text-lg transition ${
+              likedByCurrentUser
+                ? "text-purple-500"
+                : "text-white hover:text-purple-500"
+            }`}
+            disabled={loadingLike}
+          >
+            <FaHeart />
+            <span>{likesCount}</span>
+          </button>
 
-        <button
-          onClick={() => setShowCommentBox((prev) => !prev)}
-          className="flex items-center gap-2 text-lg hover:text-purple-500"
-        >
-          <FaRegCommentDots />
-          <span>{commentsCount}</span>
-        </button>
+          <button
+            onClick={() => setShowCommentBox((prev) => !prev)}
+            className="flex items-center gap-2 text-lg hover:text-purple-500"
+          >
+            <FaRegCommentDots />
+            <span>{commentsCount}</span>
+          </button>
 
-        <button
-          onClick={handleBranchClick}
-          className="flex items-center gap-2 text-lg hover:text-purple-500"
-        >
-          <LuGitBranchPlus />
-          <span>
-            {localBranchCount > branchCount ? localBranchCount : branchCount}
-          </span>
-        </button>
+          <button
+            onClick={handleBranchClick}
+            className="flex items-center gap-2 text-lg hover:text-purple-500"
+          >
+            <LuGitBranchPlus />
+            <span>
+              {localBranchCount > branchCount ? localBranchCount : branchCount}
+            </span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-6 px-5 py-3 ">
+          <button
+            onClick={() => setFlagModalOpen(true)}
+            className="flex items-center gap-2 text-lg hover:text-purple-500"
+          >
+            <FaRegFlag />
+          </button>
+        </div>
       </div>
 
       {/* Comment Input */}
@@ -421,7 +464,7 @@ export default function PostActions({
           document.body
         )}
 
-      {/* Comments */}
+      {/* Comments List */}
       {comments.length > 0 && (
         <div className="px-5 pt-4 pb-5 space-y-4 border-t border-zinc-800">
           {comments.map((comment) => {
@@ -438,32 +481,43 @@ export default function PostActions({
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold">
-                      {comment.authorUsername}
-                    </span>
-                    <span className="text-zinc-500 text-[12px]">
-                      {comment.createdAt
-                        ? (() => {
-                            try {
-                              const date = new Date(
-                                comment.createdAt.endsWith("Z")
-                                  ? comment.createdAt
-                                  : comment.createdAt + "Z"
-                              );
-                              const secondsDiff = differenceInSeconds(
-                                new Date(),
-                                date
-                              );
-                              if (secondsDiff < 60) return "Just now"; // less than a minute
-                              return formatDistanceToNow(date, {
-                                addSuffix: true,
-                              });
-                            } catch {
-                              return "Just now";
-                            }
-                          })()
-                        : "Just now"}
-                    </span>
+                    <div className="flex justify-start gap-3 items-center">
+                      <span className="font-semibold">
+                        {comment.authorUsername}
+                      </span>
+                      <span className="text-zinc-500 text-[12px]">
+                        {comment.createdAt
+                          ? (() => {
+                              try {
+                                const date = new Date(
+                                  comment.createdAt.endsWith("Z")
+                                    ? comment.createdAt
+                                    : comment.createdAt + "Z"
+                                );
+                                const secondsDiff = differenceInSeconds(
+                                  new Date(),
+                                  date
+                                );
+                                if (secondsDiff < 60) return "Just now";
+                                return formatDistanceToNow(date, {
+                                  addSuffix: true,
+                                });
+                              } catch {
+                                return "Just now";
+                              }
+                            })()
+                          : "Just now"}
+                      </span>
+                      <span className="hover:text-purple-500">
+                        <FaRegFlag
+                          onClick={() => {
+                            setCurrentFlagCommentId(comment.id);
+                            setFlagCommentModalOpen(true);
+                          }}
+                          size={14}
+                        />
+                      </span>
+                    </div>
                   </div>
                   <p className="text-sm mt-1 text-zinc-300 whitespace-pre-wrap">
                     {comment.commentText.replace(/^"(.*)"$/, "$1")}
@@ -483,6 +537,75 @@ export default function PostActions({
           })}
         </div>
       )}
+
+      {/* Flag Modals */}
+      {flagModalOpen &&
+        createPortal(
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-zinc-900 p-6 rounded-xl w-96">
+              <h2 className="text-white text-lg font-semibold mb-4">
+                Flag Post
+              </h2>
+              <textarea
+                value={flagReason}
+                onChange={(e) => setFlagReason(e.target.value)}
+                placeholder="Reason for flagging (e.g., Spam, Hate Speech)"
+                className="w-full p-2 rounded bg-zinc-800 text-white border border-zinc-700 focus:outline-none"
+                rows={4}
+              />
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={handleFlagSubmit}
+                  disabled={flagLoading}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
+                >
+                  {flagLoading ? "Submitting..." : "Submit"}
+                </button>
+                <button
+                  onClick={() => setFlagModalOpen(false)}
+                  className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {flagCommentModalOpen &&
+        createPortal(
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-zinc-900 p-6 rounded-xl w-96">
+              <h2 className="text-white text-lg font-semibold mb-4">
+                Flag Comment
+              </h2>
+              <textarea
+                value={flagReason}
+                onChange={(e) => setFlagReason(e.target.value)}
+                placeholder="Reason for flagging (e.g., Spam, Hate Speech)"
+                className="w-full p-2 rounded bg-zinc-800 text-white border border-zinc-700 focus:outline-none"
+                rows={4}
+              />
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={handleFlagCommentSubmit}
+                  disabled={flagLoading}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
+                >
+                  {flagLoading ? "Submitting..." : "Submit"}
+                </button>
+                <button
+                  onClick={() => setFlagCommentModalOpen(false)}
+                  className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

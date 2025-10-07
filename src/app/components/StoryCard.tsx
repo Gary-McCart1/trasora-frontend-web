@@ -7,6 +7,9 @@ import getS3Url from "../utils/S3Url";
 import { useAuth } from "../context/AuthContext";
 import { FiMoreVertical } from "react-icons/fi";
 import { useApplePlayer } from "../context/ApplePlayerContext";
+import { flagStory } from "../lib/storiesApi";
+import { FaRegFlag } from "react-icons/fa";
+import { createPortal } from "react-dom";
 
 function timeAgo(dateString: string) {
   const now = new Date();
@@ -25,114 +28,144 @@ function timeAgo(dateString: string) {
 interface StoryCardProps {
   story: StoryDto;
   onDelete?: (storyId: number) => void;
-  duration?: number; // ms
+  duration?: number;
   isStoryModal?: boolean;
 }
 
-const StoryCard: FC<StoryCardProps> = ({ story, onDelete, duration = 60000, isStoryModal }) => {
+const StoryCard: FC<StoryCardProps> = ({
+  story,
+  onDelete,
+  duration = 60000,
+  isStoryModal,
+}) => {
   const { user } = useAuth();
   const isAuthor = user?.username === story.authorUsername;
 
   const imageUrl = story.contentUrl || story.albumArtUrl || "/placeholder.png";
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [flagModalOpen, setFlagModalOpen] = useState(false);
+  const [flagReason, setFlagReason] = useState("");
+  const [flagLoading, setFlagLoading] = useState(false);
   const [trackVolume, setTrackVolume] = useState(0.3);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { playPreview, pausePreview, initPlayer, isReady, currentUrl, isPlaying } = useApplePlayer();
+  const {
+    playPreview,
+    pausePreview,
+    initPlayer,
+    isReady,
+    currentUrl,
+    isPlaying,
+  } = useApplePlayer();
 
   const isVideo = story.type === "VIDEO";
 
-  // Initialize player once
   useEffect(() => {
-    if (!isReady) {
-      initPlayer();
-    }
+    if (!isReady) initPlayer();
   }, [initPlayer, isReady]);
 
-  // Autoplay Apple Music preview when story modal opens
-  useEffect(() => {
-    if (!isVideo && story.applePreviewUrl && isStoryModal && isReady) {
-      // Small delay to ensure modal is fully mounted
-      const timer = setTimeout(() => {
-        playPreview(story.applePreviewUrl!, trackVolume).catch((err) =>
-          console.warn("Autoplay blocked or failed:", err)
-        );
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }
-
-    // Pause preview when modal closes
-    if (!isStoryModal && story.applePreviewUrl) {
-      pausePreview();
-    }
-  }, [isStoryModal, story.applePreviewUrl, isVideo, trackVolume, playPreview, pausePreview, isReady]);
-
-  // Handle volume changes for currently playing track
-  useEffect(() => {
-    if (!isVideo && 
-        story.applePreviewUrl && 
-        isStoryModal && 
-        currentUrl === story.applePreviewUrl && 
-        isPlaying) {
-      playPreview(story.applePreviewUrl, trackVolume);
-    }
-  }, [trackVolume, story.applePreviewUrl, isVideo, playPreview, currentUrl, isPlaying, isStoryModal]);
-
-  // Handle play/pause
   const togglePlayPause = () => {
     if (isVideo && videoRef.current) {
       if (videoRef.current.paused) {
         videoRef.current.play();
-        
-        // Also play Apple preview if available - start fresh
-        if (story.applePreviewUrl) {
-          pausePreview(); // Stop any existing playback first
-          setTimeout(() => {
-            playPreview(story.applePreviewUrl!, trackVolume);
-          }, 50);
-        }
+        story.applePreviewUrl &&
+          (pausePreview(),
+          setTimeout(
+            () => playPreview(story.applePreviewUrl!, trackVolume),
+            50
+          ));
       } else {
         videoRef.current.pause();
-        
-        // Also pause Apple preview
-        if (story.applePreviewUrl) {
-          pausePreview();
-        }
+        story.applePreviewUrl && pausePreview();
       }
     } else if (story.applePreviewUrl) {
-      if (currentUrl === story.applePreviewUrl && isPlaying) {
-        pausePreview();
-      } else {
-        // Always start fresh when manually playing
-        pausePreview();
-        setTimeout(() => {
-          playPreview(story.applePreviewUrl!, trackVolume);
-        }, 50);
-      }
+      if (currentUrl === story.applePreviewUrl && isPlaying) pausePreview();
+      else
+        pausePreview(),
+          setTimeout(
+            () => playPreview(story.applePreviewUrl!, trackVolume),
+            50
+          );
     }
   };
 
-  // Close menu on outside click
+  useEffect(() => {
+    if (!isVideo && story.applePreviewUrl && isStoryModal && isReady) {
+      const timer = setTimeout(
+        () => playPreview(story.applePreviewUrl!, trackVolume).catch(() => {}),
+        100
+      );
+      return () => clearTimeout(timer);
+    }
+    if (!isStoryModal && story.applePreviewUrl) pausePreview();
+  }, [
+    isStoryModal,
+    story.applePreviewUrl,
+    isVideo,
+    trackVolume,
+    playPreview,
+    pausePreview,
+    isReady,
+  ]);
+
+  useEffect(() => {
+    if (
+      !isVideo &&
+      story.applePreviewUrl &&
+      isStoryModal &&
+      currentUrl === story.applePreviewUrl &&
+      isPlaying
+    ) {
+      playPreview(story.applePreviewUrl, trackVolume);
+    }
+  }, [
+    trackVolume,
+    story.applePreviewUrl,
+    isVideo,
+    playPreview,
+    currentUrl,
+    isPlaying,
+    isStoryModal,
+  ]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node))
         setMenuOpen(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleDelete = () => {
-    if (onDelete) onDelete(story.id);
+    onDelete && onDelete(story.id);
+  };
+
+  const handleFlagSubmit = async () => {
+    if (!flagReason.trim() || !user) return;
+    setFlagLoading(true);
+    try {
+      await flagStory(story.id, user.id, flagReason.trim());
+      alert("Story flagged successfully.");
+      setFlagModalOpen(false);
+      setFlagReason("");
+      setMenuOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to flag story.");
+    } finally {
+      setFlagLoading(false);
+    }
   };
 
   return (
-    <div className="relative w-[360px] h-[640px] mx-auto rounded-xl overflow-hidden shadow-lg bg-zinc-900 flex flex-col items-center justify-center">
+    <div className="relative w-[360px] h-[640px] mx-auto rounded-xl overflow-hidden shadow-2xl bg-zinc-900 flex flex-col items-center justify-center">
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 pointer-events-none"></div>
+
       {/* Story media */}
       {isVideo ? (
         <video
@@ -145,21 +178,23 @@ const StoryCard: FC<StoryCardProps> = ({ story, onDelete, duration = 60000, isSt
           muted={false}
           onClick={togglePlayPause}
         />
-      ) : story.contentUrl ? (
+      ) : (
         <div className="absolute inset-0" onClick={togglePlayPause}>
-          <Image src={imageUrl} alt="Story" fill className="object-cover" priority />
+          <Image
+            src={imageUrl}
+            alt="Story"
+            fill
+            className="object-cover"
+            priority
+          />
         </div>
-      ) : story.albumArtUrl ? (
-        <div className="flex items-center justify-center flex-1" onClick={togglePlayPause}>
-          <Image src={story.albumArtUrl} alt="Album Art" className="object-cover"  />
-        </div>
-      ) : null}
+      )}
 
       {/* Top bar */}
-      <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
-        <div className="flex items-center gap-3">
+      <div className="absolute top-6 left-4 right-4 flex items-center justify-between z-20">
+        <div className="flex items-center gap-3 bg-black/50 backdrop-blur-md rounded-xl px-2 py-1">
           {story.authorProfilePictureUrl && (
-            <div className="mt-5 w-10 h-10 p-[2px] rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500">
+            <div className="w-10 h-10 p-[2px] rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500">
               <div className="w-full h-full rounded-full overflow-hidden border-2 border-black">
                 <Image
                   src={getS3Url(story.authorProfilePictureUrl)}
@@ -171,54 +206,120 @@ const StoryCard: FC<StoryCardProps> = ({ story, onDelete, duration = 60000, isSt
               </div>
             </div>
           )}
-          <div className="flex flex-col mt-5">
-            <span className="text-white font-semibold text-sm truncate">{story.authorUsername}</span>
-            <span className="text-gray-300 text-xs">{timeAgo(story.createdAt)}</span>
+          <div className="flex flex-col">
+            <span className="text-white font-semibold text-sm truncate">
+              {story.authorUsername}
+            </span>
+            <span className="text-gray-300 text-xs">
+              {timeAgo(story.createdAt)}
+            </span>
           </div>
         </div>
 
         {/* Options menu */}
-        {isAuthor && onDelete && (
-          <div ref={menuRef} className="relative">
-            <button
-              onClick={() => setMenuOpen((prev) => !prev)}
-              onMouseDown={(e) => e.stopPropagation()}
-              className="text-white hover:text-gray-400 transition-colors hover:bg-gray-700 hover:rounded-full p-1"
-              title="Options"
-            >
-              <FiMoreVertical size={22} />
-            </button>
+        <div ref={menuRef} className="relative z-30">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen((prev) => !prev);
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="text-white hover:text-gray-400 transition-colors hover:bg-gray-700 hover:rounded-full p-2"
+            title="Options"
+          >
+            <FiMoreVertical size={24} />
+          </button>
 
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-24 bg-black rounded-lg shadow-lg border border-gray-700 z-30">
+          {menuOpen && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="absolute right-0 mt-2 w-36 bg-black/90 backdrop-blur-md rounded-xl shadow-lg border border-gray-700 pointer-events-auto"
+            >
+              {isAuthor && onDelete && (
                 <button
-                  onClick={handleDelete}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-800 rounded-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete();
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-600/20 rounded-lg"
                 >
                   Delete
                 </button>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+              {!isAuthor && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFlagModalOpen(true);
+                  }}
+                  className="w-full flex items-center justify-around text-left px-4 py-2 text-sm text-white-400 hover:bg-yellow-500/20 rounded-lg"
+                >
+                  <FaRegFlag /> Flag Story
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Track info overlay */}
       {story.applePreviewUrl && (
-        <div className="absolute bottom-8 left-4 right-4 z-20 flex items-center gap-3 bg-black/90 px-3 py-2 rounded-md">
+        <div className="absolute bottom-6 left-4 right-4 z-20 flex items-center gap-3 bg-black/70 backdrop-blur-md px-3 py-2 rounded-2xl">
           <img
             src={story.albumArtUrl || "/placeholder.png"}
             alt={story.trackName}
-            className="w-12 h-12 object-cover rounded-md"
+            className="w-14 h-14 object-cover rounded-lg"
           />
           <div className="flex flex-col flex-1 overflow-hidden">
-            <span className="text-white font-semibold truncate">{story.trackName}</span>
-            <span className="text-gray-300 text-sm truncate">{story.artistName || "Unknown Artist"}</span>
+            <span className="text-white font-semibold truncate">
+              {story.trackName}
+            </span>
+            <span className="text-gray-300 text-sm truncate">
+              {story.artistName || "Unknown Artist"}
+            </span>
           </div>
         </div>
       )}
+
+      {/* Flag Modal */}
+      {flagModalOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100000]"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="bg-zinc-900 p-6 rounded-xl w-96">
+              <h2 className="text-white text-lg font-semibold mb-4">
+                Flag Story
+              </h2>
+              <textarea
+                value={flagReason}
+                onChange={(e) => setFlagReason(e.target.value)}
+                placeholder="Reason for flagging (e.g., Spam, Hate Speech)"
+                className="w-full p-2 rounded bg-zinc-800 text-white border border-zinc-700 focus:outline-none"
+                rows={4}
+              />
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={handleFlagSubmit}
+                  disabled={flagLoading}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
+                >
+                  {flagLoading ? "Submitting..." : "Submit"}
+                </button>
+                <button
+                  onClick={() => setFlagModalOpen(false)}
+                  className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

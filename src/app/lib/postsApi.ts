@@ -1,5 +1,5 @@
 import { PostDto } from "@/app/types/Post";
-import { getAuthHeaders } from "./usersApi";
+import { fetchWithAuth, getAuthHeaders } from "./usersApi";
 
 export type CreatePostData = {
   title: string;
@@ -193,3 +193,34 @@ export async function getFeed(): Promise<PostDto[]> {
   if (!res.ok) throw new Error("Failed to fetch feed");
   return res.json();
 }
+
+export async function flagPost(postId: number, reporterId: number, reason: string) {
+  const res = await fetchWithAuth(
+    `${BASE_URL}/api/flags/post/${postId}?reporterId=${reporterId}&reason=${encodeURIComponent(reason)}`,
+    { method: "POST" }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Failed to flag post:", text);
+    throw new Error("Failed to flag post");
+  }
+
+  return res.json();
+}
+
+export async function flagComment(commentId: number, reporterId: number, reason: string) {
+  const res = await fetchWithAuth(
+    `${BASE_URL}/api/flags/comment/${commentId}?reporterId=${reporterId}&reason=${encodeURIComponent(reason)}`,
+    { method: "POST" }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Failed to flag comment:", text);
+    throw new Error("Failed to flag comment");
+  }
+
+  return res.json();
+}
+

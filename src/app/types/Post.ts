@@ -20,6 +20,8 @@ export interface Post {
   likedByCurrentUser?: boolean;
   comments?: Comment[];
   createdAt?: string;
+  hideen?: boolean;
+  flagCount?: number;
 }
 
 export interface PostDto {
@@ -46,4 +48,7 @@ export interface PostDto {
   applePreviewUrl?: string;
   appleTrackId?: string;
   appleTrackName?: string;
+
+  hideen?: boolean;
+  flagCount?: number;
 }

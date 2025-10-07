@@ -5,7 +5,6 @@ import ReactDOM from "react-dom";
 import { StoryDto } from "../types/Story";
 import StoryCard from "./StoryCard";
 import { useApplePlayer } from "../context/ApplePlayerContext";
-import { truncate } from "node:fs";
 
 interface StoryViewerModalProps {
   stories: StoryDto[];
@@ -95,11 +94,15 @@ const StoryViewerModal: FC<StoryViewerModalProps> = ({
   return ReactDOM.createPortal(
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4"
-      onClick={() => setTimeout(onClose, 0)}
+      onMouseDown={(e) => {
+        // Only close if the click originated on the backdrop (the outer div itself)
+        if (e.target === e.currentTarget) {
+           setTimeout(onClose, 0)
+        }
+      }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={handleClick}
+        onMouseDown={handleClick} // This handles story advance/prev
         className="w-full max-w-sm relative cursor-pointer"
       >
         {/* Story progress dots */}
@@ -120,6 +123,7 @@ const StoryViewerModal: FC<StoryViewerModalProps> = ({
           ))}
         </div>
 
+        {/* StoryCard now handles its own internal clicks */}
         <StoryCard story={currentStory} onDelete={onDelete} isStoryModal={true} />
       </div>
     </div>,

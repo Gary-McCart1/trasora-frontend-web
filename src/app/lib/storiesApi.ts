@@ -1,5 +1,5 @@
 import { StoryDto } from "@/app/types/Story";
-import { getAuthHeaders } from "./usersApi";
+import { fetchWithAuth, getAuthHeaders } from "./usersApi";
 
 const BASE_URL = "https://trasora-backend-e03193d24a86.herokuapp.com";
 
@@ -43,5 +43,20 @@ export async function deleteStory(storyId: number): Promise<void> {
       const text = await res.text();
       throw new Error(text || `Failed to delete story ${storyId}`);
     }
+  }
+
+  export async function flagStory(storyId: number, reporterId: number, reason: string) {
+    const res = await fetchWithAuth(
+      `${BASE_URL}/api/flags/story/${storyId}?reporterId=${reporterId}&reason=${encodeURIComponent(reason)}`,
+      { method: "POST" }
+    );
+  
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Failed to flag story:", text);
+      throw new Error("Failed to flag story");
+    }
+  
+    return res.json();
   }
   
