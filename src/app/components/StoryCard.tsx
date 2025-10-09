@@ -217,10 +217,18 @@ const StoryCard: FC<StoryCardProps> = ({
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-44 bg-black/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-700 pointer-events-auto overflow-hidden">
+            <div
+              className="absolute right-0 mt-2 w-44 bg-black/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-700 pointer-events-auto overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               {/* Flag Button */}
               <button
-                onClick={() => setFlagModalOpen(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFlagModalOpen(true);
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
                 className="w-full flex items-center gap-2 px-4 py-3 text-sm text-yellow-400 hover:bg-yellow-500/10 transition-colors"
               >
                 <FaRegFlag className="w-4 h-4" />
@@ -235,7 +243,11 @@ const StoryCard: FC<StoryCardProps> = ({
               {/* Delete Button */}
               {isAuthor && onDelete && (
                 <button
-                  onClick={handleDelete}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete();
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-500 hover:bg-red-600/10 transition-colors"
                 >
                   <span className="w-4 h-4 bg-red-500 rounded-full"></span>
