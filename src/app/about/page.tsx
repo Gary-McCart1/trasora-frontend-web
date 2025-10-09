@@ -4,13 +4,32 @@ import Link from "next/link";
 
 const AboutPage = () => {
   return (
-    <div>
+    <div className="min-h-screen bg-zinc-950 text-zinc-200">
       <Hero />
-      <div className="flex justify-between w-[20%] mx-auto mt-10">
-        <Link className="hover:text-purple-400 transition text-sm text-zinc-200"
-            aria-label="Home" href="/support">Support</Link>
-        <Link className="hover:text-purple-400 transition text-sm text-zinc-200"href="/privacy">Privacy</Link>
-        <Link className="hover:text-purple-400 transition text-sm text-zinc-200"href="/terms-of-use">Terms of Use</Link>
+      <div className="mt-10 px-6 sm:px-0">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-md sm:max-w-2xl mx-auto text-center">
+          <Link
+            className="hover:text-purple-400 transition text-sm sm:text-base"
+            aria-label="Support"
+            href="/support"
+          >
+            Support
+          </Link>
+          <Link
+            className="hover:text-purple-400 transition text-sm sm:text-base"
+            aria-label="Privacy"
+            href="/privacy"
+          >
+            Privacy
+          </Link>
+          <Link
+            className="hover:text-purple-400 transition text-sm sm:text-base"
+            aria-label="Terms of Use"
+            href="/terms-of-use"
+          >
+            Terms of Use
+          </Link>
+        </div>
       </div>
     </div>
   );
