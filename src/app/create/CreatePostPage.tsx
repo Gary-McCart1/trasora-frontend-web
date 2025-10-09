@@ -190,7 +190,7 @@ export default function CreatePostPage({
                 I agree that my post follows the{" "}
                 <a
                   href="/terms-of-use"
-                  target="_blank"
+                  // target="_blank"
                   rel="noopener noreferrer"
                   className="text-purple-400 underline"
                 >
