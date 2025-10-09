@@ -30,6 +30,7 @@ type PlayerTrack = {
   artistName: string;
   albumArtUrl?: string;
   streamUrl?: string;
+  type?: string;
 };
 
 export default function TrackResultItem({ track }: { track: Track }) {
@@ -77,6 +78,7 @@ export default function TrackResultItem({ track }: { track: Track }) {
     artistName: track.user.username,
     albumArtUrl: track.artwork_url || undefined,
     streamUrl: track.stream_url,
+    type: "track"
   };
   const selectedSongForTrunks = {
     trackId: selectedSong.id,
@@ -107,6 +109,7 @@ export default function TrackResultItem({ track }: { track: Track }) {
         artistName: spotifyTrack.artistName,
         albumArtUrl: spotifyTrack.albumArtUrl,
         streamUrl: spotifyTrack.previewUrl,
+        type: "track"
       });
     } catch (err) {
       console.error("Error fetching Spotify track:", err);
@@ -185,6 +188,7 @@ export default function TrackResultItem({ track }: { track: Track }) {
       {playingTrack && (
         <DraggablePlayer
           track={playingTrack}
+        
           onClose={() => setPlayingTrack(null)}
           onBranchAdded={() => setBranchModalOpen(true)}
         />
