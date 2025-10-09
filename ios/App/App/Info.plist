@@ -5,9 +5,9 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app uses the microphone when recording video or audio posts.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to your photo library to choose pictures.</string>
+	<string>This app requires access to your photo library to choose pictures to upload for posts and stories, and share them with other users.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>This app requires camera access to take and upload photos.</string>
+	<string>This app requires access to your camera to take and upload photos for your posts and profile, and share them with other users</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>

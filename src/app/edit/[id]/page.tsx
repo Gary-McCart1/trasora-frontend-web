@@ -31,7 +31,9 @@ export default function EditPostPage() {
   const { playPreview, pausePreview, setVolume } = useApplePlayer();
 
   const [post, setPost] = useState<PostDto | null>(null);
-  const [selectedTrack, setSelectedTrack] = useState<AppleMusicTrack | null>(null);
+  const [selectedTrack, setSelectedTrack] = useState<AppleMusicTrack | null>(
+    null
+  );
   const [caption, setCaption] = useState("");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
@@ -39,6 +41,7 @@ export default function EditPostPage() {
   const [trackVolume, setTrackVolume] = useState(0.3);
   const [loading, setLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const DEFAULT_ALBUM_IMAGE = "/default-album-cover.png";
@@ -67,7 +70,9 @@ export default function EditPostPage() {
           setIsVideo(true);
         } else {
           setMediaPreview(
-            fetchedPost.customImageUrl ?? fetchedPost.albumArtUrl ?? DEFAULT_ALBUM_IMAGE
+            fetchedPost.customImageUrl ??
+              fetchedPost.albumArtUrl ??
+              DEFAULT_ALBUM_IMAGE
           );
           setIsVideo(false);
         }
@@ -144,7 +149,9 @@ export default function EditPostPage() {
     title: caption,
     text: caption,
     customVideoUrl: isVideo ? mediaPreview || undefined : undefined,
-    customImageUrl: !isVideo ? mediaPreview || selectedTrack?.albumArtUrl : undefined,
+    customImageUrl: !isVideo
+      ? mediaPreview || selectedTrack?.albumArtUrl
+      : undefined,
     albumArtUrl: selectedTrack?.albumArtUrl || DEFAULT_ALBUM_IMAGE,
     trackId: selectedTrack?.id || "",
     trackName: selectedTrack?.name || "Select a track",
@@ -162,14 +169,20 @@ export default function EditPostPage() {
         Edit Your Post
       </h1>
 
-      <div className={`flex flex-col xl:flex-row w-full ${!showPreview ? "items-center justify-center" : ""}`}>
+      <div
+        className={`flex flex-col xl:flex-row w-full ${
+          !showPreview ? "items-center justify-center" : ""
+        }`}
+      >
         <div className="w-full max-w-2xl">
           <form
             onSubmit={handleSubmit}
             className="space-y-6 bg-gradient-to-b from-zinc-900 to-zinc-800 p-8 rounded-3xl shadow-xl border border-zinc-700"
           >
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Track</label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Track
+              </label>
               <TrackSearch
                 onSelectTrack={(track: AppleMusicTrack) => {
                   setSelectedTrack(track);
@@ -181,7 +194,9 @@ export default function EditPostPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Caption</label>
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
+                Caption
+              </label>
               <textarea
                 rows={3}
                 maxLength={300}
@@ -201,12 +216,38 @@ export default function EditPostPage() {
               albumArt={selectedTrack?.albumArtUrl}
             />
 
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-1 accent-purple-500 w-4 h-4 cursor-pointer"
+                required
+              />
+              <label
+                htmlFor="terms"
+                className="text-sm text-zinc-300 leading-tight pt-1"
+              >
+                I agree that my post follows the{" "}
+                <a
+                  href="/terms-of-use"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-purple-400 underline"
+                >
+                  Terms of Use
+                </a>
+                , and I will not post objectionable content.
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={!selectedTrack || loading}
+              disabled={!selectedTrack || loading || !agreedToTerms}
               className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl font-semibold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
             >
-              {loading ? "Saving..." : "Save Changes"}
+              {loading ? "Posting..." : "Post Now"}
             </button>
           </form>
         </div>
@@ -222,7 +263,9 @@ export default function EditPostPage() {
                 <div className="flex flex-col w-full items-center gap-4">
                   {selectedTrack?.previewUrl && (
                     <div className="flex items-center gap-3 w-80">
-                      <span className="text-sm text-zinc-100 text-nowrap">Song Volume</span>
+                      <span className="text-sm text-zinc-100 text-nowrap">
+                        Song Volume
+                      </span>
                       <LuAudioLines className="w-6 h-6 text-purple-400" />
                       <input
                         type="range"
@@ -230,10 +273,14 @@ export default function EditPostPage() {
                         max={1}
                         step={0.01}
                         value={trackVolume}
-                        onChange={(e) => setTrackVolume(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          setTrackVolume(parseFloat(e.target.value))
+                        }
                         className="w-full accent-purple-500 h-2 rounded-lg cursor-pointer"
                       />
-                      <span className="text-sm text-purple-300">{Math.round(trackVolume * 100)}%</span>
+                      <span className="text-sm text-purple-300">
+                        {Math.round(trackVolume * 100)}%
+                      </span>
                     </div>
                   )}
                   <PostCard

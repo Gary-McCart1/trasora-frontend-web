@@ -32,7 +32,9 @@ export default function CreatePostPage({
   const { width, height } = useWindowSize();
   const { setVolume: setSongVolume } = useApplePlayer(); // ✅ hook into ApplePlayer
 
-  const [selectedTrack, setSelectedTrack] = useState<AppleMusicTrack | null>(null);
+  const [selectedTrack, setSelectedTrack] = useState<AppleMusicTrack | null>(
+    null
+  );
   const [caption, setCaption] = useState("");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
@@ -41,6 +43,7 @@ export default function CreatePostPage({
   const [loading, setLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [trackVolume, setTrackVolume] = useState(0.3);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const DEFAULT_ALBUM_IMAGE = "/default-album-cover.png";
@@ -171,9 +174,35 @@ export default function CreatePostPage({
               albumArt={imageSrc}
             />
 
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-1 accent-purple-500 w-4 h-4 cursor-pointer"
+                required
+              />
+              <label
+                htmlFor="terms"
+                className="text-sm text-zinc-300 leading-tight pt-1"
+              >
+                I agree that my post follows the{" "}
+                <a
+                  href="/terms-of-use"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-purple-400 underline"
+                >
+                  Terms of Use
+                </a>
+                , and I will not post objectionable content.
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={!selectedTrack || loading}
+              disabled={!selectedTrack || loading || !agreedToTerms}
               className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl font-semibold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
             >
               {loading ? "Posting..." : "Post Now"}

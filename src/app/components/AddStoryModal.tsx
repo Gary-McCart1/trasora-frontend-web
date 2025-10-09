@@ -25,11 +25,14 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [selectedTrack, setSelectedTrack] = useState<AppleMusicTrack | null>(null);
+  const [selectedTrack, setSelectedTrack] = useState<AppleMusicTrack | null>(
+    null
+  );
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewStory, setPreviewStory] = useState<StoryDto | null>(null);
   const [, setIsVideo] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Update preview whenever track/media changes
   useEffect(() => {
@@ -70,9 +73,9 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
       alert("Please select a track first!");
       return;
     }
-  
+
     setUploading(true);
-  
+
     try {
       const storyPayload: StoryDto = {
         id: 0, // temporary or backend-generated
@@ -91,10 +94,10 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24h expiry
         viewers: [],
       };
-  
+
       const newStory = await uploadStory(storyPayload, mediaFile ?? undefined);
       onStoryAdded(newStory);
-  
+
       // Show confetti
       setShowConfetti(true);
       setTimeout(() => {
@@ -107,7 +110,6 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
       setUploading(false);
     }
   };
-  
 
   return (
     <>
@@ -165,10 +167,36 @@ const AddStoryModal: FC<AddStoryModalProps> = ({
             </div>
           )}
 
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="terms"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-1 accent-purple-500 w-4 h-4 cursor-pointer"
+              required
+            />
+            <label
+              htmlFor="terms"
+              className="text-sm text-zinc-300 leading-tight pt-1"
+            >
+              I agree that my post follows the{" "}
+              <a
+                href="/terms-of-use"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-purple-400 underline"
+              >
+                Terms of Use
+              </a>
+              , and I will not post objectionable content.
+            </label>
+          </div>
+
           {/* Upload Button */}
           <button
             onClick={handleUpload}
-            disabled={uploading || !selectedTrack}
+            disabled={uploading || !selectedTrack || !agreedToTerms}
             className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl font-semibold text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {uploading ? "Uploading..." : "Upload Story"}
