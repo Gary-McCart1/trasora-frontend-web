@@ -278,8 +278,15 @@ const StoryCard: FC<StoryCardProps> = ({
       )}
       {/* Flag Modal */}
       {flagModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-zinc-900 p-6 rounded-xl w-96">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          onClick={() => setFlagModalOpen(false)} // clicking outside closes modal
+        >
+          <div
+            className="bg-zinc-900 p-6 rounded-xl w-96"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <h2 className="text-white text-lg font-semibold mb-4">
               Flag Story
             </h2>
@@ -292,14 +299,22 @@ const StoryCard: FC<StoryCardProps> = ({
             />
             <div className="flex gap-2 mt-4">
               <button
-                onClick={handleFlagSubmit}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFlagSubmit();
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
                 disabled={flagLoading}
                 className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
               >
                 {flagLoading ? "Submitting..." : "Submit"}
               </button>
               <button
-                onClick={() => setFlagModalOpen(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFlagModalOpen(false);
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
                 className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded"
               >
                 Cancel
