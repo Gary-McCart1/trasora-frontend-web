@@ -163,49 +163,33 @@ const StoryCard: FC<StoryCardProps> = ({
 
   return (
     <div className="relative w-[360px] h-[640px] mx-auto rounded-xl overflow-hidden shadow-2xl bg-zinc-900 flex flex-col items-center justify-center">
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 pointer-events-none"></div>
-
       {/* Story media */}
-      {isVideo ? (
-        <video
-          ref={videoRef}
-          src={story.contentUrl}
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay
-          loop
-          playsInline
-          muted={false}
-          onClick={togglePlayPause}
-        />
-      ) : (
-        <div className="absolute inset-0" onClick={togglePlayPause}>
-          <Image
-            src={imageUrl}
-            alt="Story"
-            fill
-            className="object-cover"
-            priority
-          />
+      {!story.contentUrl && (
+        <div className="absolute inset-0 cursor-pointer">
+          <Image src={imageUrl} alt="Story" fill className="object-contain" />
+        </div>
+      )}
+
+      {story.contentUrl && (
+        <div className="absolute inset-0 cursor-pointer">
+          <Image src={imageUrl} alt="Story" fill className="object-cover" />
         </div>
       )}
 
       {/* Top bar */}
-      <div className="absolute top-6 left-4 right-4 flex items-center justify-between z-20">
-        <div className="flex items-center gap-3 bg-black/50 backdrop-blur-md rounded-xl px-2 py-1">
-          {story.authorProfilePictureUrl && (
-            <div className="w-10 h-10 p-[2px] rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500">
-              <div className="w-full h-full rounded-full overflow-hidden border-2 border-black">
-                <Image
-                  src={getS3Url(story.authorProfilePictureUrl)}
-                  alt={story.authorUsername}
-                  width={40}
-                  height={40}
-                  className="object-cover w-full h-full"
-                />
-              </div>
+      <div className="absolute top-8 left-4 right-4 flex items-center justify-between z-20">
+        <div className="flex items-center gap-3 bg-black backdrop-blur-md rounded-xl px-2 py-2">
+          <div className="w-10 h-10 p-[2px] rounded-full bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500">
+            <div className="w-full h-full rounded-full overflow-hidden border-2 border-black">
+              <Image
+                src={getS3Url(story.authorProfilePictureUrl)}
+                alt={story.authorUsername}
+                width={40}
+                height={40}
+                className="object-cover w-full h-full"
+              />
             </div>
-          )}
+          </div>
           <div className="flex flex-col">
             <span className="text-white font-semibold text-sm truncate">
               {story.authorUsername}
@@ -223,7 +207,9 @@ const StoryCard: FC<StoryCardProps> = ({
               e.stopPropagation();
               setMenuOpen((prev) => !prev);
             }}
-            onMouseDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
             className="text-white hover:text-gray-400 transition-colors hover:bg-gray-700 hover:rounded-full p-2"
             title="Options"
           >
@@ -231,31 +217,29 @@ const StoryCard: FC<StoryCardProps> = ({
           </button>
 
           {menuOpen && (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              className="absolute right-0 mt-2 w-36 bg-black/90 backdrop-blur-md rounded-xl shadow-lg border border-gray-700 pointer-events-auto"
-            >
+            <div className="absolute right-0 mt-2 w-44 bg-black/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-700 pointer-events-auto overflow-hidden">
+              {/* Flag Button */}
+              <button
+                onClick={() => setFlagModalOpen(true)}
+                className="w-full flex items-center gap-2 px-4 py-3 text-sm text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+              >
+                <FaRegFlag className="w-4 h-4" />
+                Flag Story
+              </button>
+
+              {/* Divider */}
+              {isAuthor && onDelete && (
+                <div className="border-t border-gray-700"></div>
+              )}
+
+              {/* Delete Button */}
               {isAuthor && onDelete && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete();
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-600/20 rounded-lg"
+                  onClick={handleDelete}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-500 hover:bg-red-600/10 transition-colors"
                 >
+                  <span className="w-4 h-4 bg-red-500 rounded-full"></span>
                   Delete
-                </button>
-              )}
-              {!isAuthor && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFlagModalOpen(true);
-                  }}
-                  className="w-full flex items-center justify-around text-left px-4 py-2 text-sm text-white-400 hover:bg-yellow-500/20 rounded-lg"
-                >
-                  <FaRegFlag /> Flag Story
                 </button>
               )}
             </div>
@@ -263,7 +247,6 @@ const StoryCard: FC<StoryCardProps> = ({
         </div>
       </div>
 
-      {/* Track info overlay */}
       {story.applePreviewUrl && (
         <div className="absolute bottom-6 left-4 right-4 z-20 flex items-center gap-3 bg-black/70 backdrop-blur-md px-3 py-2 rounded-2xl">
           <img
@@ -281,45 +264,38 @@ const StoryCard: FC<StoryCardProps> = ({
           </div>
         </div>
       )}
-
       {/* Flag Modal */}
-      {flagModalOpen &&
-        createPortal(
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100000]"
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <div className="bg-zinc-900 p-6 rounded-xl w-96">
-              <h2 className="text-white text-lg font-semibold mb-4">
-                Flag Story
-              </h2>
-              <textarea
-                value={flagReason}
-                onChange={(e) => setFlagReason(e.target.value)}
-                placeholder="Reason for flagging (e.g., Spam, Hate Speech)"
-                className="w-full p-2 rounded bg-zinc-800 text-white border border-zinc-700 focus:outline-none"
-                rows={4}
-              />
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={handleFlagSubmit}
-                  disabled={flagLoading}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
-                >
-                  {flagLoading ? "Submitting..." : "Submit"}
-                </button>
-                <button
-                  onClick={() => setFlagModalOpen(false)}
-                  className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded"
-                >
-                  Cancel
-                </button>
-              </div>
+      {flagModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 p-6 rounded-xl w-96">
+            <h2 className="text-white text-lg font-semibold mb-4">
+              Flag Story
+            </h2>
+            <textarea
+              value={flagReason}
+              onChange={(e) => setFlagReason(e.target.value)}
+              placeholder="Reason for flagging (e.g., Spam, Hate Speech)"
+              className="w-full p-2 rounded bg-zinc-800 text-white border border-zinc-700 focus:outline-none"
+              rows={4}
+            />
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleFlagSubmit}
+                disabled={flagLoading}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
+              >
+                {flagLoading ? "Submitting..." : "Submit"}
+              </button>
+              <button
+                onClick={() => setFlagModalOpen(false)}
+                className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded"
+              >
+                Cancel
+              </button>
             </div>
-          </div>,
-          document.body
-        )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
