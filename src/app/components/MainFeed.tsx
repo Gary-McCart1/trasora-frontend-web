@@ -245,7 +245,7 @@ export default function MainFeed({
       {showInitModal && (
         <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <motion.div className="bg-[#1a1a1a] rounded-2xl p-8 w-80 md:w-96 shadow-2xl flex flex-col items-center">
-            <h2 className="text-white text-xl font-bold mb-4 text-center">Enable Player</h2>
+            <h2 className="text-white text-xl font-bold mb-4 text-center">Enable Autoplay</h2>
             <button
               onClick={() => {
                 initPlayer();

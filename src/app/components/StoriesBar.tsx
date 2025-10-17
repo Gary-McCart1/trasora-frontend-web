@@ -171,9 +171,9 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
                 Suggested Friends
               </div>
               <div className="flex gap-4">
-                {suggestedFollows.map((user) => (
+                {suggestedFollows.map((user, index) => (
                   <Link href={`/profile/${user.username}`} key={user.id}>
-                    <motion.div className="flex flex-col items-center flex-shrink-0 cursor-pointer">
+                    {index < 5 && <motion.div className="flex flex-col items-center flex-shrink-0 cursor-pointer">
                       <div className="w-16 h-16 rounded-full overflow-hidden">
                         <img
                           src={
@@ -190,7 +190,7 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
                       <p className="text-xs mt-1 truncate w-16 text-center text-gray-200">
                         {user.username}
                       </p>
-                    </motion.div>
+                    </motion.div>}
                   </Link>
                 ))}
               </div>
