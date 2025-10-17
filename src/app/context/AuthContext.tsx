@@ -28,7 +28,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     "/forgot-password",
     "/reset-password",
     "/verify-email",
-    "/terms-of-use"
+    "/terms-of-use",
+    "/leaderboard"
   ];
 
   // 🚀 Register for push once on app start

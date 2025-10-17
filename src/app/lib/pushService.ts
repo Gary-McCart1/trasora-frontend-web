@@ -10,7 +10,7 @@ export async function subscribeUserToPush() {
       }
   
       const registration = await navigator.serviceWorker.ready;
-      const vapidPublicKey = "BFwjh6p-..."; // truncated
+      const vapidPublicKey = "BFwjh6p-2zzc7Vm1uufKZoh-slWVttLRfnyQgsogY_X_oRkmQpWd4BmpDXowzPo5w1kJeCdCao949SNch0JcyGQ"; 
       const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
   
       const subscription = await registration.pushManager.subscribe({

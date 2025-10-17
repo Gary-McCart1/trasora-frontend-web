@@ -7,6 +7,7 @@ import PostActions from "./PostActions";
 import { Play, Pause } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useApplePlayer } from "../context/ApplePlayerContext";
+import Image from "next/image";
 
 const PREVIEW_DURATION = 30; // preview length in seconds
 
@@ -25,7 +26,10 @@ interface PostCardProps {
   fullWidth?: boolean;
   isMock?: boolean;
   profileFeed: boolean;
-  onMediaDimensionsChange?: (dimensions: { width: number; height: number }) => void;
+  onMediaDimensionsChange?: (dimensions: {
+    width: number;
+    height: number;
+  }) => void;
   currentTrackId?: string;
   isActive?: boolean;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
@@ -61,11 +65,15 @@ export default function PostCard({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const elapsedRef = useRef(0);
   const internalVideoRef = useRef<HTMLVideoElement>(null);
+  const [imgSize, setImgSize] = useState({ width: 500, height: 500 });
 
   const { user } = useAuth();
-  const { currentUrl, isPlaying: contextIsPlaying, playPreview, pausePreview } =
-    useApplePlayer();
-
+  const {
+    currentUrl,
+    isPlaying: contextIsPlaying,
+    playPreview,
+    pausePreview,
+  } = useApplePlayer();
 
   const isVideo = !!post.customVideoUrl;
   const activeVideoRef = videoRef || internalVideoRef;
@@ -88,7 +96,13 @@ export default function PostCard({
     } else if (isVideo && activeVideoRef.current) {
       setIsPlaying(!activeVideoRef.current.paused);
     }
-  }, [currentUrl, contextIsPlaying, isVideo, post.applePreviewUrl, activeVideoRef]);
+  }, [
+    currentUrl,
+    contextIsPlaying,
+    isVideo,
+    post.applePreviewUrl,
+    activeVideoRef,
+  ]);
 
   // Add video event listeners for sync
   useEffect(() => {
@@ -127,16 +141,26 @@ export default function PostCard({
       }
     };
 
-    video.addEventListener('play', handlePlay);
-    video.addEventListener('pause', handlePause);
-    video.addEventListener('ended', handleEnded);
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("pause", handlePause);
+    video.addEventListener("ended", handleEnded);
 
     return () => {
-      video.removeEventListener('play', handlePlay);
-      video.removeEventListener('pause', handlePause);
-      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener("play", handlePlay);
+      video.removeEventListener("pause", handlePause);
+      video.removeEventListener("ended", handleEnded);
     };
-  }, [isVideo, activeVideoRef, post.applePreviewUrl, post.customVideoUrl, playPreview, pausePreview, trackVolume, onManualPause, currentUrl]);
+  }, [
+    isVideo,
+    activeVideoRef,
+    post.applePreviewUrl,
+    post.customVideoUrl,
+    playPreview,
+    pausePreview,
+    trackVolume,
+    onManualPause,
+    currentUrl,
+  ]);
 
   // Animate progress circle
   useEffect(() => {
@@ -168,7 +192,14 @@ export default function PostCard({
         pausePreview();
       }
     }
-  }, [trackVolume, isVideo, post.applePreviewUrl, playPreview, pausePreview, currentUrl]);
+  }, [
+    trackVolume,
+    isVideo,
+    post.applePreviewUrl,
+    playPreview,
+    pausePreview,
+    currentUrl,
+  ]);
 
   // Autoplay audio preview if active
   useEffect(() => {
@@ -187,16 +218,16 @@ export default function PostCard({
       }
 
       const video = activeVideoRef.current;
-      
+
       if (video.paused) {
         // ▶️ PLAY: Start both video and audio
         console.log("Playing video and audio");
-        
+
         // Start video
         video.play().catch((error) => {
           console.error("Failed to play video:", error);
         });
-        
+
         setIsPlaying(true);
 
         // Start Apple preview audio if available
@@ -218,7 +249,7 @@ export default function PostCard({
       } else {
         // ⏸️ PAUSE: Stop both video and audio
         console.log("Pausing video and audio");
-        
+
         // Pause video
         video.pause();
         setIsPlaying(false);
@@ -237,8 +268,9 @@ export default function PostCard({
       }
     } else if (post.applePreviewUrl) {
       // Audio-only posts
-      const isCurrentlyPlaying = currentUrl === post.applePreviewUrl && contextIsPlaying;
-      
+      const isCurrentlyPlaying =
+        currentUrl === post.applePreviewUrl && contextIsPlaying;
+
       if (isCurrentlyPlaying) {
         // ⏸️ PAUSE: Stop audio
         console.log("Pausing audio");
@@ -294,7 +326,6 @@ export default function PostCard({
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - progress * circumference;
 
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -312,99 +343,118 @@ export default function PostCard({
       onClick={onClick}
     >
       {/* Track Info */}
-      {(isDetailView || isVideo) && <div
-        className={`absolute top-0 left-1/2 transform -translate-x-1/2 ${!isDetailView ? "w-[101%] rounded-t-xl": "w-full"} h-[90px] flex items-center px-4 gap-4 z-10 ${
-          isActive ? "bg-purple-600" : "bg-zinc-900"
-        }`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <img
-          src={post.albumArtUrl || "/default-album-cover.png"}
-          alt={post.trackName || "Track"}
-          className="w-14 h-14 rounded-md object-cover"
-        />
-        <div className="flex flex-col overflow-hidden flex-1">
-          <span className="font-semibold truncate text-white">
-            {post.trackName || "Unknown Track"}
-          </span>
-          <span className="text-sm truncate text-gray-200">
-            {post.artistName || "Unknown Artist"}
-          </span>
-        </div>
-        {(post.applePreviewUrl || isVideo) && (
-          <div
-            className="cursor-pointer rounded-full relative flex items-center justify-center p-2 bg-purple-700"
-            onClick={togglePlayPause}
-            style={{ width: 44, height: 44 }}
-          >
-            <svg
-              height={radius * 2}
-              width={radius * 2}
-              className="absolute top-[-1] left-[-1] transform -rotate-90"
-            >
-              <circle
-                stroke="#ffffff0"
-                fill="transparent"
-                strokeWidth={stroke}
-                r={normalizedRadius}
-                cx={radius}
-                cy={radius}
-              />
-              <circle
-                stroke="#fff"
-                fill="transparent"
-                strokeWidth={stroke}
-                strokeDasharray={`${circumference} ${circumference}`}
-                strokeDashoffset={strokeDashoffset}
-                r={normalizedRadius}
-                cx={radius}
-                cy={radius}
-                style={{ transition: "stroke-dashoffset 0.05s linear" }}
-              />
-            </svg>
-            {isPlaying ? (
-              <Pause className="text-white w-6 h-6" />
-            ) : (
-              <Play className="text-white w-6 h-6" />
-            )}
+      {(isDetailView || isVideo) && (
+        <div
+          className={`absolute top-0 left-1/2 transform -translate-x-1/2 ${
+            !isDetailView ? "w-[101%] rounded-t-xl" : "w-full"
+          } h-[90px] flex items-center px-4 gap-4 z-10 ${
+            isActive ? "bg-purple-600" : "bg-zinc-900"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <img
+            src={post.albumArtUrl || "/default-album-cover.png"}
+            alt={post.trackName || "Track"}
+            className="w-14 h-14 rounded-md object-cover"
+          />
+          <div className="flex flex-col overflow-hidden flex-1">
+            <span className="font-semibold truncate text-white">
+              {post.trackName || "Unknown Track"}
+            </span>
+            <span className="text-sm truncate text-gray-200">
+              {post.artistName || "Unknown Artist"}
+            </span>
           </div>
-        )}
-      </div>
-        }
+          {(post.applePreviewUrl || isVideo) && (
+            <div
+              className="cursor-pointer rounded-full relative flex items-center justify-center p-2 bg-purple-700"
+              onClick={togglePlayPause}
+              style={{ width: 44, height: 44 }}
+            >
+              <svg
+                height={radius * 2}
+                width={radius * 2}
+                className="absolute top-[-1] left-[-1] transform -rotate-90"
+              >
+                <circle
+                  stroke="#ffffff0"
+                  fill="transparent"
+                  strokeWidth={stroke}
+                  r={normalizedRadius}
+                  cx={radius}
+                  cy={radius}
+                />
+                <circle
+                  stroke="#fff"
+                  fill="transparent"
+                  strokeWidth={stroke}
+                  strokeDasharray={`${circumference} ${circumference}`}
+                  strokeDashoffset={strokeDashoffset}
+                  r={normalizedRadius}
+                  cx={radius}
+                  cy={radius}
+                  style={{ transition: "stroke-dashoffset 0.05s linear" }}
+                />
+              </svg>
+              {isPlaying ? (
+                <Pause className="text-white w-6 h-6" />
+              ) : (
+                <Play className="text-white w-6 h-6" />
+              )}
+            </div>
+          )}
+        </div>
+      )}
       {/* Media */}
-      <div className={`relative w-full ${!isDetailView ? "mt-0" : "mt-[90px]"}`}>
+      <div
+        className={`relative w-full ${!isDetailView ? "mt-0" : "mt-[90px]"}`}
+      >
         {isVideo ? (
           <video
             ref={activeVideoRef}
             src={post.customVideoUrl ?? ""}
-            className={`w-full h-[450px] object-cover ${!isDetailView ? "rounded-xl" : ""}`}
+            className={`w-full h-[450px] object-cover ${
+              !isDetailView ? "rounded-xl" : ""
+            }`}
             autoPlay={!profileFeed}
             loop
             playsInline
             muted={false}
             onClick={(e) => {
               e.stopPropagation();
-              if(!profileFeed) togglePlayPause();
-              
+              if (!profileFeed) togglePlayPause();
             }}
           />
         ) : (
-          <img
+          <Image
             src={
-              post.customImageUrl || post.albumArtUrl || "/default-album-cover.png"
+              post.customImageUrl ||
+              post.albumArtUrl ||
+              "/default-album-cover.png"
             }
             alt={post.trackName || "Track"}
-            className={`${
-              !isDetailView ? "rounded-b-lg" : ""
-            } w-full ${!isDetailView ? "h-[250px]" : "h-[350px]"} object-cover ${
-              imageLoaded ? "opacity-100" : "opacity-0"
-            } transition-opacity duration-300 ${!isDetailView ? "rounded-t-2xl" : ""}`}
+            width={imgSize.width}
+            height={imgSize.height}
+            className={`
+    ${!isDetailView ? "rounded-b-lg" : ""}
+    w-full
+    ${!isDetailView ? "h-[250px]" : "h-[350px]"}
+    object-cover
+    ${imageLoaded ? "opacity-100" : "opacity-0"}
+    transition-opacity duration-300
+    ${!isDetailView ? "rounded-t-2xl" : ""}
+  `}
             onLoad={(e) => {
               setImageLoaded(true);
               const img = e.currentTarget;
+              const naturalW = img.naturalWidth || 500;
+              const naturalH = img.naturalHeight || 500;
+
+              setImgSize({ width: naturalW, height: naturalH });
+
               onMediaDimensionsChange?.({
-                width: img.naturalWidth,
-                height: img.naturalHeight,
+                width: naturalW,
+                height: naturalH,
               });
             }}
           />

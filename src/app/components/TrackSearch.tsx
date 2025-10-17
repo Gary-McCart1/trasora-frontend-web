@@ -58,7 +58,7 @@ export default function TrackSearch({ onSelectTrack }: TrackSearchProps) {
           name: attrs.name,
           artistName: attrs.artistName,
           albumArtUrl: attrs.artwork?.url
-            ? attrs.artwork.url.replace("{w}", "200").replace("{h}", "200")
+            ? attrs.artwork.url.replace("{w}", "1000").replace("{h}", "1000")
             : undefined,
           previewUrl:
             attrs.previews && attrs.previews.length > 0

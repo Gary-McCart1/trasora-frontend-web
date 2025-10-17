@@ -265,7 +265,7 @@ export default function MainFeed({
         </motion.div>
       )}
 
-      <div className="sticky md:top-[7.45rem] z-40 bg-zinc-950 flex justify-center pb-2 border-b border-zinc-900">
+      <div className="sticky md:top-[7.4rem] z-40 bg-zinc-950 flex justify-center pb-2 border-b border-zinc-900">
         <StoriesBar onStoriesOpenChange={setIsStoriesOpen} />
       </div>
 

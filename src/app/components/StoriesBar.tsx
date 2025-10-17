@@ -175,16 +175,16 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
                   <Link href={`/profile/${user.username}`} key={user.id}>
                     <motion.div className="flex flex-col items-center flex-shrink-0 cursor-pointer">
                       <div className="w-16 h-16 rounded-full overflow-hidden">
-                        <Image
+                        <img
                           src={
                             user.profilePictureUrl
                               ? getS3Url(user.profilePictureUrl)
                               : "/default-profilepic.png"
                           }
                           alt={user.username}
-                          width={64}
-                          height={64}
-                          className="object-cover"
+                          
+                          className="object-cover w-full h-full"
+                          
                         />
                       </div>
                       <p className="text-xs mt-1 truncate w-16 text-center text-gray-200">
