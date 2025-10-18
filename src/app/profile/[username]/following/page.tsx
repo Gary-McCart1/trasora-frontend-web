@@ -7,6 +7,7 @@ import { getFollowing } from "@/app/lib/followApi";
 import { User } from "@/app/types/User";
 import Image from "next/image";
 import getS3Url from "@/app/utils/S3Url";
+import Link from "next/link";
 
 const FollowingPage = () => {
   const { user, loading } = useAuth();
@@ -61,28 +62,32 @@ const FollowingPage = () => {
       ) : (
         <ul className="space-y-4">
           {following.map((f) => (
-            <li
-              key={f.id}
-              className="flex items-center justify-between bg-zinc-900 p-3 rounded-lg hover:bg-zinc-800 transition"
-            >
-              <div className="flex items-center gap-3">
-                <div className="relative w-10 h-10 rounded-full overflow-hidden">
-                  <Image
-                    src={getS3Url(f.profilePictureUrl)}
-                    alt={f.username}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-white font-medium">{f.username}</span>
-                  {f.fullName && (
-                    <span className="text-gray-400 text-sm">{f.fullName}</span>
-                  )}
-                </div>
-              </div>
+            <li key={f.id} className="flex items-center justify-between bg-zinc-900 p-3 rounded-lg hover:bg-zinc-800 transition">
+              <Link href={`/profile/${f.username}`}>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                    <Image
+                      src={getS3Url(f.profilePictureUrl)}
+                      alt={f.username}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <Link href={`/profile/${f.username}`}>
+                      <span className="text-white font-medium">
+                        {f.username}
+                      </span>
+                    </Link>
 
-              
+                    {f.fullName && (
+                      <span className="text-gray-400 text-sm">
+                        {f.fullName}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
             </li>
           ))}
         </ul>

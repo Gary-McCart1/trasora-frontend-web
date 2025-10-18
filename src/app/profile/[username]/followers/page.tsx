@@ -7,6 +7,7 @@ import { getFollowers } from "@/app/lib/followApi";
 import { User } from "@/app/types/User";
 import Image from "next/image";
 import getS3Url from "@/app/utils/S3Url";
+import Link from "next/link";
 
 const FollowersPage = () => {
   const { user, loading } = useAuth();
@@ -75,9 +76,16 @@ const FollowersPage = () => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-white font-medium">{follower.username}</span>
+                  <Link href={`/profile/${follower.username}`}>
+                    <span className="text-white font-medium">
+                      {follower.username}
+                    </span>
+                  </Link>
+
                   {follower.fullName && (
-                    <span className="text-gray-400 text-sm">{follower.fullName}</span>
+                    <span className="text-gray-400 text-sm">
+                      {follower.fullName}
+                    </span>
                   )}
                 </div>
               </div>

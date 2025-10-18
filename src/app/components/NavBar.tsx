@@ -131,7 +131,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-zinc-950 text-white shadow-md px-4 sticky top-0 z-50 md:pt-2">
+    <nav className="bg-zinc-950 text-white shadow-md px-4 py-4 sticky top-0 z-50 md:pt-2 mt-5">
       <div className="flex items-center justify-between">
         {/* Logo */}
         <div className="flex-shrink-0 z-10">
@@ -220,9 +220,21 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Hamburger */}
-        <button onClick={() => setIsOpen(!isOpen)} className="xl:hidden z-20">
-          {isOpen ? <X size={28} /> : <IoSettingsOutline size={20} />}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="xl:hidden z-20 flex flex-col justify-center items-center gap-1"
+        >
+          {isOpen ? (
+            <X size={28} />
+          ) : user ? (
+            <IoSettingsOutline size={20} />
+          ) : (
+            <>
+              <span className="block w-5 h-[2px] bg-white rounded" />
+              <span className="block w-5 h-[2px] bg-white rounded" />
+              <span className="block w-5 h-[2px] bg-white rounded" />
+            </>
+          )}
         </button>
       </div>
 
@@ -257,7 +269,6 @@ export default function Navbar() {
               <Link
                 href={`/profile/${user.username}`}
                 className="flex items-center h-12 px-4 hover:bg-zinc-800 rounded focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
-
                 aria-label="Profile"
                 onClick={() => setIsOpen(false)}
               >
