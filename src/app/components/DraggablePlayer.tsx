@@ -56,7 +56,7 @@ export default function DraggablePlayer({
     const height = 220;
     setPosition({
       x: Math.max(0, (window.innerWidth - width) / 2),
-      y: Math.max(0, window.innerHeight - height - 20),
+      y: Math.max(0, window.innerHeight - height - 100),
     });
   }, []);
 
