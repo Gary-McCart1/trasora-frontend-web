@@ -101,7 +101,7 @@ export default function Navbar() {
     },
     {
       name: "Terms of Service",
-      path: "/terms-of-service",
+      path: "/terms-of-use",
       icon: <LuScale className="w-5 h-5" />,
       protected: true,
     },
