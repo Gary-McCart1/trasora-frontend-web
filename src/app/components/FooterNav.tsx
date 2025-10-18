@@ -48,7 +48,7 @@ const FooterNav = () => {
       </div>
     );
   }
-
+ if (!user) return;
   return (
     <div className="bg-zinc-950 bottom-0 sticky h-[5rem] z-[50] xl:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.5)]">
       <ul className="flex justify-around items-center h-full text-white">
