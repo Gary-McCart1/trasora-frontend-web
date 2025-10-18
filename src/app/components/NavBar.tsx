@@ -137,7 +137,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-zinc-950 text-white shadow-md px-4 py-4 sticky top-0 z-50 md:pt-2 mt-[3rem]">
+    <nav className="bg-zinc-950 text-white shadow-md px-4 py-4 sticky top-2 z-50 md:pt-2 ">
       <div className="flex items-center justify-between">
         {/* Logo */}
         <div className="flex-shrink-0 z-10">
