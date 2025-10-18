@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { FaMedal } from "react-icons/fa";
 import { blockUser, unblockUser, getBlockStatus } from "../lib/usersApi";
 import { HiUserAdd, HiUserRemove } from "react-icons/hi";
+import Link from "next/link";
 
 interface ProfileHeaderProps {
   profileUser: User;
@@ -68,7 +69,10 @@ export default function ProfileHeader({
   // Follow / unfollow
   const followButtonHandler = async () => {
     try {
-      if (localFollowStatus === "following" || localFollowStatus === "requested") {
+      if (
+        localFollowStatus === "following" ||
+        localFollowStatus === "requested"
+      ) {
         const status = await onUnfollow();
         setLocalFollowStatus(status);
         setFollowersCount((prev) => Math.max(prev - 1, 0));
@@ -154,8 +158,6 @@ export default function ProfileHeader({
       className="relative rounded-3xl shadow-2xl border border-zinc-800 p-6 md:p-12 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 z-5"
       style={{ backgroundImage: gradient }}
     >
-     
-
       {/* Lock/Unlock */}
       <div className="absolute top-4 left-4">
         {profileUser.profilePublic ? (
@@ -195,7 +197,11 @@ export default function ProfileHeader({
                   : "border-white hover:bg-white/10"
               }`}
             >
-              {isBlocked ? <HiUserRemove className="w-5 h-5" /> : <HiUserAdd className="w-5 h-5" />}
+              {isBlocked ? (
+                <HiUserRemove className="w-5 h-5" />
+              ) : (
+                <HiUserAdd className="w-5 h-5" />
+              )}
             </button>
           </>
         )}
@@ -260,7 +266,9 @@ export default function ProfileHeader({
               onClick={followButtonHandler}
               disabled={isBlocked || isBlocked === null}
               className={`px-6 py-2 rounded-full font-semibold transition w-full text-center ${
-                isBlocked ? "bg-gray-700 text-gray-300 cursor-not-allowed" : followButtonClasses()
+                isBlocked
+                  ? "bg-gray-700 text-gray-300 cursor-not-allowed"
+                  : followButtonClasses()
               }`}
               style={{ minWidth: "140px" }}
             >
@@ -269,7 +277,9 @@ export default function ProfileHeader({
             <button
               onClick={toggleBlockHandler}
               className={`px-6 py-2 rounded-full border-2 font-semibold text-white transition w-full ${
-                isBlocked ? "border-red-500 bg-red-600 hover:bg-red-700" : "border-white hover:bg-white/10"
+                isBlocked
+                  ? "border-red-500 bg-red-600 hover:bg-red-700"
+                  : "border-white hover:bg-white/10"
               }`}
             >
               {isBlocked ? "Unblock" : "Block"}
@@ -278,19 +288,27 @@ export default function ProfileHeader({
         )}
 
         {/* Followers / Following / Branches */}
-        <div className="flex justify-center sm:justify-start space-x-10 text-purple-200 w-full mt-4 md:mt-12">
-          <div className="flex flex-col items-center">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white">
-              {followersCount}
-            </span>
-            <span className="uppercase text-xs tracking-wider">Followers</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white">
-              {followingCount}
-            </span>
-            <span className="uppercase text-xs tracking-wider">Following</span>
-          </div>
+        <div className="flex justify-center sm:justify-start space-x-8 text-purple-200 w-full mt-4 md:mt-12">
+          <Link href={`/profile/${profileUser.username}/followers`}>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl sm:text-3xl font-extrabold text-white">
+                {followersCount}
+              </span>
+              <span className="uppercase text-xs tracking-wider">
+                Followers
+              </span>
+            </div>
+          </Link>
+          <Link href={`/profile/${profileUser.username}/following`}>
+            <div className="flex flex-col items-center">
+              <span className="text-2xl sm:text-3xl font-extrabold text-white">
+                {followingCount}
+              </span>
+              <span className="uppercase text-xs tracking-wider">
+                Following
+              </span>
+            </div>
+          </Link>
           <div className="flex flex-col items-center">
             <span className="text-2xl sm:text-3xl font-extrabold text-white">
               {profileUser.branchCount ?? 0}

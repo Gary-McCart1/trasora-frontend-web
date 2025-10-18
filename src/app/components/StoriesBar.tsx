@@ -98,8 +98,8 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
 
   return (
     <div className="z-40 relative w-full isolation-isolate">
-    {/* Scrollable Stories + Suggested Follows */}
-    <div className="!overflow-x-auto py-2 scrollbar-hide w-full">
+      {/* Scrollable Stories + Suggested Follows */}
+      <div className="!overflow-x-auto py-2 scrollbar-hide w-full">
         <div className="flex gap-6 min-w-max px-4 justify-center">
           {/* Stories Column */}
           <div className="flex flex-col gap-1 flex-shrink-0">
@@ -125,7 +125,7 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
                   >
                     {/* Avatar */}
                     <div className="p-[2px] rounded-full bg-gradient-to-tr from-purple-500 via-purple-400 to-pink-500 shadow-md relative">
-                      <div className="w-16 h-16 rounded-full overflow-hidden relative">
+                      <div className="w-14 h-14 rounded-full overflow-hidden relative">
                         <Image
                           src={
                             hasStories
@@ -167,30 +167,32 @@ export default function StoriesBar({ onStoriesOpenChange }: StoriesBarProps) {
           {/* Suggested Follows Column */}
           {suggestedFollows.length > 0 && (
             <div className="flex flex-col gap-2 flex-shrink-0">
-              <div className="text-white text-xs uppercase font-semibold mb-2 pr-2">
+              <div className="text-white text-xs uppercase font-semibold mb-1 pr-2">
                 Suggested Friends
               </div>
               <div className="flex gap-4">
                 {suggestedFollows.map((user, index) => (
                   <Link href={`/profile/${user.username}`} key={user.id}>
-                    {index < 5 && <motion.div className="flex flex-col items-center flex-shrink-0 cursor-pointer">
-                      <div className="w-16 h-16 rounded-full overflow-hidden">
-                        <img
-                          src={
-                            user.profilePictureUrl
-                              ? getS3Url(user.profilePictureUrl)
-                              : "/default-profilepic.png"
-                          }
-                          alt={user.username}
-                          
-                          className="object-cover w-full h-full"
-                          
-                        />
-                      </div>
-                      <p className="text-xs mt-1 truncate w-16 text-center text-gray-200">
-                        {user.username}
-                      </p>
-                    </motion.div>}
+                    {index < 5 && (
+                      <motion.div className="flex flex-col items-center flex-shrink-0 cursor-pointer">
+                        <div className="p-[2px] rounded-full bg-gradient-to-tr from-purple-500 via-purple-400 to-pink-500 shadow-md">
+                          <div className="w-14 h-14 rounded-full overflow-hidden">
+                            <img
+                              src={
+                                user.profilePictureUrl
+                                  ? getS3Url(user.profilePictureUrl)
+                                  : "/default-profilepic.png"
+                              }
+                              alt={user.username}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs mt-1 truncate w-16 text-center text-gray-200">
+                          {user.username}
+                        </p>
+                      </motion.div>
+                    )}
                   </Link>
                 ))}
               </div>

@@ -53,3 +53,18 @@ export async function getSuggestedFollows(username: string): Promise<SuggestedUs
     throw new Error("Invalid JSON from suggested follows endpoint");
   }
 }
+
+export async function getFollowers(username: string){
+  const res = await fetch(`${BASE_URL}/api/follow/${username}/followers`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch your followers");
+  return res.json();
+}
+export async function getFollowing(username: string){
+  const res = await fetch(`${BASE_URL}/api/follow/${username}/following`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to fetch user's you follow");
+  return res.json();
+}

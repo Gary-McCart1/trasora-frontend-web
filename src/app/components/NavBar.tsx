@@ -5,12 +5,14 @@ import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { Menu, X, Bell, PlusCircle, Compass } from "lucide-react";
+import { X, Bell, PlusCircle, Compass } from "lucide-react";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
 import { User } from "../types/User";
 import { getUser } from "../lib/usersApi";
 import { fetchUnreadNotifications } from "../lib/notificationApi";
+import { IoSettingsOutline } from "react-icons/io5";
+import { LuLightbulb, LuScale, LuMessageCircleQuestion } from "react-icons/lu";
 
 const getS3Url = (key?: string | null) =>
   key
@@ -33,7 +35,6 @@ export default function Navbar() {
     }
   }, [user?.username]);
 
-  // Fetch unread notifications & poll
   // Fetch unread notifications & poll
   useEffect(() => {
     if (!user) return;
@@ -79,6 +80,27 @@ export default function Navbar() {
     },
   ];
 
+  const navItemsMobile = [
+    {
+      name: "About",
+      path: "/about",
+      icon: <LuLightbulb className="w-5 h-5" />,
+      protected: false,
+    },
+    {
+      name: "Support",
+      path: "/support",
+      icon: <LuMessageCircleQuestion className="w-5 h-5" />,
+      protected: true,
+    },
+    {
+      name: "Terms of Service",
+      path: "/terms-of-service",
+      icon: <LuScale className="w-5 h-5" />,
+      protected: true,
+    },
+  ];
+
   const handleProtectedRoute = (path: string) => {
     if (!user) router.push("/login");
     else router.push(path);
@@ -86,7 +108,7 @@ export default function Navbar() {
 
   if (loading) {
     return (
-      <nav className="bg-zinc-950 text-white  px-4 py-4 ">
+      <nav className="bg-zinc-950 text-white px-4 py-2 ">
         <div className="flex items-center justify-between">
           <Image
             src="/trasora.png"
@@ -109,7 +131,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-zinc-950 text-white shadow-md px-4 py-4 sticky top-0 z-50 pt-[3rem] md:pt-4">
+    <nav className="bg-zinc-950 text-white shadow-md px-4 sticky top-0 z-50 md:pt-2">
       <div className="flex items-center justify-between">
         {/* Logo */}
         <div className="flex-shrink-0 z-10">
@@ -200,7 +222,7 @@ export default function Navbar() {
 
         {/* Mobile Hamburger */}
         <button onClick={() => setIsOpen(!isOpen)} className="xl:hidden z-20">
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
+          {isOpen ? <X size={28} /> : <IoSettingsOutline size={20} />}
         </button>
       </div>
 
@@ -209,7 +231,7 @@ export default function Navbar() {
         <div className="xl:hidden mt-4 space-y-4">
           <ul className="space-y-2">
             {user &&
-              navItems.map((item) => (
+              navItemsMobile.map((item) => (
                 <li key={item.name}>
                   <button
                     onClick={() => {
@@ -218,7 +240,7 @@ export default function Navbar() {
                         ? handleProtectedRoute(item.path)
                         : router.push(item.path);
                     }}
-                    className="flex items-center gap-2 w-full text-left py-2 px-4 rounded hover:bg-zinc-800 transition"
+                    className="flex items-center gap-2 w-full text-left h-12 px-4 rounded hover:bg-zinc-800 transition"
                   >
                     {item.icon}
                     <span>{item.name}</span>
@@ -234,19 +256,24 @@ export default function Navbar() {
               // Desktop profile pic
               <Link
                 href={`/profile/${user.username}`}
-                className="flex items-center hover:bg-zinc-800 rounded  focus:outline-none focus:ring-2 focus:ring-purple-400 transition h-8 mb-3"
+                className="flex items-center h-12 px-4 hover:bg-zinc-800 rounded focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
+
                 aria-label="Profile"
                 onClick={() => setIsOpen(false)}
               >
-                <div className="relative w-6 h-6 rounded-full overflow-hidden ml-4">
-                  <Image
-                    src={getS3Url(profileUser?.profilePictureUrl)}
-                    alt={`${user.username}'s profile`}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
+                {/* Gradient Border Avatar */}
+                <div className="relative p-[2px] rounded-full bg-gradient-to-tr from-purple-500 via-purple-400 to-pink-500">
+                  <div className="relative w-6 h-6 rounded-full overflow-hidden">
+                    <Image
+                      src={getS3Url(profileUser?.profilePictureUrl)}
+                      alt={`${user.username}'s profile`}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
                 </div>
+
                 <span className="text-sm ml-2">{user.username}</span>
               </Link>
             ) : (
@@ -266,7 +293,7 @@ export default function Navbar() {
               </div>
             )}
           </ul>
-          <div className="px-4">
+          <div className="hidden xl:display px-4">
             <SearchBar />
           </div>
         </div>

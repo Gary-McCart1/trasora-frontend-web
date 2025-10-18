@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import DraggablePlayer from "../components/DraggablePlayer";
 import TrackCardGrid, { TrackOrAlbum } from "../components/TrackCardGrid";
 import { getSpotifyExplore, getSpotifyRecommendations } from "../lib/spotifyApi";
+import SearchBar from "../components/SearchBar";
 
 // Define the shape of the track sent to the draggable player
 type PlayerTrack = {
@@ -75,7 +76,10 @@ export default function ExplorePage() {
   if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-4">
+      <div className="mb-[5rem]">
+        <SearchBar / >
+      </div>
       <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 text-center text-white drop-shadow-lg leading-tight">
         Explore Your Next Favorite Track
       </h1>

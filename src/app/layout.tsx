@@ -8,6 +8,7 @@ import { StoriesProvider } from "./context/StoriesContext";
 import { AlertProvider } from "./context/AlertContext";
 import { ApplePlayerProvider } from "./context/ApplePlayerContext";
 import PushRegistrar from "./components/PushRegistrar"; // new client component
+import FooterNav from "./components/FooterNav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,6 +73,7 @@ export default function RootLayout({
                   <Navbar />
                   <main className="flex-grow">{children}</main>
                   <Footer />
+                  <FooterNav />
                   <PushRegistrar /> {/* client-only push registration */}
                 </div>
               </AlertProvider>
