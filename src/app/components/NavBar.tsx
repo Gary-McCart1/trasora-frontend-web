@@ -12,7 +12,7 @@ import { User } from "../types/User";
 import { getUser } from "../lib/usersApi";
 import { fetchUnreadNotifications } from "../lib/notificationApi";
 import { IoSettingsOutline } from "react-icons/io5";
-import { LuLightbulb, LuScale, LuMessageCircleQuestion } from "react-icons/lu";
+import { LuLightbulb, LuScale, LuMessageCircleQuestion, LuTrophy } from "react-icons/lu";
 
 const getS3Url = (key?: string | null) =>
   key
@@ -81,6 +81,12 @@ export default function Navbar() {
   ];
 
   const navItemsMobile = [
+    {
+      name: "Leaderboard",
+      path: "/leaderboard",
+      icon: <LuTrophy className="w-5 h-5" />,
+      protected: false,
+    },
     {
       name: "About",
       path: "/about",
