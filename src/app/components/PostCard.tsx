@@ -438,7 +438,7 @@ export default function PostCard({
             className={`
     ${!isDetailView ? "rounded-b-lg" : ""}
     w-full
-    ${!isDetailView ? "h-[250px]" : "h-[350px]"}
+    ${!isDetailView ? "h-[250px]" : "h-[400px]"}
     object-cover
     ${imageLoaded ? "opacity-100" : "opacity-0"}
     transition-opacity duration-300
