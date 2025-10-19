@@ -171,9 +171,9 @@ export default function ReferralLeaderboardPage() {
               }`}
             >
               {/* Left side */}
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
                 {isTop5 && (
-                  <span className="text-xl font-bold w-8 text-white">
+                  <span className="text-xl font-bold w-4 text-white">
                     {entry.rank}
                   </span>
                 )}
