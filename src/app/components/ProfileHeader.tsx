@@ -288,7 +288,7 @@ export default function ProfileHeader({
         )}
 
         {/* Followers / Following / Branches */}
-        <div className="flex justify-center sm:justify-start space-x-8 text-purple-200 w-full mt-4 md:mt-12">
+        <div className="flex justify-center md:justify-start space-x-8 text-purple-200 w-full mt-4 md:mt-12">
           <Link href={`/profile/${profileUser.username}/followers`}>
             <div className="flex flex-col items-center">
               <span className="text-2xl sm:text-3xl font-extrabold text-white">
