@@ -11,6 +11,7 @@ import { incrementPostBranchCount } from "../lib/postsApi";
 import { RootSongInput } from "./RootsSearchBar";
 import { Trunk } from "../types/User";
 import { LuGitBranchPlus } from "react-icons/lu";
+import { createPortal } from "react-dom";
 
 export interface TrackOrAlbum {
   id: string;
@@ -153,7 +154,7 @@ export default function DraggablePlayer({
     }
   };
 
-  return (
+  return createPortal(
     <>
       <div
         ref={playerRef}
@@ -163,15 +164,13 @@ export default function DraggablePlayer({
         className="fixed z-50 cursor-grab select-none"
       >
         <div className="relative w-full h-[220px] rounded-3xl shadow-2xl overflow-hidden bg-zinc-800 flex flex-col items-center justify-center p-5">
-          {/* Close */}
           <button
             onClick={onClose}
             className="absolute top-2 right-2 hover:bg-gray-500 text-white rounded-full px-1.5 shadow-md z-10"
           >
             ✕
           </button>
-
-          {/* Spotify iframe */}
+  
           <iframe
             key={track.id}
             src={`https://open.spotify.com/embed/${track.type}/${track.id}`}
@@ -181,8 +180,7 @@ export default function DraggablePlayer({
             allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
             className="rounded-3xl pointer-events-auto shadow-xl"
           />
-
-          {/* Buttons */}
+  
           <div className="mt-4 flex gap-3">
             <button
               onClick={() => router.push(`/create?id=${track.id}`)}
@@ -191,7 +189,7 @@ export default function DraggablePlayer({
               <Plus size={18} />
               Create Post
             </button>
-
+  
             <button
               onClick={handleBranchClick}
               className="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95 text-sm"
@@ -202,10 +200,9 @@ export default function DraggablePlayer({
           </div>
         </div>
       </div>
-
-      {/* Branch Modal */}
+  
       {branchModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
           <div className="bg-zinc-900 p-6 rounded-xl max-h-[80vh] overflow-y-auto w-96">
             <h2 className="text-white text-lg font-semibold mb-4">
               Add to Trunk
@@ -233,6 +230,8 @@ export default function DraggablePlayer({
           </div>
         </div>
       )}
-    </>
+    </>,
+    document.body
   );
+  
 }
