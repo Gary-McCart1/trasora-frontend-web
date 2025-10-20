@@ -154,84 +154,92 @@ export default function DraggablePlayer({
     }
   };
 
-  return createPortal(
-    <>
-      <div
-        ref={playerRef}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
-        style={{ left: position.x, top: position.y, width: playerWidth }}
-        className="fixed z-50 cursor-grab select-none"
-      >
-        <div className="relative w-full h-[220px] rounded-3xl shadow-2xl overflow-hidden bg-zinc-800 flex flex-col items-center justify-center p-5">
+  const portalRoot =
+  typeof window !== "undefined"
+    ? document.getElementById("__next") || document.body
+    : null;
+
+if (!portalRoot) return null;
+
+return createPortal(
+  <>
+    <div
+      ref={playerRef}
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
+      style={{ left: position.x, top: position.y, width: playerWidth }}
+      // 💡 Increase z-index to ensure it's above everything (even modals)
+      className="fixed z-[9999] cursor-grab select-none pointer-events-auto"
+    >
+      <div className="relative w-full h-[220px] rounded-3xl shadow-2xl overflow-hidden bg-zinc-800 flex flex-col items-center justify-center p-5">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 hover:bg-gray-500 text-white rounded-full px-1.5 shadow-md z-10"
+        >
+          ✕
+        </button>
+
+        <iframe
+          key={track.id}
+          src={`https://open.spotify.com/embed/${track.type}/${track.id}`}
+          width="95%"
+          height="80"
+          frameBorder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          className="rounded-3xl pointer-events-auto shadow-xl"
+        />
+
+        <div className="mt-4 flex gap-3">
           <button
-            onClick={onClose}
-            className="absolute top-2 right-2 hover:bg-gray-500 text-white rounded-full px-1.5 shadow-md z-10"
+            onClick={() => router.push(`/create?id=${track.id}`)}
+            className="flex items-center gap-2 px-5 py-2 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95 text-sm"
           >
-            ✕
+            <Plus size={18} />
+            Create Post
           </button>
-  
-          <iframe
-            key={track.id}
-            src={`https://open.spotify.com/embed/${track.type}/${track.id}`}
-            width="95%"
-            height="80"
-            frameBorder="0"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            className="rounded-3xl pointer-events-auto shadow-xl"
-          />
-  
-          <div className="mt-4 flex gap-3">
-            <button
-              onClick={() => router.push(`/create?id=${track.id}`)}
-              className="flex items-center gap-2 px-5 py-2 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95 text-sm"
-            >
-              <Plus size={18} />
-              Create Post
-            </button>
-  
-            <button
-              onClick={handleBranchClick}
-              className="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95 text-sm"
-            >
-              <LuGitBranchPlus size={18} />
-              Branch Track
-            </button>
-          </div>
+
+          <button
+            onClick={handleBranchClick}
+            className="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform duration-200 active:scale-95 text-sm"
+          >
+            <LuGitBranchPlus size={18} />
+            Branch Track
+          </button>
         </div>
       </div>
-  
-      {branchModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
-          <div className="bg-zinc-900 p-6 rounded-xl max-h-[80vh] overflow-y-auto w-96">
-            <h2 className="text-white text-lg font-semibold mb-4">
-              Add to Trunk
-            </h2>
-            {loadingTrunks ? (
-              <p className="text-zinc-400">Loading...</p>
-            ) : (
-              <AvailableTrunksList
-                selectedSong={{
-                  trackId: track.id,
-                  title: track.name,
-                  artist: artistNames,
-                  albumArtUrl,
-                }}
-                trunks={availableTrunks}
-                onSelectTrunk={handleSelectTrunk}
-              />
-            )}
-            <button
-              onClick={() => setBranchModalOpen(false)}
-              className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
-            >
-              Close
-            </button>
-          </div>
+    </div>
+
+    {branchModalOpen && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
+        <div className="bg-zinc-900 p-6 rounded-xl max-h-[80vh] overflow-y-auto w-96">
+          <h2 className="text-white text-lg font-semibold mb-4">
+            Add to Trunk
+          </h2>
+          {loadingTrunks ? (
+            <p className="text-zinc-400">Loading...</p>
+          ) : (
+            <AvailableTrunksList
+              selectedSong={{
+                trackId: track.id,
+                title: track.name,
+                artist: artistNames,
+                albumArtUrl,
+              }}
+              trunks={availableTrunks}
+              onSelectTrunk={handleSelectTrunk}
+            />
+          )}
+          <button
+            onClick={() => setBranchModalOpen(false)}
+            className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
+          >
+            Close
+          </button>
         </div>
-      )}
-    </>,
-    document.body
-  );
+      </div>
+    )}
+  </>,
+  portalRoot
+);
   
 }
