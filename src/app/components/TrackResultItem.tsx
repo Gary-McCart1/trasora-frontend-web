@@ -161,7 +161,7 @@ export default function TrackResultItem({ track }: { track: Track }) {
       </li>
 
       {branchModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-200">
           <div className="bg-zinc-900 p-6 rounded-xl max-h-[80vh] overflow-y-auto w-96">
             <h2 className="text-white text-lg font-semibold mb-4">Add to Trunk</h2>
 

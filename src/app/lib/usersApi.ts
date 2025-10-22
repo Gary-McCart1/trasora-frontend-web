@@ -167,6 +167,7 @@ export async function logoutUser(): Promise<void> {
 
 // Signup
 export async function signupUser(data: {
+  fullName: string;
   email: string;
   username: string;
   password: string;
