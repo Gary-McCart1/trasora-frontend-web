@@ -21,7 +21,7 @@ export default function TermsOfUseClient() {
     setLoading(true);
     setError("");
     try {
-      await signupUser({ email, username, password });
+      await signupUser({ fullName, email, username, password });
       setInfoMessage(
         "Account created! Please check your email to confirm your email address before logging in."
       );
