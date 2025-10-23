@@ -9,6 +9,7 @@ import { AlertProvider } from "./context/AlertContext";
 import { ApplePlayerProvider } from "./context/ApplePlayerContext";
 import PushRegistrar from "./components/PushRegistrar"; // new client component
 import FooterNav from "./components/FooterNav";
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -69,6 +70,7 @@ export default function RootLayout({
           <ApplePlayerProvider>
             <StoriesProvider>
               <AlertProvider>
+                <Analytics />
                 <div className="flex flex-col min-h-screen bg-zinc-950">
                   <Navbar />
                   <main className="flex-grow">{children}</main>
