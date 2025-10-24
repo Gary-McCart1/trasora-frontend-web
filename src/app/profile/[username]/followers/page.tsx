@@ -8,19 +8,23 @@ import { User } from "@/app/types/User";
 import Image from "next/image";
 import getS3Url from "@/app/utils/S3Url";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 const FollowersPage = () => {
   const { user, loading } = useAuth();
   const [followers, setFollowers] = useState<User[]>([]);
   const [loadingFollowers, setLoadingFollowers] = useState(false);
 
+  const { username } = useParams();
+  console.log(username);
+
   useEffect(() => {
-    if (!user) return;
+    if (!user || !username) return;
 
     const fetchFollowers = async () => {
       setLoadingFollowers(true);
       try {
-        const userFollowers = await getFollowers(user.username);
+        const userFollowers = await getFollowers(username.toString());
         setFollowers(userFollowers);
       } catch (err) {
         console.error("Unable to fetch followers", err);
@@ -30,7 +34,7 @@ const FollowersPage = () => {
     };
 
     fetchFollowers();
-  }, [user]);
+  }, [user, username]);
 
   if (loading || loadingFollowers) {
     return (
