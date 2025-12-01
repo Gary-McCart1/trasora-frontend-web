@@ -17,4 +17,4 @@ Trasora is a social music-sharing app where users can discover, share, and engag
 
 ## Mock User Login
 - **Username:** gary  
-- **Password:** mcCart
+- **Password:** mccart
