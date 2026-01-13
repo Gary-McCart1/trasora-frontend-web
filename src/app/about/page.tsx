@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const AboutPage = () => {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-200">
+    <div className="min-h-screen bg-zinc-950 text-zinc-200 pt-[5rem]">
       <Hero />
       <div className="mt-10 px-6 sm:px-0">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-md sm:max-w-2xl mx-auto text-center">

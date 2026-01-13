@@ -121,7 +121,7 @@ export default function CreatePostPage({
   const showPreview = selectedTrack;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 text-white flex flex-col items-center">
+    <div className="max-w-7xl mx-auto px-6 py-12 text-white flex flex-col items-center pt-[5rem]">
       <h1 className="text-5xl md:text-6xl font-extrabold mb-12 text-center bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-500 bg-clip-text text-transparent">
         Create a Post
       </h1>

@@ -146,7 +146,7 @@ export default function NotificationsList() {
   );
 
   return (
-    <section className="max-w-3xl mx-auto px-4 py-6">
+    <section className="max-w-3xl mx-auto px-4 py-6 pt-[5rem]">
       <div className="flex items-center justify-center gap-2 mb-6">
         <div className="bg-purple-700 p-2 rounded-full">
           <Bell className="w-5 h-5 text-white" />
