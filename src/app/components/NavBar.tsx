@@ -12,7 +12,12 @@ import { User } from "../types/User";
 import { getUser } from "../lib/usersApi";
 import { fetchUnreadNotifications } from "../lib/notificationApi";
 import { IoSettingsOutline } from "react-icons/io5";
-import { LuLightbulb, LuScale, LuMessageCircleQuestion, LuTrophy } from "react-icons/lu";
+import {
+  LuLightbulb,
+  LuScale,
+  LuMessageCircleQuestion,
+  LuTrophy,
+} from "react-icons/lu";
 
 const getS3Url = (key?: string | null) =>
   key
@@ -137,7 +142,13 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-zinc-950 text-white shadow-md px-4 sticky top-0 z-50 md:pt-2 ">
+    <nav
+      className="
+    bg-zinc-950 text-white shadow-md px-4
+    fixed top-0 left-0 right-0 z-50
+    pt-[env(safe-area-inset-top)]
+  "
+    >
       <div className="flex items-center justify-between">
         {/* Logo */}
         <div className="flex-shrink-0 z-10">
