@@ -146,7 +146,7 @@ export default function Navbar() {
       className="
     bg-zinc-950 text-white shadow-md px-4
     sticky top-0 left-0 right-0 z-50
-    pt-[2rem] pb-0 md:py-0
+    pt-[2.5rem] pb-0 md:py-0
   "
     >
       <div className="flex items-center justify-between">

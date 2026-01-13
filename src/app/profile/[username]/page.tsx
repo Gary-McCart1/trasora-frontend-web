@@ -253,7 +253,7 @@ export default function ProfilePage() {
   );
 
   return (
-    <main className="relative xl:max-w-4xl 2xl:max-w-6xl 3xl:max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-8 pt-[6rem]">
+    <main className="relative xl:max-w-4xl 2xl:max-w-6xl 3xl:max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-8">
       <section className="mx-auto max-w-5xl space-y-6 relative z-10">
         <ProfileHeader
           profileUser={profileUser}

@@ -76,8 +76,8 @@ export default function ExplorePage() {
   if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-4 pt-[5rem]">
-      <div className="mb-[5rem] xl:hidden">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-4">
+      <div className="mb-[2rem] xl:hidden">
         <SearchBar / >
       </div>
       <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 text-center text-white drop-shadow-lg leading-tight">
