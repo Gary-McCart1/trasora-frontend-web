@@ -4,13 +4,13 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { User } from "../types/User";
 import { getCurrentUser as fetchCurrentUser } from "../lib/usersApi";
-import { registerPush } from "../lib/push"; // ✅ import
+import { registerPush } from "../lib/push";
 
 interface AuthContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   loading: boolean;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<void>;x
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
