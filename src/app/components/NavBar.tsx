@@ -144,10 +144,9 @@ export default function Navbar() {
   return (
     <nav
       className="
-     text-white shadow-md px-4
+    bg-zinc-950 text-white shadow-md px-4
     fixed top-0 left-0 right-0 z-50
     pt-[env(safe-area-inset-top)]
-    bg-red-500
   "
     >
       <div className="flex items-center justify-between">
