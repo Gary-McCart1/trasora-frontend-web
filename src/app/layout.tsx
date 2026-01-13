@@ -71,7 +71,7 @@ export default function RootLayout({
             <StoriesProvider>
               <AlertProvider>
                 <Analytics />
-                <div className="flex flex-col bg-zinc-950">
+                <div className="flex flex-col bg-zinc-950 min-h-[100svh]">
                   <Navbar />
                   <main className="flex-grow">{children}</main>
                   <Footer />
