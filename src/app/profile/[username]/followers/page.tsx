@@ -47,7 +47,7 @@ const FollowersPage = () => {
   }
 
   return (
-    <section className="max-w-3xl mx-auto px-4 py-6 pt-[5rem]">
+    <section className="max-w-3xl mx-auto px-4 py-6 pt-[6rem]">
       {/* Header */}
       <div className="flex items-center justify-center gap-2 mb-6">
         <div className="bg-purple-700 p-2 rounded-full">
