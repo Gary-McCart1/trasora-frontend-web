@@ -10,6 +10,7 @@ import { ApplePlayerProvider } from "./context/ApplePlayerContext";
 import PushRegistrar from "./components/PushRegistrar"; // new client component
 import FooterNav from "./components/FooterNav";
 import { Analytics } from "@vercel/analytics/next"
+import IOSViewportFix from "./context/IOSViewPortFix";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,7 +57,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent"
+          content="black"
         />
         <meta name="theme-color" content="#09090b" />
 
@@ -64,8 +65,9 @@ export default function RootLayout({
       </head>
 
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full text-zinc-50`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased text-zinc-50`}
       >
+        <IOSViewportFix />
         <ClientProviders>
           <ApplePlayerProvider>
             <StoriesProvider>
