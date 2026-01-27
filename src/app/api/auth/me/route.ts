@@ -11,7 +11,6 @@ export async function GET() {
     const user: User = await res.json();
     return NextResponse.json(user);
   } catch (err) {
-    console.error("Failed to fetch current user:", err);
-    return NextResponse.json({ error: "Failed to fetch current user" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch current user: " + err }, { status: 500 });
   }
 }
