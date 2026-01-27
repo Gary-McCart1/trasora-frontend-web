@@ -52,7 +52,6 @@ export default function NotificationsList() {
   }, [notifications, userProfiles]);
 
   // Mark non-follow-request notifications as read on page leave or tab hide
-  // Mark non-follow-request notifications as read on page leave/unmount
   useEffect(() => {
     return () => {
       // Cleanup runs when user leaves the page
