@@ -240,6 +240,7 @@ export default function Navbar() {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="xl:hidden z-20 flex flex-col justify-center items-center gap-1"
+          aria-label="menu"
         >
           {isOpen ? (
             <X size={28} />
