@@ -127,8 +127,8 @@ export async function fetchWithAuth(
 // Get current user
 export async function getCurrentUser(): Promise<User> {
   const res = await fetchWithAuth(`${BASE_URL}/api/auth/me`);
-  if (!res.ok) throw new Error("Failed to fetch current user");
-  return res.json();
+  if (res.ok) return res.json();
+  else throw new Error("Failed to fetch current user")
 }
 
 // Login

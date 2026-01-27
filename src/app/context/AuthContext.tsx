@@ -46,7 +46,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const currentUser = await fetchCurrentUser();
         setUser(currentUser);
       } catch (error) {
-        console.error("Auth error:", error);
         setUser(null);
 
         if (!publicPaths.some((path) => pathname?.startsWith(path))) {
