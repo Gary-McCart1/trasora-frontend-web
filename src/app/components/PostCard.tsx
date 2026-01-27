@@ -374,7 +374,7 @@ export default function PostCard({
               <svg
                 height={radius * 2}
                 width={radius * 2}
-                className="absolute top-[-1] left-[-1] transform -rotate-90"
+                className="absolute transform -rotate-90"
               >
                 <circle
                   stroke="#ffffff0"
