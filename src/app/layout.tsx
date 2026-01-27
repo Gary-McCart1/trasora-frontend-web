@@ -9,7 +9,7 @@ import { AlertProvider } from "./context/AlertContext";
 import { ApplePlayerProvider } from "./context/ApplePlayerContext";
 import PushRegistrar from "./components/PushRegistrar"; // new client component
 import FooterNav from "./components/FooterNav";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
 import IOSViewportFix from "./context/IOSViewPortFix";
 
 const geistSans = Geist({
@@ -55,10 +55,7 @@ export default function RootLayout({
         />
 
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="black"
-        />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <meta name="theme-color" content="#09090b" />
 
         <style>{`input, select, textarea, button { font-size: 16px; }`}</style>
@@ -71,18 +68,20 @@ export default function RootLayout({
         <ClientProviders>
           <ApplePlayerProvider>
             <StoriesProvider>
-              <AlertProvider>
-                <Analytics />
-                <div className="flex flex-col bg-zinc-950 min-h-[100svh]">
-                  <Navbar />
-                  <main className="flex-grow">{children}</main>
-                  <Footer />
-                  <FooterNav />
-                  <PushRegistrar /> {/* client-only push registration */}
-                </div>
-              </AlertProvider>
+              {/* ONLY critical providers above main */}
+              <div className="flex flex-col bg-zinc-950 min-h-[100svh]">
+                <Navbar />
+                <main className="flex-grow">{children}</main>
+                <Footer />
+                <FooterNav />
+              </div>
             </StoriesProvider>
           </ApplePlayerProvider>
+          {/* Move non-critical providers/components BELOW main for faster LCP */}
+          <AlertProvider>
+            <PushRegistrar />
+          </AlertProvider>
+          <Analytics />
         </ClientProviders>
       </body>
     </html>
