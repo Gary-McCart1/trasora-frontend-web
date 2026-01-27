@@ -33,15 +33,24 @@ export default function MainFeed({
   const postRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const [manuallyPausedUrls, setManuallyPausedUrls] = useState<Set<string>>(new Set());
+  const [manuallyPausedUrls, setManuallyPausedUrls] = useState<Set<string>>(
+    new Set()
+  );
   const [showInitModal, setShowInitModal] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isStoriesOpen, setIsStoriesOpen] = useState(false); // Add internal state
 
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user } = useAuth();
-  const { currentUrl, isPlaying, playPreview, pausePreview, setVolume, initPlayer, isReady } =
-    useApplePlayer();
+  const {
+    currentUrl,
+    isPlaying,
+    playPreview,
+    pausePreview,
+    setVolume,
+    initPlayer,
+    isReady,
+  } = useApplePlayer();
 
   // Show init modal if not ready
   useEffect(() => {
@@ -64,7 +73,10 @@ export default function MainFeed({
     const onScroll = () => {
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       setIsUserScrolling(true);
-      scrollTimeoutRef.current = setTimeout(() => setIsUserScrolling(false), 200);
+      scrollTimeoutRef.current = setTimeout(
+        () => setIsUserScrolling(false),
+        200
+      );
     };
     if (container instanceof HTMLElement) {
       container.addEventListener("scroll", onScroll, { passive: true });
@@ -84,14 +96,14 @@ export default function MainFeed({
   // Handle manual pause tracking
   const handleManualPause = (url: string) => {
     console.log("Manual pause for:", url);
-    setManuallyPausedUrls(prev => new Set([...prev, url]));
+    setManuallyPausedUrls((prev) => new Set([...prev, url]));
     setHasUserInteracted(true);
   };
 
   // Handle manual play (remove from paused list)
   const handleManualPlay = (url: string) => {
     console.log("Manual play for:", url);
-    setManuallyPausedUrls(prev => {
+    setManuallyPausedUrls((prev) => {
       const newSet = new Set(prev);
       newSet.delete(url);
       return newSet;
@@ -114,12 +126,16 @@ export default function MainFeed({
         let mostVisibleIndex = 0;
 
         entries.forEach((entry) => {
-          const index = parseInt(entry.target.getAttribute("data-index") || "0");
+          const index = parseInt(
+            entry.target.getAttribute("data-index") || "0"
+          );
           const visibilityRatio = entry.intersectionRatio;
 
           const rect = entry.boundingClientRect;
-          const containerRect =
-            container?.getBoundingClientRect() || { top: 0, height: window.innerHeight };
+          const containerRect = container?.getBoundingClientRect() || {
+            top: 0,
+            height: window.innerHeight,
+          };
 
           const elementCenter = rect.top + rect.height / 2;
           const viewportCenter = containerRect.top + containerRect.height / 2;
@@ -138,7 +154,7 @@ export default function MainFeed({
           if (!entry.isIntersecting && visibilityRatio < 0.1) {
             const post = posts[index];
             if (post) {
-              setManuallyPausedUrls(prev => {
+              setManuallyPausedUrls((prev) => {
                 const newSet = new Set(prev);
                 if (post.applePreviewUrl) newSet.delete(post.applePreviewUrl);
                 if (post.customVideoUrl) newSet.delete(post.customVideoUrl);
@@ -158,7 +174,13 @@ export default function MainFeed({
     children.forEach((child) => child && observer.observe(child));
 
     return () => observer.disconnect();
-  }, [activeIndex, isProfileView, isUserScrolling, posts, setManuallyPausedUrls]);
+  }, [
+    activeIndex,
+    isProfileView,
+    isUserScrolling,
+    posts,
+    setManuallyPausedUrls,
+  ]);
 
   // Pause main feed audio when stories are open
   useEffect(() => {
@@ -178,7 +200,7 @@ export default function MainFeed({
   // Autoplay logic - handle both new posts and manual control state
   useEffect(() => {
     if (isUserScrolling || !isReady || isStoriesOpen) return; // Add isStoriesOpen check
-    
+
     const activePost = posts[activeIndex];
     if (!activePost) return;
 
@@ -197,8 +219,9 @@ export default function MainFeed({
     });
 
     // Check if this specific post/media was manually paused
-    const isManuallyPaused = manuallyPausedUrls.has(previewUrl || '') || 
-                            manuallyPausedUrls.has(videoUrl || '');
+    const isManuallyPaused =
+      manuallyPausedUrls.has(previewUrl || "") ||
+      manuallyPausedUrls.has(videoUrl || "");
 
     // If manually paused, don't autoplay but pause current audio
     if (isManuallyPaused) {
@@ -209,7 +232,7 @@ export default function MainFeed({
     // If there's a video, play both video and audio
     if (isVideo) {
       const videoEl = postRefs.current[activeIndex]?.querySelector("video");
-      
+
       // Start video
       if (videoEl && videoEl.paused) {
         videoEl.play().catch(() => {});
@@ -237,7 +260,18 @@ export default function MainFeed({
     } else {
       pausePreview();
     }
-  }, [activeIndex, posts, isUserScrolling, playPreview, pausePreview, setVolume, currentUrl, manuallyPausedUrls, isReady, isStoriesOpen]);
+  }, [
+    activeIndex,
+    posts,
+    isUserScrolling,
+    playPreview,
+    pausePreview,
+    setVolume,
+    currentUrl,
+    manuallyPausedUrls,
+    isReady,
+    isStoriesOpen,
+  ]);
 
   return (
     <div className="relative w-full min-h-screen">
@@ -245,7 +279,9 @@ export default function MainFeed({
       {showInitModal && (
         <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <motion.div className="bg-[#1a1a1a] rounded-2xl p-8 w-80 md:w-96 shadow-2xl flex flex-col items-center">
-            <h2 className="text-white text-xl font-bold mb-4 text-center">Enable Autoplay</h2>
+            <h2 className="text-white text-xl font-bold mb-4 text-center">
+              Enable Autoplay
+            </h2>
             <button
               onClick={() => {
                 initPlayer();
@@ -265,8 +301,10 @@ export default function MainFeed({
         </motion.div>
       )}
 
-      <div className="sticky z-40 bg-zinc-950 flex justify-center pb-2 border-b border-zinc-900">
-        <StoriesBar onStoriesOpenChange={setIsStoriesOpen} />
+      <div className="sticky z-40 bg-zinc-950 border-b border-zinc-900">
+        <div className="h-[88px] flex justify-center items-center">
+          <StoriesBar onStoriesOpenChange={setIsStoriesOpen} />
+        </div>
       </div>
 
       <div className="absolute inset-0 z-0 pointer-events-none hidden sm:block">
@@ -284,7 +322,7 @@ export default function MainFeed({
             ref={(el) => {
               postRefs.current[index] = el;
             }}
-            className="w-full relative flex justify-center"
+            className="w-full relative flex justify-center min-h-[520px]"
           >
             <PostCard
               post={post}

@@ -8,7 +8,6 @@ import { User } from "../types/User";
 import { darkenColor } from "../utils/generateGradient";
 import {
   updateUserProfile,
-  disconnectSpotify,
   searchUsers,
 } from "../lib/usersApi";
 import { useAuth } from "../context/AuthContext";
@@ -30,7 +29,6 @@ export default function EditProfileModal({
   currentProfilePic,
   currentAccentColor,
   currentProfilePublic,
-  username,
   onClose,
   onSave,
   onProfileVisibilityChange,
@@ -47,9 +45,8 @@ export default function EditProfileModal({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [disconnecting, setDisconnecting] = useState(false);
   const { user } = useAuth();
-  const spotifyConnected = user?.spotifyConnected;
+
 
   // Referred By state
   const [referrerSearch, setReferrerSearch] = useState("");
@@ -132,21 +129,6 @@ export default function EditProfileModal({
     }
   };
   
-  
-  const handleDisconnectSpotify = async () => {
-    setDisconnecting(true);
-    setError("");
-
-    try {
-      await disconnectSpotify(username);
-      onSave({ ...user, spotifyConnected: false } as User);
-    } catch (err) {
-      if (err instanceof Error) setError(err.message);
-      else setError("An unknown error occurred while disconnecting Spotify");
-    } finally {
-      setDisconnecting(false);
-    }
-  };
 
   if (!mounted) return null;
 
