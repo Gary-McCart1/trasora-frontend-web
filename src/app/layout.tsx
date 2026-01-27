@@ -66,22 +66,24 @@ export default function RootLayout({
       >
         <IOSViewportFix />
         <ClientProviders>
-          <ApplePlayerProvider>
-            <StoriesProvider>
-              {/* ONLY critical providers above main */}
-              <div className="flex flex-col bg-zinc-950 min-h-[100svh]">
-                <Navbar />
-                <main className="flex-grow">{children}</main>
-                <Footer />
-                <FooterNav />
-              </div>
-            </StoriesProvider>
-          </ApplePlayerProvider>
-          {/* Move non-critical providers/components BELOW main for faster LCP */}
           <AlertProvider>
+            <ApplePlayerProvider>
+              <StoriesProvider>
+                {/* ONLY critical providers above main */}
+                <div className="flex flex-col bg-zinc-950 min-h-[100svh]">
+                  <Navbar />
+                  <main className="flex-grow">{children}</main>
+                  <Footer />
+                  <FooterNav />
+                </div>
+              </StoriesProvider>
+            </ApplePlayerProvider>
+            {/* Move non-critical providers/components BELOW main for faster LCP */}
+
             <PushRegistrar />
+
+            <Analytics />
           </AlertProvider>
-          <Analytics />
         </ClientProviders>
       </body>
     </html>

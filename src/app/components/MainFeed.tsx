@@ -302,7 +302,7 @@ export default function MainFeed({
       )}
 
       <div className="sticky z-40 bg-zinc-950 border-b border-zinc-900">
-        <div className="h-[95px] flex justify-center items-center">
+        <div className="h-[120px] flex justify-center items-center">
           <StoriesBar onStoriesOpenChange={setIsStoriesOpen} />
         </div>
       </div>

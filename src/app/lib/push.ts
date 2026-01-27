@@ -35,6 +35,8 @@ async function retry<T>(
 
 // 🔹 Called at app startup (AuthProvider)
 export const registerPush = async () => {
+  if (typeof window === "undefined") return; // <-- Prevent SSR
+  if (!('capacitor' in window)) return;      // Optional: only run if Capacitor exists
   try {
     const permResult = await PushNotifications.requestPermissions();
     if (permResult.receive !== 'granted') {
