@@ -46,12 +46,15 @@ export default function RootLayout({
 
         <Script id="google-analytics" strategy="afterInteractive">
           {`
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = function(){dataLayer.push(arguments);}
 
-      gtag('config', 'G-239125B4RC');
-    `}
+            gtag('js', new Date());
+
+            gtag('config', 'G-239125B4RC', {
+              debug_mode: true
+            });
+          `}
         </Script>
 
         {/* Splash screens */}
