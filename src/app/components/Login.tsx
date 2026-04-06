@@ -7,6 +7,7 @@ import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { loginUser } from "../lib/usersApi";
 import { sendPendingTokenIfNeeded, registerPush } from "../lib/push"; // ✅ import here
 import Link from "next/link";
+import { trackEvent } from "../lib/analytics";
 
 export default function Login() {
   const { setUser } = useAuth();
@@ -38,6 +39,9 @@ export default function Login() {
       await sendPendingTokenIfNeeded();
 
       alert("Login was successful");
+      trackEvent("login", {
+        method: "Email",
+      });
       setForm({ login: "", password: "" });
       router.push("/");
     } catch (err: unknown) {

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { trackEvent } from "../lib/analytics";
 
 interface ApplePlayerContextType {
   currentUrl: string | null;
@@ -51,6 +52,9 @@ export const ApplePlayerProvider = ({ children }: { children: React.ReactNode })
     try {
       await audioRef.current.play();
       setIsPlaying(true);
+      trackEvent("play_song", {
+        song_title: url,
+      });
     } catch (err) {
       console.warn("Autoplay blocked or failed:", err);
     }

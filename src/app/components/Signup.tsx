@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { signupUser } from "../lib/usersApi";
+import { trackEvent } from "../lib/analytics";
 
 export default function Signup() {
   const [form, setForm] = useState({
@@ -28,6 +29,9 @@ export default function Signup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    trackEvent("sign_up", {
+      method: "Email",
+    });
     console.log("Navigating to terms-of-use with params:", form);
     router.push(
       `/terms-of-use?fullName=${encodeURIComponent(form.fullName)}&email=${encodeURIComponent(

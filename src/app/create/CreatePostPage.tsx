@@ -13,6 +13,7 @@ import { createPost } from "../lib/postsApi";
 import { PostDto } from "../types/Post";
 import { LuAudioLines } from "react-icons/lu";
 import { useApplePlayer } from "../context/ApplePlayerContext"; // ✅ import context
+import { trackEvent } from "../lib/analytics";
 
 export interface AppleMusicTrack {
   id: string;
@@ -109,6 +110,10 @@ export default function CreatePostPage({
         },
         mediaFile || undefined
       );
+      trackEvent("post_created", {
+        song_title: selectedTrack.name,
+        artist: selectedTrack.artistName,
+      });
       setShowConfetti(true);
       setTimeout(() => router.push(`/profile/${user.username}`), 3000);
     } catch (err) {

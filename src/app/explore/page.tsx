@@ -7,6 +7,7 @@ import DraggablePlayer from "../components/DraggablePlayer";
 import TrackCardGrid, { TrackOrAlbum } from "../components/TrackCardGrid";
 import { getSpotifyExplore, getSpotifyRecommendations } from "../lib/spotifyApi";
 import SearchBar from "../components/SearchBar";
+import { trackEvent } from "../lib/analytics";
 
 // Define the shape of the track sent to the draggable player
 type PlayerTrack = {
@@ -45,6 +46,9 @@ export default function ExplorePage() {
 
         const recs = await getSpotifyRecommendations();
         setRecommendations(recs);
+        trackEvent("visited_explore", {
+          user_id: user.id,
+        });
       } catch (err) {
         console.error(err);
         setError(err instanceof Error ? err.message : String(err));
@@ -70,6 +74,9 @@ export default function ExplorePage() {
     "/default-album-cover.png",
     type: track.type
     };
+    trackEvent("explored_track", {
+      user_id: user?.id,
+    });
     setPlayingTrack(playerTrack);
   };
 

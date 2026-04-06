@@ -35,6 +35,7 @@ import { getUserPosts } from "@/app/lib/postsApi";
 import { FaImages } from "react-icons/fa";
 import { BiSolidVideos } from "react-icons/bi";
 import { useAlert } from "@/app/context/AlertContext";
+import { trackEvent } from "@/app/lib/analytics";
 
 export default function ProfilePage() {
   const [postType, setPostType] = useState("images");
@@ -119,6 +120,12 @@ export default function ProfilePage() {
   }, [pageUsername, isOwnProfile]);
 
   useEffect(() => {
+    trackEvent("view_profile", {
+      profile_user_id: profileUser?.id,
+    });
+  }, [profileUser?.id]);
+
+  useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
 
@@ -159,6 +166,9 @@ export default function ProfilePage() {
       const data = await followUser(profileUser.username);
       setFollowStatus(data.status);
       setProfileUser((prev) => (prev ? { ...prev, ...data } : prev));
+      trackEvent("follow_user", {
+        followed_user_id: profileUser.id,
+      });
       return data.status;
     } catch (err) {
       console.error(err);
