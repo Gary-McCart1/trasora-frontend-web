@@ -11,6 +11,7 @@ import PushRegistrar from "./components/PushRegistrar"; // new client component
 import FooterNav from "./components/FooterNav";
 import { Analytics } from "@vercel/analytics/next";
 import IOSViewportFix from "./context/IOSViewPortFix";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,22 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-239125B4RC"
+          strategy="afterInteractive"
+        />
+
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-239125B4RC');
+    `}
+        </Script>
 
         {/* Splash screens */}
         <link
