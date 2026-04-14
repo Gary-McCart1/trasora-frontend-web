@@ -91,3 +91,19 @@ html, body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari */
 }
+
+@keyframes profileDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) rotateX(-30deg) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg) scale(1);
+  }
+}
+
+.animate-profile-drop {
+  opacity: 0; /* Keeps them hidden until the animation starts */
+  animation: profileDrop 0.6s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}

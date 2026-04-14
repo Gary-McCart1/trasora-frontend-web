@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
 
   const publicPaths = [
+    "/demo",
     "/about",
     "/login",
     "/signup",

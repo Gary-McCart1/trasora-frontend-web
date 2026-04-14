@@ -67,8 +67,6 @@ export async function refreshAccessToken(): Promise<string | null> {
   }
 }
 
-
-
 // -------------------- FETCH WRAPPER --------------------
 export async function fetchWithAuth(
   input: RequestInfo,
@@ -119,21 +117,21 @@ export async function fetchWithAuth(
   return res;
 }
 
-
-
-
 // -------------------- AUTH --------------------
 
 // Get current user
 export async function getCurrentUser(): Promise<User> {
   const res = await fetchWithAuth(`${BASE_URL}/api/auth/me`);
   if (res.ok) return res.json();
-  else throw new Error("Failed to fetch current user")
+  else throw new Error("Failed to fetch current user");
 }
 
 // Login
 // Login
-export async function loginUser(login: string, password: string): Promise<User> {
+export async function loginUser(
+  login: string,
+  password: string
+): Promise<User> {
   const res = await fetch(`${BASE_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -143,13 +141,13 @@ export async function loginUser(login: string, password: string): Promise<User> 
   if (!res.ok) {
     // 🎯 ADDED LOGIC HERE 🎯
     const errText = await res.text().catch(() => null);
-    
+
     // Check for the specific Banned or Unverified error messages (403 Forbidden)
     if (res.status === 403 && errText) {
-        // We throw the specific message so the component can catch it
-        throw new Error(errText); 
+      // We throw the specific message so the component can catch it
+      throw new Error(errText);
     }
-    
+
     // Default error for 401 Unauthorized or other failures
     throw new Error(errText || `Login failed with status ${res.status}`);
   }
@@ -184,6 +182,22 @@ export async function signupUser(data: {
 export async function getUser(username: string): Promise<User> {
   const res = await fetchWithAuth(`${BASE_URL}/api/auth/user/${username}`);
   if (!res.ok) throw new Error("Failed to fetch user");
+  return res.json();
+}
+
+export async function getProfilePictures(): Promise<User[]> {
+  const res = await fetch(`${BASE_URL}/api/auth/users/profiles`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    console.error(`Fetch failed with status: ${res.status}`);
+    throw new Error(`Failed to fetch profilePictures: ${res.statusText}`);
+  }
+
   return res.json();
 }
 
@@ -264,7 +278,8 @@ export async function forgotPassword(email: string): Promise<void> {
   });
 
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.message || "Failed to send password reset request");
+  if (!res.ok)
+    throw new Error(data?.message || "Failed to send password reset request");
 }
 
 export async function resetPassword(
@@ -343,7 +358,6 @@ export async function getReferralLeaderboard(): Promise<ReferralDto[]> {
   return res.json();
 }
 
-
 export interface PushSubscriptionDto {
   endpoint: string;
   keysP256dh: string;
@@ -354,7 +368,9 @@ export async function getUserPushSubscription(
   username: string
 ): Promise<{ subscribed: boolean; endpoint?: string }> {
   try {
-    const res = await fetchWithAuth(`${BASE_URL}/api/push/subscription/${username}`);
+    const res = await fetchWithAuth(
+      `${BASE_URL}/api/push/subscription/${username}`
+    );
     if (!res.ok) {
       if (res.status === 404) return { subscribed: false };
       throw new Error(`Failed to fetch push subscription: ${res.status}`);
