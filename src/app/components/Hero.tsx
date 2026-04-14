@@ -70,7 +70,7 @@ export default function Hero() {
         </div>
 
         {/* Hero text */}
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white leading-tight mb-6">
+        <h1 className="text-3xl md:text-7xl font-bold tracking-tight text-white leading-tight mb-6">
           Share music.
           <br />
           Discover new tracks.
@@ -122,7 +122,7 @@ export default function Hero() {
         <div className="mt-6">
           <Link
             href="/demo"
-            className="inline-flex items-center gap-3 px-6 py-3 text-zinc-300 font-semibold rounded-full border border-zinc-800 bg-zinc-900/60 backdrop-blur-sm transition-all hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
+            className="inline-flex items-center gap-3 px-6 py-3 text-zinc-300 font-semibold rounded-full bg-zinc-900/60 backdrop-blur-sm transition-all hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
           >
             {/* Play Icon */}
             <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-600 text-white">
