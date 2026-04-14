@@ -92,18 +92,18 @@ html, body {
   display: none; /* Chrome, Safari */
 }
 
-@keyframes profileDrop {
+/* Add this to your global CSS or within the <style> tag in the component */
+@keyframes slideIn {
   0% {
+    transform: translateX(-50px); /* Start position, off-screen */
     opacity: 0;
-    transform: translateY(-20px) rotateX(-30deg) scale(0.9);
   }
   100% {
+    transform: translateX(0); /* End position */
     opacity: 1;
-    transform: translateY(0) rotateX(0deg) scale(1);
   }
 }
 
-.animate-profile-drop {
-  opacity: 0; /* Keeps them hidden until the animation starts */
-  animation: profileDrop 0.6s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+.animate-slide-in {
+  animation: slideIn 0.6s ease-out forwards; /* Animation duration and easing */
 }

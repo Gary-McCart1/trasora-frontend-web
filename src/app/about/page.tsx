@@ -72,8 +72,6 @@ const features = [
   },
 ];
 
-
-
 const AboutPage = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-purple-500/30">
@@ -92,7 +90,7 @@ const AboutPage = () => {
             <motion.div
               key={i}
               variants={cardVariants}
-              className={`group relative overflow-hidden rounded-[2.5rem] border-2 border-zinc-800 bg-zinc-900 min-h-[400px] transition-all duration-500 hover:-translate-y-4 hover:p-20 ${feature.border}`}
+              className={`group relative overflow-hidden rounded-[2.5rem] border-2 border-zinc-800 bg-zinc-900 min-h-[400px] transition-all duration-500 transform hover:scale-125 hover:-translate-y-4 hover:p-20 ${feature.border}`}
             >
               {/* Image Background */}
               <div 

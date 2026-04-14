@@ -3,18 +3,22 @@ import Link from "next/link";
 const DemoPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-950 to-black text-zinc-200 px-6 md:px-12 py-16 flex flex-col items-center relative overflow-hidden">
-
       {/* soft purple glow background (matches hero style) */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-purple-900/20 blur-3xl pointer-events-none" />
 
       {/* Title section */}
       <div className="relative z-10 text-center max-w-3xl mb-10">
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
-          See <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Trasora</span> in action
+          See{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+            Trasora
+          </span>{" "}
+          in action
         </h1>
 
         <p className="text-zinc-300 text-lg md:text-xl">
-          Watch how you can share music, discover new tracks, and connect with others in a social music experience.
+          Watch how you can share music, discover new tracks, and connect with
+          others in a social music experience.
         </p>
       </div>
 
@@ -31,14 +35,32 @@ const DemoPage = () => {
       </div>
 
       {/* CTA section */}
-      <div className="relative z-10 mt-12 flex flex-col items-center gap-4 text-center">
-        <Link
-          href="/signup"
-          className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-10 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.8)] transition-all duration-300 transform hover:scale-105"
-        >
-          Get Started Free
-        </Link>
+      <div className="relative z-10 mt-12 flex flex-col items-center gap-6 text-center">
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          {/* Primary CTA */}
+          <Link
+            href="/about"
+            className="inline-flex items-center gap-2 px-6 py-3 text-zinc-400 font-semibold rounded-full border border-zinc-800 bg-zinc-900/60 backdrop-blur-sm transition-all hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
+          >
+            {/* Left Arrow Icon */}
+            <span className="flex items-center justify-center w-7 h-7 text-purple-700 ">
+              &larr;
+            </span>
+            Back
+          </Link>
+          <Link
+            href="/signup"
+            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-10 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.8)] transition-all duration-300 transform hover:scale-105"
+          >
+            Get Started Free
+          </Link>
 
+          {/* Back Button */}
+          
+        </div>
+
+        {/* Subtext */}
         <p className="text-sm text-zinc-500">
           No credit card required • Free to join
         </p>

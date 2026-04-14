@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     "/reset-password",
     "/verify-email",
     "/terms-of-use",
-    "/leaderboard"
+    "/leaderboard",
   ];
 
   // 🚀 Register for push once on app start
@@ -40,36 +40,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
-  // Fetch user on mount
+  // Fetch user from localStorage or API
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await fetchCurrentUser();
-        setUser(currentUser);
-      } catch (error) {
-        setUser(null);
+    const cachedUser = localStorage.getItem("currentUser");
 
-        if (!publicPaths.some((path) => pathname?.startsWith(path))) {
-          router.push("/login");
-        }
-      } finally {
-        setLoading(false);
+    if (cachedUser) {
+      setUser(JSON.parse(cachedUser)); // Use cached user if available
+      setLoading(false); // Skip loading state
+    } else {
+      fetchUser(); // Otherwise, fetch the user from API
+    }
+  }, []);
+
+  // Fetch user on mount (if not cached)
+  const fetchUser = async () => {
+    try {
+      const currentUser = await fetchCurrentUser();
+      setUser(currentUser);
+      localStorage.setItem("currentUser", JSON.stringify(currentUser)); // Cache user in localStorage
+    } catch (error) {
+      setUser(null);
+      // Redirect to login if not on public paths
+      if (!publicPaths.some((path) => pathname?.startsWith(path))) {
+        router.push("/login");
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchUser();
-  }, [router, pathname]);
-
-  // Silent refresh every 10 min
+  // Silent refresh every 30 minutes
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
         const currentUser = await fetchCurrentUser();
         setUser(currentUser);
+        localStorage.setItem("currentUser", JSON.stringify(currentUser)); // Update cached user
       } catch (error) {
         console.error("Silent refresh failed:", error);
       }
-    }, 10 * 60 * 1000);
+    }, 30 * 60 * 1000); // Refresh every 30 minutes
 
     return () => clearInterval(interval);
   }, []);
@@ -79,6 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const currentUser = await fetchCurrentUser();
       setUser(currentUser);
+      localStorage.setItem("currentUser", JSON.stringify(currentUser)); // Update cached user
     } catch (error) {
       console.error("Error refreshing user:", error);
       setUser(null);

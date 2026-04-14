@@ -117,24 +117,20 @@ export default function Navbar() {
     else router.push(path);
   };
 
+  // If loading, display skeleton loader
   if (loading) {
     return (
-      <nav className="bg-zinc-950 text-white px-4 py-2 ">
+      <nav className="bg-zinc-950 text-white px-4 py-2">
         <div className="flex items-center justify-between">
-          <Image
-            src="/trasora.png"
-            width={150}
-            height={200}
-            alt="Logo"
-            className="h-auto w-auto"
-          />
-          <div className="hidden md:flex items-center space-x-6">
-            <div className="w-64 h-6 bg-zinc-700 rounded animate-pulse" />
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-6 bg-zinc-700 rounded animate-pulse" />
-            <div className="w-20 h-6 bg-zinc-700 rounded animate-pulse" />
-            <div className="w-6 h-6 bg-zinc-700 rounded-full animate-pulse" />
+          {/* Skeleton for Logo */}
+          <div className="w-32 h-10 bg-zinc-700 animate-pulse rounded" />
+          {/* Skeleton for Search Bar */}
+          <div className="hidden xl:block w-64 h-6 bg-zinc-700 animate-pulse rounded" />
+          {/* Skeleton for Navbar items */}
+          <div className="flex items-center space-x-6">
+            <div className="w-16 h-6 bg-zinc-700 animate-pulse rounded" />
+            <div className="w-20 h-6 bg-zinc-700 animate-pulse rounded" />
+            <div className="w-8 h-8 bg-zinc-700 animate-pulse rounded-full" />
           </div>
         </div>
       </nav>
@@ -142,13 +138,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav
-      className="
-    bg-zinc-950 text-white shadow-md px-4
-    sticky top-0 left-0 right-0 z-50
-    pt-[2.5rem] pb-0 md:py-0
-  "
-    >
+    <nav className="bg-zinc-950 text-white shadow-md px-4 sticky top-0 left-0 right-0 z-50 pt-[2.5rem] pb-0 md:py-0">
       <div className="flex items-center justify-between">
         {/* Logo */}
         <div className="flex-shrink-0 z-10">
@@ -322,9 +312,6 @@ export default function Navbar() {
               </div>
             )}
           </ul>
-          <div className="hidden xl:display px-4">
-            <SearchBar />
-          </div>
         </div>
       )}
     </nav>

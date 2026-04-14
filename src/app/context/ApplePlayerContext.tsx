@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { trackEvent } from "../lib/analytics";
+import { usePathname } from "next/navigation"; // We use this to track route changes
 
 interface ApplePlayerContextType {
   currentUrl: string | null;
@@ -28,6 +29,7 @@ export const ApplePlayerProvider = ({ children }: { children: React.ReactNode })
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false); // ✅ track if player initialized
+  const pathname = usePathname(); // Track pathname changes
 
   useEffect(() => {
     if (!audioRef.current) {
@@ -35,6 +37,11 @@ export const ApplePlayerProvider = ({ children }: { children: React.ReactNode })
       audioRef.current.preload = "auto";
     }
   }, []);
+
+  useEffect(() => {
+    // Pause the audio when the pathname changes
+    pausePreview();
+  }, [pathname]); // This will run when the route/pathname changes
 
   const initPlayer = () => {
     setIsReady(true);
