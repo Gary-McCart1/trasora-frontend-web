@@ -33,9 +33,9 @@ export default function Hero() {
       <div className="absolute top-[-5%] left-[-5%] w-[30%] h-[30%] bg-purple-600/20 rounded-full animate-pulse-slow opacity-50" />
       <div className="absolute bottom-[5%] right-[-5%] w-[25%] h-[25%] bg-blue-600/20 rounded-full animate-pulse-slow opacity-50" />
 
-      <div className="relative z-10 max-w-4xl">
+      <div className="relative z-10 max-w-4xl pt-5">
         {/* Profile images */}
-        <div className="flex flex-col items-center gap-4 mb-8">
+        <div className="flex flex-col items-center gap-4 mb-8 mt-4">
           <div className="flex -space-x-3 overflow-hidden p-1">
             {STATIC_PROFILES.map((profile, index) => (
               <div
@@ -70,7 +70,7 @@ export default function Hero() {
         </div>
 
         {/* Hero text */}
-        <h1 className="text-3xl md:text-7xl font-bold tracking-tight text-white leading-tight mb-6">
+        <h1 className="text-2xl md:text-7xl font-bold tracking-tight text-white leading-tight mb-6">
           Share music.
           <br />
           Discover new tracks.
@@ -78,7 +78,7 @@ export default function Hero() {
           <span className="text-purple-400">Connect through sound.</span>
         </h1>
 
-        <p className="max-w-xl mx-auto text-lg md:text-xl text-zinc-400 mb-10 leading-relaxed">
+        <p className="max-w-xl mx-auto text-md md:text-xl text-zinc-400 mb-10 leading-relaxed">
           Trasora is a social music platform designed for sharing songs,
           discovering new artists, and building playlists with your friends.
         </p>
