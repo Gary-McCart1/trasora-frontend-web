@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { trackEvent } from "../lib/analytics";
 
 const STATIC_PROFILES = [
   {
@@ -96,6 +97,14 @@ export default function Hero() {
           ? "bg-black text-white hover:bg-zinc-800"
           : "bg-zinc-900 text-zinc-300 border border-purple-800 hover:bg-zinc-800 hover:text-white"
       }`}
+            onClick={() =>
+              trackEvent("click_app_store", {
+                location: "hero",
+                device: isMobile ? "mobile" : "desktop",
+              })
+              
+            }
+            
           >
             {/* Apple Icon */}
             <svg
@@ -113,6 +122,11 @@ export default function Hero() {
           <Link
             href="/signup"
             className="w-full sm:w-auto px-10 py-4 bg-purple-600 text-white font-semibold rounded-xl transition-all duration-200 hover:bg-purple-500 hover:shadow-lg hover:shadow-purple-500/20 active:scale-95"
+            onClick={() =>
+              trackEvent("click_continue_web", {
+                location: "hero",
+              })
+            }
           >
             Continue on Web
           </Link>
@@ -121,6 +135,11 @@ export default function Hero() {
         </div>
         <div className="mt-6">
           <Link
+            onClick={() =>
+              trackEvent("click_demo", {
+                location: "hero",
+              })
+            }
             href="/demo"
             className="inline-flex items-center gap-3 px-6 py-3 text-zinc-300 font-semibold rounded-full  transition-all hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
           >
