@@ -21,6 +21,7 @@ export default function Signup() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    trackEvent("signup_started");
   };
 
   const togglePasswordVisibility = () => {
