@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { verifyEmail, resendVerificationEmail } from "../lib/usersApi";
+import { trackEvent } from "../lib/analytics";
 
 const useRouter = () => ({
   push: (path: string) => {
@@ -55,6 +56,9 @@ function VerifyEmailContent() {
         setStatus("success");
         setMessage("Email verified successfully. Redirecting to login...");
         setTimeout(() => router.push("/login"), 3000);
+        trackEvent("signup_complete", {
+          method: "Email",
+        });
       } catch (err: unknown) {
         console.error("Email verification error:", err);
         setStatus("error");
