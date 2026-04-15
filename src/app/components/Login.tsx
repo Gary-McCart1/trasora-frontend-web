@@ -39,8 +39,8 @@ export default function Login() {
       await sendPendingTokenIfNeeded();
 
       alert("Login was successful");
-      ("login", {
-        mettrackEventhod: "Email",
+      trackEvent("login", {
+        method: "Email",
       });
       setForm({ login: "", password: "" });
       router.push("/");
