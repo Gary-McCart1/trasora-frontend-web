@@ -139,7 +139,7 @@ export default function Hero() {
           </Link>
         </div>
         {/* Footer text */}
-        <div className="mt-12 flex items-center justify-center gap-3">
+        <div className="mt-3 flex items-center justify-center gap-3">
           <p className="text-xs uppercase tracking-widest text-zinc-500 font-medium">
             Join the community today
           </p>
