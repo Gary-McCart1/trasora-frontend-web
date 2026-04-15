@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { signupUser } from "../lib/usersApi";
 import { trackEvent } from "../lib/analytics";
@@ -18,10 +18,17 @@ export default function Signup() {
   const router = useRouter();
   const [infoMessage, setInfoMessage] = useState("");
 
+  useEffect(() => {
+    if (form.fullName && !sessionStorage.getItem("signup_page_view_tracked")) {
+      trackEvent("signup_page_view");
+      sessionStorage.setItem("signup_page_view_tracked", "true");
+    }
+  }, [form.fullName]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    trackEvent("signup_started");
+    
   };
 
   const togglePasswordVisibility = () => {
