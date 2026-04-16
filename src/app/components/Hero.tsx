@@ -20,25 +20,31 @@ const STATIC_PROFILES = [
 
 export default function Hero() {
   const [isMobile, setIsMobile] = useState(false);
-
-  // ✅ Detect platform
-  const isApp = typeof window !== "undefined" && !!window.Capacitor;
+  const [isApp, setIsApp] = useState(false);
 
   useEffect(() => {
+    // Detect mobile
     setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
+    // ✅ Proper Capacitor detection
+    if (
+      typeof window !== "undefined" &&
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === "function"
+    ) {
+      setIsApp(window.Capacitor.isNativePlatform());
+    }
   }, []);
 
   return (
     <section className="relative min-h-[75vh] flex flex-col justify-center items-center px-6 py-3 text-center overflow-hidden bg-zinc-950">
-      {/* Gradient background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-500/20 via-zinc-900 to-zinc-950" />
 
-      {/* Background glows */}
       <div className="absolute top-[-5%] left-[-5%] w-[30%] h-[30%] bg-purple-600/20 rounded-full animate-pulse-slow opacity-50" />
       <div className="absolute bottom-[5%] right-[-5%] w-[25%] h-[25%] bg-blue-600/20 rounded-full animate-pulse-slow opacity-50" />
 
       <div className="relative z-10 max-w-4xl pt-5">
-        {/* Profile images */}
+        {/* Profiles */}
         <div className="flex flex-col items-center gap-4 mb-8 mt-4">
           <div className="flex -space-x-3 overflow-hidden p-1">
             {STATIC_PROFILES.map((profile, index) => (
@@ -73,7 +79,7 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Hero text */}
+        {/* Text */}
         <h1 className="text-3xl md:text-7xl font-bold tracking-tight text-white leading-tight mb-6">
           Share music.
           <br />
@@ -87,25 +93,25 @@ export default function Hero() {
           discovering new artists, and building playlists with your friends.
         </p>
 
-        {/* CTA Buttons */}
+        {/* CTA */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          {/* App Store */}
+          {/* ✅ Now correctly shows on web */}
           {!isApp && (
             <a
               href="https://apps.apple.com/us/app/trasora/id6753359214"
               target="_blank"
               rel="noopener noreferrer"
               className={`w-full sm:w-auto px-10 py-4 font-semibold rounded-xl flex items-center justify-center gap-3 transition-all
-            ${
-              isMobile
-                ? "bg-black text-white hover:bg-zinc-800"
-                : "bg-zinc-900 text-zinc-300 border border-purple-800 hover:bg-zinc-800 hover:text-white"
-            }`}
+              ${
+                isMobile
+                  ? "bg-black text-white hover:bg-zinc-800"
+                  : "bg-zinc-900 text-zinc-300 border border-purple-800 hover:bg-zinc-800 hover:text-white"
+              }`}
               onClick={() =>
                 trackEvent("click_app_store", {
                   location: "hero",
                   device: isMobile ? "mobile" : "desktop",
-                  platform: isApp ? "app" : "web", // ✅ added
+                  platform: isApp ? "app" : "web",
                 })
               }
             >
@@ -115,24 +121,23 @@ export default function Hero() {
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path d="M16.365 1.43c0 1.14-.464 2.222-1.288 3.046-.854.854-2.23 1.512-3.446 1.412-.154-1.14.464-2.345 1.258-3.139.854-.854 2.345-1.482 3.476-1.319zm3.225 16.873c-.62 1.43-1.38 2.844-2.59 2.874-1.2.03-1.586-.72-2.96-.72-1.374 0-1.8.69-2.96.75-1.18.06-2.08-1.5-2.7-2.93-1.35-3.06-2.38-8.63.99-10.9 1.67-1.14 3.5-.93 4.6-.36 1.15.57 2.2.54 3.7 0 1.42-.57 3.06-.41 4.3.33-3.77 2.29-3.16 7.73.56 10.95z" />
+                <path d="M16.365 1.43c0 1.14-.464 2.222-1.288 3.046-.854.854-2.23 1.512-3.446 1.412-.154-1.14.464-2.345 1.258-3.139.854-.854 2.345-1.482 3.476-1.319zm3.225 16.873c-.62 1.43-1.38 2.844-2.59 2.874-1.2.30-1.586-.72-2.96-.72-1.374 0-1.8.69-2.96.75-1.18.06-2.08-1.5-2.7-2.93-1.35-3.06-2.38-8.63.99-10.9 1.67-1.14 3.5-.93 4.6-.36 1.15.57 2.2.54 3.7 0 1.42-.57 3.06-.41 4.3.33-3.77 2.29-3.16 7.73.56 10.95z" />
               </svg>
               Download App
             </a>
           )}
 
-          {/* Web CTA */}
           <Link
             href="/signup"
             className="w-full sm:w-auto px-10 py-4 bg-purple-600 text-white font-semibold rounded-xl transition-all duration-200 hover:bg-purple-500 hover:shadow-lg hover:shadow-purple-500/20 active:scale-95"
             onClick={() =>
               trackEvent("click_continue_web", {
                 location: "hero",
-                platform: isApp ? "app" : "web", // ✅ added
+                platform: isApp ? "app" : "web",
               })
             }
           >
-            Sign Up
+            {isApp ? "Continue" : "Sign Up"}
           </Link>
         </div>
 
@@ -143,7 +148,7 @@ export default function Hero() {
             onClick={() =>
               trackEvent("click_demo", {
                 location: "hero",
-                platform: isApp ? "app" : "web", // ✅ added
+                platform: isApp ? "app" : "web",
               })
             }
             className="inline-flex items-center gap-3 px-6 py-3 text-zinc-300 font-semibold rounded-full transition-all hover:bg-zinc-800 hover:text-white"
@@ -162,7 +167,6 @@ export default function Hero() {
           </Link>
         </div>
 
-        {/* Footer */}
         <div className="mt-3 flex items-center justify-center gap-3">
           <p className="text-xs uppercase tracking-widest text-zinc-500 font-medium">
             Join the community today
