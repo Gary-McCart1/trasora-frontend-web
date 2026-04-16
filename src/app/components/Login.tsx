@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { loginUser } from "../lib/usersApi";
-import { sendPendingTokenIfNeeded, registerPush } from "../lib/push"; // ✅ import here
+import { sendPendingTokenIfNeeded } from "../lib/push";
 import Link from "next/link";
 import { trackEvent } from "../lib/analytics";
 
@@ -14,9 +14,12 @@ export default function Login() {
   const [form, setForm] = useState({ login: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const router = useRouter();
+
+  // ✅ Detect platform (Capacitor = app)
+  const isApp =
+  typeof window !== "undefined" && !!window.Capacitor;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,19 +38,22 @@ export default function Login() {
       const userData = await loginUser(form.login, form.password);
       setUser(userData);
 
-      // ✅ Now that we’re logged in, send the pending push token
+      // ✅ Send push token after login
       await sendPendingTokenIfNeeded();
 
-      alert("Login was successful");
+      // ✅ Track login with platform
       trackEvent("login", {
         method: "Email",
+        platform: isApp ? "app" : "web",
       });
+
+      alert("Login was successful");
+
       setForm({ login: "", password: "" });
       router.push("/");
     } catch (err: unknown) {
       console.error("Login failed:", err);
 
-      // Safely get error message
       const message =
         err instanceof Error ? err.message : "An unknown error occurred";
 
@@ -127,7 +133,7 @@ export default function Login() {
           </Link>
         </p>
 
-        {/* Divider with better spacing */}
+        {/* Divider */}
         <div className="border-t border-zinc-800 pt-4" />
 
         {/* Create Account */}

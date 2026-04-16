@@ -40,13 +40,24 @@ function VerifyEmailContent() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
 
+  const isApp =
+    typeof window !== "undefined" &&
+    "Capacitor" in window;
+
+  const platform = isApp ? "app" : "web";
+
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("token");
 
     if (!token) {
       setStatus("error");
       setMessage("Invalid verification link.");
+      trackEvent("signup_failed", {
+        method: "email",
+        platform,
+      });
       return;
+      
     }
 
     async function verify() {
@@ -58,6 +69,7 @@ function VerifyEmailContent() {
         setTimeout(() => router.push("/login"), 3000);
         trackEvent("signup_complete", {
           method: "Email",
+          platform
         });
       } catch (err: unknown) {
         console.error("Email verification error:", err);

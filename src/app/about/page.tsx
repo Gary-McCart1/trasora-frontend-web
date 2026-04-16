@@ -1,9 +1,10 @@
 "use client"; // Required for Framer Motion in Next.js App Router
 
-import React from "react";
+import React, { useEffect } from "react";
 import Hero from "../components/Hero";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion"; // Add Variants here
+import { trackEvent } from "../lib/analytics";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -73,6 +74,15 @@ const features = [
 ];
 
 const AboutPage = () => {
+  useEffect(() => {
+    const isApp =
+      typeof window !== "undefined" &&
+      window.Capacitor !== undefined;
+
+    trackEvent("landing_page_view", {
+      platform: isApp ? "app" : "web",
+    });
+  }, []);
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-purple-500/30">
       <Hero />

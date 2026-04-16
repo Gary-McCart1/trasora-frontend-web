@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { trackEvent } from "../lib/analytics";
 
+
 const STATIC_PROFILES = [
   {
     id: 1,
@@ -20,6 +21,10 @@ const STATIC_PROFILES = [
 
 export default function Hero() {
   const [isMobile, setIsMobile] = useState(false);
+
+  // ✅ Detect platform
+  const isApp =
+    typeof window !== "undefined" && !!window.Capacitor;
 
   useEffect(() => {
     setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
@@ -86,27 +91,25 @@ export default function Hero() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          {/* App Store Button (always visible) */}
+          {/* App Store */}
           <a
             href="https://apps.apple.com/us/app/trasora/id6753359214"
             target="_blank"
             rel="noopener noreferrer"
             className={`w-full sm:w-auto px-10 py-4 font-semibold rounded-xl flex items-center justify-center gap-3 transition-all
-      ${
-        isMobile
-          ? "bg-black text-white hover:bg-zinc-800"
-          : "bg-zinc-900 text-zinc-300 border border-purple-800 hover:bg-zinc-800 hover:text-white"
-      }`}
+            ${
+              isMobile
+                ? "bg-black text-white hover:bg-zinc-800"
+                : "bg-zinc-900 text-zinc-300 border border-purple-800 hover:bg-zinc-800 hover:text-white"
+            }`}
             onClick={() =>
               trackEvent("click_app_store", {
                 location: "hero",
                 device: isMobile ? "mobile" : "desktop",
+                platform: isApp ? "app" : "web", // ✅ added
               })
-              
             }
-            
           >
-            {/* Apple Icon */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-5 h-5"
@@ -125,29 +128,30 @@ export default function Hero() {
             onClick={() =>
               trackEvent("click_continue_web", {
                 location: "hero",
+                platform: isApp ? "app" : "web", // ✅ added
               })
             }
           >
             Continue on Web
           </Link>
-
-          {/* Demo */}
         </div>
+
+        {/* Demo */}
         <div className="mt-6">
           <Link
+            href="/demo"
             onClick={() =>
               trackEvent("click_demo", {
                 location: "hero",
+                platform: isApp ? "app" : "web", // ✅ added
               })
             }
-            href="/demo"
-            className="inline-flex items-center gap-3 px-6 py-3 text-zinc-300 font-semibold rounded-full  transition-all hover:bg-zinc-800 hover:text-white hover:border-zinc-700"
+            className="inline-flex items-center gap-3 px-6 py-3 text-zinc-300 font-semibold rounded-full transition-all hover:bg-zinc-800 hover:text-white"
           >
-            {/* Play Icon */}
             <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-600 text-white">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4 ml-[2px]" // slight nudge for visual centering
+                className="w-4 h-4 ml-[2px]"
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
@@ -157,7 +161,8 @@ export default function Hero() {
             See how it works
           </Link>
         </div>
-        {/* Footer text */}
+
+        {/* Footer */}
         <div className="mt-3 flex items-center justify-center gap-3">
           <p className="text-xs uppercase tracking-widest text-zinc-500 font-medium">
             Join the community today

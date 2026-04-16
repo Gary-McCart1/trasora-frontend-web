@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
-import { signupUser } from "../lib/usersApi";
 import { trackEvent } from "../lib/analytics";
 
 export default function Signup() {
@@ -18,17 +17,30 @@ export default function Signup() {
   const router = useRouter();
   const [infoMessage, setInfoMessage] = useState("");
 
+  // ✅ Detect platform (web vs app)
+  const isApp =
+    typeof window !== "undefined" &&
+    "Capacitor" in window;
+
+  const platform = isApp ? "app" : "web";
+
+  // ✅ Track when user starts signup (only once)
   useEffect(() => {
-    if (form.fullName && !sessionStorage.getItem("signup_page_view_tracked")) {
-      trackEvent("signup_page_view");
-      sessionStorage.setItem("signup_page_view_tracked", "true");
+    if (
+      form.fullName &&
+      !sessionStorage.getItem("signup_started_tracked")
+    ) {
+      trackEvent("signup_started", {
+        platform,
+      });
+
+      sessionStorage.setItem("signup_started_tracked", "true");
     }
-  }, [form.fullName]);
+  }, [form.fullName, platform]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    
   };
 
   const togglePasswordVisibility = () => {
@@ -37,17 +49,21 @@ export default function Signup() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // ✅ Track signup attempt
     trackEvent("sign_up", {
-      method: "Email",
+      method: "email",
+      platform,
     });
-    console.log("Navigating to terms-of-use with params:", form);
+
     router.push(
       `/terms-of-use?fullName=${encodeURIComponent(form.fullName)}&email=${encodeURIComponent(
         form.email
-      )}&username=${encodeURIComponent(form.username)}&password=${encodeURIComponent(form.password)}`
+      )}&username=${encodeURIComponent(
+        form.username
+      )}&password=${encodeURIComponent(form.password)}`
     );
   };
-  
 
   return (
     <section className="relative bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-950 min-h-[60svh] flex items-center justify-center text-white px-4">
@@ -57,7 +73,9 @@ export default function Signup() {
         onSubmit={handleSubmit}
         className="relative z-10 w-full max-w-sm space-y-4 border border-zinc-800 bg-zinc-900/90 p-6 rounded-xl shadow-lg backdrop-blur"
       >
-        <h2 className="text-2xl font-semibold mb-2 text-center">Sign up</h2>
+        <h2 className="text-2xl font-semibold mb-2 text-center">
+          Sign up
+        </h2>
 
         <input
           type="text"
@@ -65,8 +83,6 @@ export default function Signup() {
           placeholder="Full Name"
           value={form.fullName}
           onChange={handleChange}
-          autoCapitalize="none"
-          autoCorrect="off"
           className="w-full bg-zinc-800 text-base text-white px-3 py-2 rounded-md border border-zinc-700 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           required
         />
@@ -105,8 +121,6 @@ export default function Signup() {
             type="button"
             onClick={togglePasswordVisibility}
             className="absolute inset-y-0 right-3 flex items-center text-purple-400 hover:text-purple-600"
-            tabIndex={-1}
-            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
               <HiOutlineEyeOff size={20} />
@@ -124,7 +138,9 @@ export default function Signup() {
         </button>
 
         {infoMessage && (
-          <p className="text-center text-green-400 mt-4">{infoMessage}</p>
+          <p className="text-center text-green-400 mt-4">
+            {infoMessage}
+          </p>
         )}
 
         <p className="text-xs text-center text-zinc-500">

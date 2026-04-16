@@ -10,3 +10,9 @@ declare module '@capacitor/core' {
     AppleNowPlayingPlugin: AppleNowPlayingPlugin;
   }
 }
+
+declare global {
+  interface Window {
+    Capacitor?: unknown;
+  }
+}
