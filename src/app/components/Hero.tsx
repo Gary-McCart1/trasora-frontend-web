@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { trackEvent } from "../lib/analytics";
 
-
 const STATIC_PROFILES = [
   {
     id: 1,
@@ -23,8 +22,7 @@ export default function Hero() {
   const [isMobile, setIsMobile] = useState(false);
 
   // ✅ Detect platform
-  const isApp =
-    typeof window !== "undefined" && !!window.Capacitor;
+  const isApp = typeof window !== "undefined" && !!window.Capacitor;
 
   useEffect(() => {
     setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
@@ -92,34 +90,36 @@ export default function Hero() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           {/* App Store */}
-          <a
-            href="https://apps.apple.com/us/app/trasora/id6753359214"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`w-full sm:w-auto px-10 py-4 font-semibold rounded-xl flex items-center justify-center gap-3 transition-all
+          {!isApp && (
+            <a
+              href="https://apps.apple.com/us/app/trasora/id6753359214"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`w-full sm:w-auto px-10 py-4 font-semibold rounded-xl flex items-center justify-center gap-3 transition-all
             ${
               isMobile
                 ? "bg-black text-white hover:bg-zinc-800"
                 : "bg-zinc-900 text-zinc-300 border border-purple-800 hover:bg-zinc-800 hover:text-white"
             }`}
-            onClick={() =>
-              trackEvent("click_app_store", {
-                location: "hero",
-                device: isMobile ? "mobile" : "desktop",
-                platform: isApp ? "app" : "web", // ✅ added
-              })
-            }
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-              fill="currentColor"
-              viewBox="0 0 24 24"
+              onClick={() =>
+                trackEvent("click_app_store", {
+                  location: "hero",
+                  device: isMobile ? "mobile" : "desktop",
+                  platform: isApp ? "app" : "web", // ✅ added
+                })
+              }
             >
-              <path d="M16.365 1.43c0 1.14-.464 2.222-1.288 3.046-.854.854-2.23 1.512-3.446 1.412-.154-1.14.464-2.345 1.258-3.139.854-.854 2.345-1.482 3.476-1.319zm3.225 16.873c-.62 1.43-1.38 2.844-2.59 2.874-1.2.03-1.586-.72-2.96-.72-1.374 0-1.8.69-2.96.75-1.18.06-2.08-1.5-2.7-2.93-1.35-3.06-2.38-8.63.99-10.9 1.67-1.14 3.5-.93 4.6-.36 1.15.57 2.2.54 3.7 0 1.42-.57 3.06-.41 4.3.33-3.77 2.29-3.16 7.73.56 10.95z" />
-            </svg>
-            Download App
-          </a>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M16.365 1.43c0 1.14-.464 2.222-1.288 3.046-.854.854-2.23 1.512-3.446 1.412-.154-1.14.464-2.345 1.258-3.139.854-.854 2.345-1.482 3.476-1.319zm3.225 16.873c-.62 1.43-1.38 2.844-2.59 2.874-1.2.03-1.586-.72-2.96-.72-1.374 0-1.8.69-2.96.75-1.18.06-2.08-1.5-2.7-2.93-1.35-3.06-2.38-8.63.99-10.9 1.67-1.14 3.5-.93 4.6-.36 1.15.57 2.2.54 3.7 0 1.42-.57 3.06-.41 4.3.33-3.77 2.29-3.16 7.73.56 10.95z" />
+              </svg>
+              Download App
+            </a>
+          )}
 
           {/* Web CTA */}
           <Link
@@ -132,7 +132,7 @@ export default function Hero() {
               })
             }
           >
-            Continue on Web
+            Sign Up
           </Link>
         </div>
 
