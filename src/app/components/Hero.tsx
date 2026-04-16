@@ -137,7 +137,7 @@ export default function Hero() {
               })
             }
           >
-            {isApp ? "Continue" : "Sign Up"}
+            Sign Up
           </Link>
         </div>
 
