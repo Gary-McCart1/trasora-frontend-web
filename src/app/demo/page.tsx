@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { trackEvent } from "../lib/analytics";
 import { getTrackingData } from "../utils/getTrackingData";
