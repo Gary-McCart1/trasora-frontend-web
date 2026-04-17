@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { verifyEmail, resendVerificationEmail } from "../lib/usersApi";
 import { trackEvent } from "../lib/analytics";
+import { getTrackingData } from "../utils/getTrackingData";
 
 const useRouter = () => ({
   push: (path: string) => {
@@ -75,22 +76,7 @@ function VerifyEmailContent() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [isApp, setIsApp] = useState(false);
-
-  useEffect(() => {
-    // Detect mobile
-    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-
-    // ✅ Proper Capacitor detection
-    if (
-      typeof window !== "undefined" &&
-      window.Capacitor &&
-      typeof window.Capacitor.isNativePlatform === "function"
-    ) {
-      setIsApp(window.Capacitor.isNativePlatform());
-    }
-  }, []);
+  
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("token");
@@ -100,8 +86,7 @@ function VerifyEmailContent() {
       setMessage("Invalid verification link.");
       trackEvent("signup_failed", {
         method: "email",
-        platform: isApp ? "app" : "website",
-        device: isMobile ? "mobile" : "desktop",
+        ...getTrackingData()
       });
       return;
     }
@@ -115,8 +100,7 @@ function VerifyEmailContent() {
         setTimeout(() => router.push("/login"), 3000);
         trackEvent("signup_complete", {
           method: "Email",
-          platform: isApp ? "app" : "website",
-          device: isMobile ? "mobile" : "desktop",
+          ...getTrackingData()
         });
       } catch (err: unknown) {
         console.error("Email verification error:", err);

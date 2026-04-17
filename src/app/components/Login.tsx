@@ -8,6 +8,7 @@ import { loginUser } from "../lib/usersApi";
 import { sendPendingTokenIfNeeded } from "../lib/push";
 import Link from "next/link";
 import { trackEvent } from "../lib/analytics";
+import { getTrackingData } from "../utils/getTrackingData";
 
 export default function Login() {
   const { setUser } = useAuth();
@@ -58,8 +59,7 @@ export default function Login() {
       // ✅ Track login with platform
       trackEvent("login", {
         method: "Email",
-        device: isMobile ? "mobile" : "desktop", 
-        platform: isApp ? "app" : "web",
+        ...getTrackingData()
       });
 
       alert("Login was successful");

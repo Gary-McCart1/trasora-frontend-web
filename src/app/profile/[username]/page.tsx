@@ -36,6 +36,7 @@ import { FaImages } from "react-icons/fa";
 import { BiSolidVideos } from "react-icons/bi";
 import { useAlert } from "@/app/context/AlertContext";
 import { trackEvent } from "@/app/lib/analytics";
+import { getTrackingData } from "@/app/utils/getTrackingData";
 
 export default function ProfilePage() {
   const [postType, setPostType] = useState("images");
@@ -52,22 +53,7 @@ export default function ProfilePage() {
   const [showTrunkCreator, setShowTrunkCreator] = useState(false);
   const [addSongTrunkId, setAddSongTrunkId] = useState<number | null>(null);
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [isApp, setIsApp] = useState(false);
-
-  useEffect(() => {
-    // Detect mobile
-    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-
-    // ✅ Proper Capacitor detection
-    if (
-      typeof window !== "undefined" &&
-      window.Capacitor &&
-      typeof window.Capacitor.isNativePlatform === "function"
-    ) {
-      setIsApp(window.Capacitor.isNativePlatform());
-    }
-  }, []);
+  
 
   // --- Draggable Player State ---
   const [playingTrack, setPlayingTrack] = useState<{
@@ -139,8 +125,7 @@ export default function ProfilePage() {
   useEffect(() => {
     trackEvent("view_profile", {
       profile_user_id: profileUser?.id,
-      platform: isApp ? "app" : "website",
-      device: isMobile ? "mobile" : "desktop"
+      ...getTrackingData()
     });
   }, [profileUser?.id]);
 
@@ -187,8 +172,7 @@ export default function ProfilePage() {
       setProfileUser((prev) => (prev ? { ...prev, ...data } : prev));
       trackEvent("follow_user", {
         followed_user_id: profileUser.id,
-        platform: isApp ? "app" : "website",
-        device: isMobile ? "mobile" : "desktop"
+        ...getTrackingData()
       });
       return data.status;
     } catch (err) {

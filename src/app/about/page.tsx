@@ -5,6 +5,7 @@ import Hero from "../components/Hero";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion"; // Add Variants here
 import { trackEvent } from "../lib/analytics";
+import { getTrackingData } from "../utils/getTrackingData";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -80,26 +81,11 @@ const features = [
 
 const AboutPage = () => {
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [isApp, setIsApp] = useState(false);
-
   useEffect(() => {
-    // Detect mobile
-    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-
-    // ✅ Proper Capacitor detection
-    if (
-      typeof window !== "undefined" &&
-      window.Capacitor &&
-      typeof window.Capacitor.isNativePlatform === "function"
-    ) {
-      setIsApp(window.Capacitor.isNativePlatform());
-    }
-    trackEvent("landing_page_view", {
-      platform: isApp ? "app" : "web",
-      device: isMobile ? "mobile" : "desktop",
+    trackEvent("landing_page_viewed", {
+      ...getTrackingData()
     });
-  }, [isMobile, isApp]);
+  }, []);
   
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-purple-500/30">

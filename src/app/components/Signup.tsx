@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import { trackEvent } from "../lib/analytics";
+import { getTrackingData } from "../utils/getTrackingData";
 
 export default function Signup() {
   const [form, setForm] = useState({
@@ -18,25 +19,9 @@ export default function Signup() {
   const [infoMessage, setInfoMessage] = useState("");
 
   // ✅ Detect platform (web vs app)
-  const [isMobile, setIsMobile] = useState(false);
-  const [isApp, setIsApp] = useState(false);
 
-  useEffect(() => {
-    // Detect mobile
-    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
 
-    // ✅ Proper Capacitor detection
-    if (
-      typeof window !== "undefined" &&
-      window.Capacitor &&
-      typeof window.Capacitor.isNativePlatform === "function"
-    ) {
-      setIsApp(window.Capacitor.isNativePlatform());
-    }
-  }, []);
-
-  const platform = isApp ? "app" : "web";
-
+  
   // ✅ Track when user starts signup (only once)
   useEffect(() => {
     if (
@@ -44,13 +29,12 @@ export default function Signup() {
       !sessionStorage.getItem("signup_started_tracked")
     ) {
       trackEvent("signup_started", {
-        platform,
-        device: isMobile ? "mobile" : "desktop"
+        ...getTrackingData()
       });
 
       sessionStorage.setItem("signup_started_tracked", "true");
     }
-  }, [form.fullName, platform, isMobile]);
+  }, [form.fullName]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -67,8 +51,7 @@ export default function Signup() {
     // ✅ Track signup attempt
     trackEvent("sign_up", {
       method: "email",
-      platform,
-      device: isMobile ? "mobile" : "desktop",
+      ...getTrackingData()
     });
 
     router.push(

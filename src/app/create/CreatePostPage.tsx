@@ -14,6 +14,7 @@ import { PostDto } from "../types/Post";
 import { LuAudioLines } from "react-icons/lu";
 import { useApplePlayer } from "../context/ApplePlayerContext"; // ✅ import context
 import { trackEvent } from "../lib/analytics";
+import { getTrackingData } from "../utils/getTrackingData";
 
 export interface AppleMusicTrack {
   id: string;
@@ -48,23 +49,6 @@ export default function CreatePostPage({
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const DEFAULT_ALBUM_IMAGE = "/default-album-cover.png";
-
-  const [isMobile, setIsMobile] = useState(false);
-  const [isApp, setIsApp] = useState(false);
-
-  useEffect(() => {
-    // Detect mobile
-    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-
-    // ✅ Proper Capacitor detection
-    if (
-      typeof window !== "undefined" &&
-      window.Capacitor &&
-      typeof window.Capacitor.isNativePlatform === "function"
-    ) {
-      setIsApp(window.Capacitor.isNativePlatform());
-    }
-  }, []);
 
   // Mock post for preview
   const mockPost: PostDto = {
@@ -130,8 +114,7 @@ export default function CreatePostPage({
       trackEvent("post_created", {
         song_title: selectedTrack.name,
         artist: selectedTrack.artistName,
-        platform: isApp ? "app" : "website",
-        device: isMobile ? "mobile" : "desktop"
+        ...getTrackingData()
       });
       setShowConfetti(true);
       setTimeout(() => router.push(`/profile/${user.username}`), 3000);

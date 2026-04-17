@@ -8,6 +8,7 @@ import TrackCardGrid, { TrackOrAlbum } from "../components/TrackCardGrid";
 import { getSpotifyExplore, getSpotifyRecommendations } from "../lib/spotifyApi";
 import SearchBar from "../components/SearchBar";
 import { trackEvent } from "../lib/analytics";
+import { getTrackingData } from "../utils/getTrackingData";
 
 // Define the shape of the track sent to the draggable player
 type PlayerTrack = {
@@ -31,23 +32,6 @@ export default function ExplorePage() {
   const [playingTrack, setPlayingTrack] = useState<PlayerTrack | null>(null);
   
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [isApp, setIsApp] = useState(false);
-
-  useEffect(() => {
-    // Detect mobile
-    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-
-    // ✅ Proper Capacitor detection
-    if (
-      typeof window !== "undefined" &&
-      window.Capacitor &&
-      typeof window.Capacitor.isNativePlatform === "function"
-    ) {
-      setIsApp(window.Capacitor.isNativePlatform());
-    }
-  }, []);
-
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
@@ -65,8 +49,7 @@ export default function ExplorePage() {
         setRecommendations(recs);
         trackEvent("visited_explore", {
           user_id: user.id,
-          platform: isApp ? "app" : "website",
-          device: isMobile ? "mobile" : "desktop"
+         ...getTrackingData()
         });
       } catch (err) {
         console.error(err);
@@ -95,8 +78,7 @@ export default function ExplorePage() {
     };
     trackEvent("explored_track", {
       user_id: user?.id,
-      platform: isApp ? "app" : "website",
-      device: isMobile ? "mobile" : "desktop"
+      ...getTrackingData()
     });
     setPlayingTrack(playerTrack);
   };

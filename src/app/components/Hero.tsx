@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { trackEvent } from "../lib/analytics";
+import { getTrackingData } from "../utils/getTrackingData";
 
 const STATIC_PROFILES = [
   {
@@ -110,8 +111,7 @@ export default function Hero() {
               onClick={() =>
                 trackEvent("click_app_store", {
                   location: "hero",
-                  device: isMobile ? "mobile" : "desktop",
-                  platform: isApp ? "app" : "web",
+                  ...getTrackingData()
                 })
               }
             >
@@ -133,8 +133,7 @@ export default function Hero() {
             onClick={() =>
               trackEvent("click_continue_web", {
                 location: "hero",
-                platform: isApp ? "app" : "web",
-                device: isMobile ? "mobile" : "desktop"
+                ...getTrackingData()
               })
             }
           >
@@ -149,8 +148,7 @@ export default function Hero() {
             onClick={() =>
               trackEvent("click_demo", {
                 location: "hero",
-                device: isMobile ? "mobile" : "desktop",
-                platform: isApp ? "app" : "web",
+                ...getTrackingData()
               })
             }
             className="inline-flex items-center gap-3 px-6 py-3 text-zinc-300 font-semibold rounded-full transition-all hover:bg-zinc-800 hover:text-white"
