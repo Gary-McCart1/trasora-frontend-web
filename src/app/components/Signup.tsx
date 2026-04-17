@@ -18,9 +18,22 @@ export default function Signup() {
   const [infoMessage, setInfoMessage] = useState("");
 
   // ✅ Detect platform (web vs app)
-  const isApp =
-    typeof window !== "undefined" &&
-    "Capacitor" in window;
+  const [isMobile, setIsMobile] = useState(false);
+  const [isApp, setIsApp] = useState(false);
+
+  useEffect(() => {
+    // Detect mobile
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
+    // ✅ Proper Capacitor detection
+    if (
+      typeof window !== "undefined" &&
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === "function"
+    ) {
+      setIsApp(window.Capacitor.isNativePlatform());
+    }
+  }, []);
 
   const platform = isApp ? "app" : "web";
 
@@ -32,11 +45,12 @@ export default function Signup() {
     ) {
       trackEvent("signup_started", {
         platform,
+        device: isMobile ? "mobile" : "desktop"
       });
 
       sessionStorage.setItem("signup_started_tracked", "true");
     }
-  }, [form.fullName, platform]);
+  }, [form.fullName, platform, isMobile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,6 +68,7 @@ export default function Signup() {
     trackEvent("sign_up", {
       method: "email",
       platform,
+      device: isMobile ? "mobile" : "desktop",
     });
 
     router.push(

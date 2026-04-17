@@ -29,7 +29,24 @@ export default function ExplorePage() {
   console.log(newReleases)
   // Draggable player state
   const [playingTrack, setPlayingTrack] = useState<PlayerTrack | null>(null);
-  console.log(playingTrack)
+  
+
+  const [isMobile, setIsMobile] = useState(false);
+  const [isApp, setIsApp] = useState(false);
+
+  useEffect(() => {
+    // Detect mobile
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
+    // ✅ Proper Capacitor detection
+    if (
+      typeof window !== "undefined" &&
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === "function"
+    ) {
+      setIsApp(window.Capacitor.isNativePlatform());
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,6 +65,8 @@ export default function ExplorePage() {
         setRecommendations(recs);
         trackEvent("visited_explore", {
           user_id: user.id,
+          platform: isApp ? "app" : "website",
+          device: isMobile ? "mobile" : "desktop"
         });
       } catch (err) {
         console.error(err);
@@ -76,6 +95,8 @@ export default function ExplorePage() {
     };
     trackEvent("explored_track", {
       user_id: user?.id,
+      platform: isApp ? "app" : "website",
+      device: isMobile ? "mobile" : "desktop"
     });
     setPlayingTrack(playerTrack);
   };

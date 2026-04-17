@@ -134,6 +134,7 @@ export default function Hero() {
               trackEvent("click_continue_web", {
                 location: "hero",
                 platform: isApp ? "app" : "web",
+                device: isMobile ? "mobile" : "desktop"
               })
             }
           >
@@ -148,6 +149,7 @@ export default function Hero() {
             onClick={() =>
               trackEvent("click_demo", {
                 location: "hero",
+                device: isMobile ? "mobile" : "desktop",
                 platform: isApp ? "app" : "web",
               })
             }

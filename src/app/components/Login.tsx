@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
@@ -18,8 +18,22 @@ export default function Login() {
   const router = useRouter();
 
   // ✅ Detect platform (Capacitor = app)
-  const isApp =
-  typeof window !== "undefined" && !!window.Capacitor;
+  const [isMobile, setIsMobile] = useState(false);
+  const [isApp, setIsApp] = useState(false);
+
+  useEffect(() => {
+    // Detect mobile
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
+    // ✅ Proper Capacitor detection
+    if (
+      typeof window !== "undefined" &&
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === "function"
+    ) {
+      setIsApp(window.Capacitor.isNativePlatform());
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -44,6 +58,7 @@ export default function Login() {
       // ✅ Track login with platform
       trackEvent("login", {
         method: "Email",
+        device: isMobile ? "mobile" : "desktop", 
         platform: isApp ? "app" : "web",
       });
 

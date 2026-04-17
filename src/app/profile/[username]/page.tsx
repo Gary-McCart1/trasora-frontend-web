@@ -52,6 +52,23 @@ export default function ProfilePage() {
   const [showTrunkCreator, setShowTrunkCreator] = useState(false);
   const [addSongTrunkId, setAddSongTrunkId] = useState<number | null>(null);
 
+  const [isMobile, setIsMobile] = useState(false);
+  const [isApp, setIsApp] = useState(false);
+
+  useEffect(() => {
+    // Detect mobile
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
+    // ✅ Proper Capacitor detection
+    if (
+      typeof window !== "undefined" &&
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === "function"
+    ) {
+      setIsApp(window.Capacitor.isNativePlatform());
+    }
+  }, []);
+
   // --- Draggable Player State ---
   const [playingTrack, setPlayingTrack] = useState<{
     id: string;
@@ -122,6 +139,8 @@ export default function ProfilePage() {
   useEffect(() => {
     trackEvent("view_profile", {
       profile_user_id: profileUser?.id,
+      platform: isApp ? "app" : "website",
+      device: isMobile ? "mobile" : "desktop"
     });
   }, [profileUser?.id]);
 
@@ -168,6 +187,8 @@ export default function ProfilePage() {
       setProfileUser((prev) => (prev ? { ...prev, ...data } : prev));
       trackEvent("follow_user", {
         followed_user_id: profileUser.id,
+        platform: isApp ? "app" : "website",
+        device: isMobile ? "mobile" : "desktop"
       });
       return data.status;
     } catch (err) {

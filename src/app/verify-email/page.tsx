@@ -11,14 +11,36 @@ const useRouter = () => ({
 });
 
 const CheckCircleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="28"
+    height="28"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="text-green-500"
+  >
     <path d="M22 11.08V12a10 10 0 1 1-5.93-8.6"></path>
     <path d="M22 4L12 14.01l-3-3"></path>
   </svg>
 );
 
 const AlertCircleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="28"
+    height="28"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="text-red-500"
+  >
     <circle cx="12" cy="12" r="10"></circle>
     <line x1="12" y1="8" x2="12" y2="12"></line>
     <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -26,7 +48,18 @@ const AlertCircleIcon = () => (
 );
 
 const MailIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-2 text-purple-400">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="inline mr-2 text-purple-400"
+  >
     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
     <polyline points="22,6 12,13 2,6"></polyline>
   </svg>
@@ -34,17 +67,30 @@ const MailIcon = () => (
 
 function VerifyEmailContent() {
   const router = useRouter();
-  const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
+  const [status, setStatus] = useState<"verifying" | "success" | "error">(
+    "verifying"
+  );
   const [message, setMessage] = useState("Verifying your email...");
   const [email, setEmail] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
 
-  const isApp =
-    typeof window !== "undefined" &&
-    "Capacitor" in window;
+  const [isMobile, setIsMobile] = useState(false);
+  const [isApp, setIsApp] = useState(false);
 
-  const platform = isApp ? "app" : "web";
+  useEffect(() => {
+    // Detect mobile
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
+    // ✅ Proper Capacitor detection
+    if (
+      typeof window !== "undefined" &&
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === "function"
+    ) {
+      setIsApp(window.Capacitor.isNativePlatform());
+    }
+  }, []);
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("token");
@@ -54,10 +100,10 @@ function VerifyEmailContent() {
       setMessage("Invalid verification link.");
       trackEvent("signup_failed", {
         method: "email",
-        platform,
+        platform: isApp ? "app" : "website",
+        device: isMobile ? "mobile" : "desktop",
       });
       return;
-      
     }
 
     async function verify() {
@@ -69,13 +115,16 @@ function VerifyEmailContent() {
         setTimeout(() => router.push("/login"), 3000);
         trackEvent("signup_complete", {
           method: "Email",
-          platform
+          platform: isApp ? "app" : "website",
+          device: isMobile ? "mobile" : "desktop",
         });
       } catch (err: unknown) {
         console.error("Email verification error:", err);
         setStatus("error");
         setMessage(
-          err instanceof Error ? err.message : "Verification failed due to network or server error."
+          err instanceof Error
+            ? err.message
+            : "Verification failed due to network or server error."
         );
       }
     }
@@ -96,7 +145,11 @@ function VerifyEmailContent() {
     } catch (err: unknown) {
       console.error("Resend verification error:", err);
       setStatus("error");
-      setMessage(err instanceof Error ? err.message : "An error occurred while resending verification email.");
+      setMessage(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while resending verification email."
+      );
     } finally {
       setResendLoading(false);
     }

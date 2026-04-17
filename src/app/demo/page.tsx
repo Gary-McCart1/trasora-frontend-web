@@ -2,10 +2,26 @@
 
 import Link from "next/link";
 import { trackEvent } from "../lib/analytics";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const DemoPage = () => {
-  const [isMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const [isApp, setIsApp] = useState(false);
+
+  useEffect(() => {
+    // Detect mobile
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
+    // ✅ Proper Capacitor detection
+    if (
+      typeof window !== "undefined" &&
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === "function"
+    ) {
+      setIsApp(window.Capacitor.isNativePlatform());
+    }
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-950 to-black text-zinc-200 px-6 md:px-12 py-16 flex flex-col items-center relative overflow-hidden">
       {/* soft purple glow background (matches hero style) */}
@@ -52,6 +68,8 @@ const DemoPage = () => {
               onClick={() =>
                 trackEvent("click_continue_web", {
                   location: "demo-page",
+                  platform: isApp ? "app" : "website",
+                  device: isMobile ? "mobile" : "desktop"
                 })
               }
               className="px-10 py-4 rounded-xl bg-purple-600 text-white font-semibold 
@@ -70,7 +88,8 @@ const DemoPage = () => {
               onClick={() =>
                 trackEvent("click_app_store", {
                   location: "demo-page",
-                  device: isMobile ? "mobile" : "desktop",
+                  platform: isApp ? "app" : "website",
+                  device: isMobile ? "mobile" : "desktop"
                 })
               }
               className="px-8 py-4 rounded-xl border border-zinc-700 

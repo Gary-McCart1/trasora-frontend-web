@@ -31,6 +31,23 @@ export const ApplePlayerProvider = ({ children }: { children: React.ReactNode })
   const [isReady, setIsReady] = useState(false); // ✅ track if player initialized
   const pathname = usePathname(); // Track pathname changes
 
+  const [isMobile, setIsMobile] = useState(false);
+  const [isApp, setIsApp] = useState(false);
+
+  useEffect(() => {
+    // Detect mobile
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
+    // ✅ Proper Capacitor detection
+    if (
+      typeof window !== "undefined" &&
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === "function"
+    ) {
+      setIsApp(window.Capacitor.isNativePlatform());
+    }
+  }, []);
+
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
@@ -61,6 +78,8 @@ export const ApplePlayerProvider = ({ children }: { children: React.ReactNode })
       setIsPlaying(true);
       trackEvent("play_song", {
         song_title: url,
+        platform: isApp ? "app" : "website",
+        device: isMobile ? "mobile" : "desktop"
       });
     } catch (err) {
       console.warn("Autoplay blocked or failed:", err);
