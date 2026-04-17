@@ -7,7 +7,7 @@ import ClientProviders from "./components/ClientProviders";
 import { StoriesProvider } from "./context/StoriesContext";
 import { AlertProvider } from "./context/AlertContext";
 import { ApplePlayerProvider } from "./context/ApplePlayerContext";
-import PushRegistrar from "./components/PushRegistrar"; // new client component
+import PushRegistrar from "./components/PushRegistrar";
 import FooterNav from "./components/FooterNav";
 import { Analytics } from "@vercel/analytics/next";
 import IOSViewportFix from "./context/IOSViewPortFix";
@@ -38,25 +38,6 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 
-        {/* Google Analytics */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-239125B4RC"
-          strategy="afterInteractive"
-        />
-
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            window.gtag = function(){dataLayer.push(arguments);}
-
-            gtag('js', new Date());
-
-            gtag('config', 'G-239125B4RC', {
-              debug_mode: true
-            });
-          `}
-        </Script>
-
         {/* Splash screens */}
         <link
           rel="apple-touch-startup-image"
@@ -73,7 +54,6 @@ export default function RootLayout({
           name="viewport"
           content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover"
         />
-
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <meta name="theme-color" content="#09090b" />
@@ -84,12 +64,32 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased text-zinc-50`}
       >
+        {/* ✅ GA4 LOAD FIRST */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-239125B4RC"
+          strategy="afterInteractive"
+        />
+
+        <Script id="ga-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+
+            gtag('js', new Date());
+            gtag('config', 'G-239125B4RC', {
+              debug_mode: true
+            });
+          `}
+        </Script>
+
+        {/* App */}
         <IOSViewportFix />
+
         <ClientProviders>
           <AlertProvider>
             <ApplePlayerProvider>
               <StoriesProvider>
-                {/* ONLY critical providers above main */}
                 <div className="flex flex-col bg-zinc-950 min-h-[100svh]">
                   <Navbar />
                   <main className="flex-grow">{children}</main>
@@ -98,10 +98,9 @@ export default function RootLayout({
                 </div>
               </StoriesProvider>
             </ApplePlayerProvider>
-            {/* Move non-critical providers/components BELOW main for faster LCP */}
 
+            {/* Non-critical */}
             <PushRegistrar />
-
             <Analytics />
           </AlertProvider>
         </ClientProviders>
