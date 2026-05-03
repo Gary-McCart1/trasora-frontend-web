@@ -111,7 +111,7 @@ export default function Hero() {
               onClick={() =>
                 trackEvent("click_app_store", {
                   location: "hero",
-                  ...getTrackingData()
+                  ...getTrackingData(),
                 })
               }
             >
@@ -133,11 +133,28 @@ export default function Hero() {
             onClick={() =>
               trackEvent("click_continue_web", {
                 location: "hero",
-                ...getTrackingData()
+                ...getTrackingData(),
               })
             }
           >
             Sign Up
+          </Link>
+        </div>
+        <div className="mt-4">
+          <Link
+            href="/login"
+            className="text-sm text-zinc-400 hover:text-white transition-colors"
+            onClick={() =>
+              trackEvent("click_login", {
+                location: "hero",
+                ...getTrackingData(),
+              })
+            }
+          >
+            Already have an account?{" "}
+            <span className="text-purple-400 font-semibold hover:text-purple-300">
+              Log in
+            </span>
           </Link>
         </div>
 
@@ -148,7 +165,7 @@ export default function Hero() {
             onClick={() =>
               trackEvent("click_demo", {
                 location: "hero",
-                ...getTrackingData()
+                ...getTrackingData(),
               })
             }
             className="inline-flex items-center gap-3 px-6 py-3 text-zinc-300 font-semibold rounded-full transition-all hover:bg-zinc-800 hover:text-white"

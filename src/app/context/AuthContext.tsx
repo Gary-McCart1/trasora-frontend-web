@@ -33,73 +33,83 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     "/leaderboard",
   ];
 
-  // 🚀 Register for push once on app start
+  // 1. Centralized Protection Logic
+  useEffect(() => {
+    // Wait until we are sure about the auth state
+    if (loading) return;
+
+    const isPublicPath = publicPaths.some(
+      (path) => pathname === path || pathname?.startsWith(`${path}/`)
+    );
+
+    // If no user and trying to access a private route (like /), go to /about
+    if (!user && !isPublicPath) {
+      router.push("/about");
+    }
+  }, [user, loading, pathname, router]);
+
+  // 2. Register for push once on app start
   useEffect(() => {
     registerPush().catch((err) => {
       console.error("Failed to register push:", err);
     });
   }, []);
 
-  // Fetch user from localStorage or API
+  // 3. Initial Auth Check (Cache vs API)
   useEffect(() => {
-    const cachedUser = localStorage.getItem("currentUser");
+    const checkAuth = async () => {
+      const cachedUser = localStorage.getItem("currentUser");
 
-    if (cachedUser) {
-      setUser(JSON.parse(cachedUser)); // Use cached user if available
-      setLoading(false); // Skip loading state
-    } else {
-      fetchUser(); // Otherwise, fetch the user from API
-    }
+      if (cachedUser) {
+        try {
+          setUser(JSON.parse(cachedUser));
+        } catch (e) {
+          localStorage.removeItem("currentUser");
+        }
+        setLoading(false);
+      } else {
+        await fetchUser();
+      }
+    };
+
+    checkAuth();
   }, []);
 
-  // Fetch user on mount (if not cached)
   const fetchUser = async () => {
     try {
       const currentUser = await fetchCurrentUser();
       setUser(currentUser);
-      localStorage.setItem("currentUser", JSON.stringify(currentUser)); // Cache user in localStorage
+      if (currentUser) {
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+      }
     } catch (error) {
       setUser(null);
-      // Redirect to login if not on public paths
-      if (!publicPaths.some((path) => pathname?.startsWith(path))) {
-        router.push("/login");
-      }
+      localStorage.removeItem("currentUser");
     } finally {
       setLoading(false);
     }
   };
 
-  // Silent refresh every 30 minutes
+  // 4. Silent refresh every 30 minutes
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
         const currentUser = await fetchCurrentUser();
         setUser(currentUser);
-        localStorage.setItem("currentUser", JSON.stringify(currentUser)); // Update cached user
+        if (currentUser) {
+          localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        }
       } catch (error) {
         console.error("Silent refresh failed:", error);
       }
-    }, 30 * 60 * 1000); // Refresh every 30 minutes
+    }, 30 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
 
   const refreshUser = async () => {
     setLoading(true);
-    try {
-      const currentUser = await fetchCurrentUser();
-      setUser(currentUser);
-      localStorage.setItem("currentUser", JSON.stringify(currentUser)); // Update cached user
-    } catch (error) {
-      console.error("Error refreshing user:", error);
-      setUser(null);
-
-      if (!publicPaths.some((path) => pathname?.startsWith(path))) {
-        router.push("/login");
-      }
-    } finally {
-      setLoading(false);
-    }
+    await fetchUser();
   };
 
   return (

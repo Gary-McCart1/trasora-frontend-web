@@ -113,7 +113,7 @@ export default function Navbar() {
   ];
 
   const handleProtectedRoute = (path: string) => {
-    if (!user) router.push("/login");
+    if (!user) router.push("/about");
     else router.push(path);
   };
 
