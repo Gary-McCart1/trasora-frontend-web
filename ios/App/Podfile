@@ -15,7 +15,7 @@ target 'App' do
   capacitor_pods
 
   # ✅ MOVE IT HERE
-  pod 'Firebase/Analytics'
+  pod 'Firebase/Analytics', '10.20.0'
 end
 
 post_install do |installer|

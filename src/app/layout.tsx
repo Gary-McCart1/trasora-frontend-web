@@ -80,6 +80,7 @@ export default function RootLayout({
             gtag('config', 'G-239125B4RC', {
               debug_mode: true
             });
+            gtag('config', 'AW-10953725594');
           `}
         </Script>
 
