@@ -102,6 +102,11 @@ function VerifyEmailContent() {
           method: "Email",
           ...getTrackingData()
         });
+        if (typeof window !== "undefined" && window.gtag) {
+          window.gtag("event", "signup_complete", {
+            method: "Email",
+          });
+        }
       } catch (err: unknown) {
         console.error("Email verification error:", err);
         setStatus("error");
